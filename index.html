@@ -217,7 +217,24 @@ div.room { background: #3a2a1d url(assets/ui/texture-wood.webp) 0 0 / 256px; pad
 .boss .who { display: grid; gap: 2px; }
 .boss .who .label { color: var(--blood); }
 .coach { grid-template-columns: auto 1fr; column-gap: 14px; align-items: start; }
-.coach > .clerk { grid-row: span 3; width: 56px; height: 70px; }
+.coach > .clerk { grid-row: span 3; width: 84px; height: 105px; }
+.status.n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.status.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 620px) { .status.n3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .status.n2 .stat:first-child { grid-column: auto; } }
+/* What the clerk is talking about right now. */
+.tut-focus { position: relative; z-index: 2; outline: 3px solid var(--gold); outline-offset: 3px; border-radius: 8px; box-shadow: 0 0 0 7px color-mix(in srgb, var(--gold) 28%, transparent); animation: focuspulse 1.3s ease-in-out infinite; }
+.status .tut-focus { outline-offset: -3px; border-radius: 0; box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--gold) 14%, transparent); }
+@keyframes focuspulse { 50% { outline-color: color-mix(in srgb, var(--gold) 40%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .tut-focus { animation: none; } }
+.coach .tutnav { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+/* The clerk's dialogue is the one thing a new player must read, so it is big and bright. */
+.coach { border: 2px solid var(--verdigris); box-shadow: 0 0 0 4px color-mix(in srgb, var(--verdigris) 20%, transparent), 0 6px 18px rgba(0,0,0,.35); padding: 16px 18px; row-gap: 10px; }
+.coach p { font-size: 21px; line-height: 1.35; color: var(--bone); }
+.coach .label { font-size: 13px; color: var(--verdigris); }
+.coach.hint { border-color: var(--gold); box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 18%, transparent), 0 6px 18px rgba(0,0,0,.35); }
+.coach.hint .label { color: var(--gold); }
+.coach .ok { font-size: 17px; padding: 10px 22px; }
+@media (max-width: 560px) { .coach > .clerk { width: 60px; height: 75px; } .coach p { font-size: 19px; } }
 .coach > :not(.clerk) { grid-column: 2; }
 .settle { position: relative; display: flex; gap: 14px; align-items: center; background: var(--panel-bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
 .settle .clerk { width: 72px; height: 90px; }
@@ -273,9 +290,12 @@ div.room { background: #3a2a1d url(assets/ui/texture-wood.webp) 0 0 / 256px; pad
     5: { name: 'The Plague Hag', rule: 'Potions heal half (rounded down).', key: 'halfPotion' },
     8: { name: 'The Lich Auditor', rule: 'Only Reckless contracts are accepted.', key: 'recklessOnly' },
   };
-  // Guided runs unlock systems gradually (floor indices, 0-based): floor 1 offers only Safe and no raise,
-  // Bold, Reckless and raises open on floor 2, and clauses on floor 4 (the start of act 2).
-  const UNLOCK = { tiers: 1, raise: 1, clauses: 3 };
+  // Guided runs unlock systems gradually (floor indices, 0-based). Floor 1 has no contract at all: you only
+  // have to survive it, and the guild pays SURVIVAL_PAY (no interest). The shop after floor 1 sells services
+  // only; relics appear from the shop after floor 2. Contracts (Safe only) start on floor 2, Bold, Reckless
+  // and raises on floor 3, and clauses on floor 4 (the start of act 2).
+  const UNLOCK = { contracts: 1, relics: 1, tiers: 2, raise: 2, clauses: 3 };
+  const SURVIVAL_PAY = 6;
   const locked = (s, k) => s.guided && s.floor < UNLOCK[k];
   // Clauses: one contract offer per floor carries one. It pays x1.5 and bends a rule for that floor.
   const CLAUSES = {
@@ -435,6 +455,12 @@ div.room { background: #3a2a1d url(assets/ui/texture-wood.webp) 0 0 / 256px; pad
     s.offers = tiers.map(t => ({ tier: t, clause: null }));
     if (!locked(s, 'clauses')) s.offers.push({ tier: clauseTier, clause: ck });
     s.phase = 'bid';
+    if (locked(s, 'contracts')) survivalFloor(s);
+  }
+  // A floor with no contract: no points to hit, no strike to fear. Just get through the rooms.
+  function survivalFloor(s, pay = SURVIVAL_PAY) {
+    s.contract = { tier: 0, clause: null, target: 0, pay, survival: true };
+    s.offers = []; s.phase = 'room';
   }
   function allowedTiers(s) {
     if (locked(s, 'tiers')) return [0];
@@ -446,7 +472,6 @@ div.room { background: #3a2a1d url(assets/ui/texture-wood.webp) 0 0 / 256px; pad
     return cl ? Math.ceil(base * 1.5) : base;
   }
   function makeContract(s, tier, cl) {
-    if (s.tutorial) return { tier, clause: null, target: 12, pay: 0 };
     return { tier, clause: cl || null, target: TARGETS[s.floor][tier], pay: payout(s, tier, cl) };
   }
   function bid(s, i) {
@@ -497,7 +522,7 @@ div.room { background: #3a2a1d url(assets/ui/texture-wood.webp) 0 0 / 256px; pad
     const out = resolveCard(s, c, mode);
     s.room.splice(i, 1); s.handled++;
     const name = rankLabel(c.v) + c.suit;
-    if (c.kind === 'monster') log(s, `${name}: took ${out.dmg} damage` + (s.hp > 0 ? `, +${out.points} points${out.heal ? `, healed ${out.heal}` : ''}${out.gold ? `, +${out.gold} gold` : ''}.` : '.'));
+    if (c.kind === 'monster') log(s, `${name}: took ${out.dmg} damage` + (s.hp > 0 ? `${s.contract.survival ? '' : `, +${out.points} points`}${out.heal ? `, healed ${out.heal}` : ''}${out.gold ? `, +${out.gold} gold` : ''}.` : '.'));
     else if (c.kind === 'weapon') log(s, `Equipped a ${s.weapon.v}♦ weapon.`);
     else log(s, (out.heal ? `${name}: healed ${out.heal}` : `${name}: no healing`) + (out.points ? `, +${out.points} points.` : '.'));
     if (s.hp <= 0) { s.hp = 0; s.phase = 'lost'; s.lastResult = 'You fell in the dungeon.'; return true; }
@@ -510,9 +535,12 @@ div.room { background: #3a2a1d url(assets/ui/texture-wood.webp) 0 0 / 256px; pad
   }
   function endFloor(s) {
     const c = s.contract; s.totalSlain += s.slain;
-    if (s.tutorial) { s.phase = 'tutdone'; s.lastResult = `Contract met: ${s.slain}/${c.target}.`; return; }
+    if (s.tutorial) { s.phase = 'tutdone'; s.lastResult = `You made it through with ${s.hp} health left.`; return; }
     let msg;
-    if (s.slain >= c.target) {
+    if (c.survival) {
+      s.gold += c.pay;
+      msg = `Floor survived. The guild pays you ${c.pay} gold.`;
+    } else if (s.slain >= c.target) {
       const over = Math.floor((s.slain - c.target) / (has(s, 'taxman') ? 2 : 5));
       s.gold += c.pay + over;
       msg = `Contract met: ${s.slain}/${c.target}. +${c.pay} gold` + (over ? `, +${over} overkill.` : '.');
@@ -522,7 +550,7 @@ div.room { background: #3a2a1d url(assets/ui/texture-wood.webp) 0 0 / 256px; pad
       else { s.strikes++; msg = `Contract missed: ${s.slain}/${c.target}. Strike ${s.strikes} of 3.`; }
       if (has(s, 'loanshark')) { s.gold = Math.max(0, s.gold - 8); msg += ' The loan shark takes 8 gold.'; }
     }
-    const interest = Math.min(has(s, 'tithe') ? 6 : 3, Math.floor(s.gold / 5));
+    const interest = c.survival ? 0 : Math.min(has(s, 'tithe') ? 6 : 3, Math.floor(s.gold / 5));
     s.gold += interest;
     if (interest) msg += ` Interest +${interest}.`;
     if (s.floor % 3 === 2) {
@@ -535,7 +563,7 @@ div.room { background: #3a2a1d url(assets/ui/texture-wood.webp) 0 0 / 256px; pad
     if (s.floor === FLOORS - 1) { s.phase = 'won'; return; }
     s.phase = 'shop';
     const pool = Object.keys(RELICS).filter(k => !has(s, k));
-    s.shop = { relics: shuffle(pool, s.r).slice(0, 3), bought: {} };
+    s.shop = { relics: locked(s, 'relics') ? [] : shuffle(pool, s.r).slice(0, 3), bought: {} };
   }
   const SERVICES = {
     bandage: { name: 'Bandage', text: 'Heal 6 HP.', cost: 3 },
@@ -575,12 +603,12 @@ div.room { background: #3a2a1d url(assets/ui/texture-wood.webp) 0 0 / 256px; pad
     const room1 = [c('monster', 5, '♠'), c('weapon', 7, '♦'), c('potion', 4, '♥'), c('monster', 9, '♣')];
     const next = [c('monster', 10, '♠'), c('monster', 3, '♣'), c('potion', 6, '♥')];
     s.tutorial = true; s.room = room1; s.draw = next.concat(s.draw); s.log = [];
-    s.offers = [{ tier: 0, clause: null }];
+    survivalFloor(s, 0);
     return s;
   }
 
   const api = {
-    MAX_HP, ROOMS_PER_FLOOR, FLOORS, UNLOCK, MAX_RELICS, TIERS, TARGETS, DUES, BOSSES, RELICS, SERVICES, CLAUSES,
+    MAX_HP, ROOMS_PER_FLOOR, FLOORS, UNLOCK, SURVIVAL_PAY, MAX_RELICS, TIERS, TARGETS, DUES, BOSSES, RELICS, SERVICES, CLAUSES,
     newGame, newTutorial, bid, flee, canFlee, handle, buy, dropRelic, leaveShop, allowedTiers, payout,
     canRaise, raise, canRedraw, redraw,
     canUseWeapon, monsterDamage, contractPoints, potionHeal, resolveCard, rankLabel, act,
@@ -593,7 +621,7 @@ div.room { background: #3a2a1d url(assets/ui/texture-wood.webp) 0 0 / 256px; pad
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const webReports = () => !!(REPORT.url && REPORT.entry) && dbState !== 'on';
@@ -666,14 +694,19 @@ let seenHints = store.get('hints', {});
 
 // ---------- tutorial ----------
 // Each step allows exactly one action, so the coach text always matches the table.
+// Steps with `allow` wait for that one move. Steps without it are a tour of the screen with a Next button.
+// `focus` highlights the part of the screen the step talks about.
 const TUTORIAL = [
-  { allow: { bid: 0 }, text: 'Your goal: get through the dungeon one floor at a time <b>without your health reaching 0</b>. Each floor starts with a <b>contract</b>: a promise to kill a number of monster points. Sign this practice one.' },
-  { allow: { v: 7, mode: null }, text: 'Each room has 4 cards. You pick <b>3</b>; the last one waits for the next room. First, pick up the <b>Short Sword (7)</b>.' },
-  { allow: { v: 9, mode: 'weapon' }, text: 'A weapon blocks damage. The <b>Owlbear (9)</b> minus your sword (7) means you only lose <b>2</b> health, and you earn 9 points.' },
-  { allow: { v: 5, mode: 'weapon' }, text: 'Catch: after each kill, your weapon can only hit monsters <b>no bigger</b> than that one. So go from big to small. Hit the <b>Ghost (5)</b>.' },
-  { allow: { v: 3, mode: 'weapon' }, text: 'New room. Your sword now only hits <b>5 or less</b>. Use it on the <b>Cave Bat (3)</b>.' },
-  { allow: { v: 10, mode: 'bare' }, text: 'The <b>Bone Golem (10)</b> is too big for your sword, so you fight with fists and lose the full <b>10</b>. In a real game you can <b>flee</b> a room you don\'t like before touching it.' },
-  { allow: { v: 6, mode: null }, text: 'Ouch. Drink the <b>Tonic (6)</b> to heal. Only one potion per room works.' },
+  { focus: '.stat.hp', text: 'This is your <b>health</b>. If it reaches 0, you lose. Your only goal: <b>stay alive</b>.' },
+  { focus: '.stat.weapon', text: 'This is your <b>weapon</b>. A weapon blocks damage from monsters. You don\'t have one yet.' },
+  { focus: '.room', text: 'This is a <b>room</b>: 4 cards. You pick 3 of them. The last one stays for the next room.' },
+  { focus: '.contract', text: 'These circles count the <b>rooms</b> you get through. Training has 2.' },
+  { allow: { v: 7, mode: null }, text: 'Let\'s play. Pick up the <b>Short Sword</b>.' },
+  { allow: { v: 9, mode: 'weapon' }, focus: '.stat.weapon', text: 'Now you have a weapon. The <b>Owlbear</b> hits for 9, your sword blocks 7, so you only lose <b>2</b>. Fight it with your sword.' },
+  { allow: { v: 5, mode: 'weapon' }, focus: '.stat.weapon', text: 'Your weapon now says <b>hits ≤ 9</b>: after a kill, it only works on monsters that size or smaller. Hit the <b>Ghost (5)</b>.' },
+  { allow: { v: 3, mode: 'weapon' }, text: 'New room! Hit the <b>Cave Bat (3)</b> with your sword.' },
+  { allow: { v: 10, mode: 'bare' }, focus: '.stat.hp', text: 'The <b>Bone Golem (10)</b> is too big for your sword now. With fists you lose the full <b>10</b> health.' },
+  { allow: { v: 6, mode: null }, focus: '.stat.hp', text: 'Ouch! Drink the <b>Tonic</b> to get health back.' },
 ];
 let tut = null; // { step } while the tutorial runs
 
@@ -687,7 +720,13 @@ function newRec() {
     floorReached: 1, totalSlain: 0, gold: 0, strikes: 0, relics: [], floors: [], shops: [], actions: 0, note: '',
   };
 }
-function startRun() { tut = null; lastHit = null; s = E.newGame(undefined, { guided: true }); rec = newRec(); store.set('tutorial', true); }
+function startRun() { tut = null; lastHit = null; s = E.newGame(undefined, { guided: true }); rec = newRec(); store.set('tutorial', true); noteSurvivalFloor(); }
+function noteSurvivalFloor() { // a floor with no contract starts without a bid, so record it here
+  if (!rec || s.phase !== 'room' || !s.contract || !s.contract.survival) return;
+  const f = rec.floors[rec.floors.length - 1];
+  if (f && f.floor === s.floor + 1) return;
+  rec.floors.push({ floor: s.floor + 1, tier: null, survival: true, clause: null, target: 0, boss: s.boss ? s.boss.key : null, hpStart: s.hp, goldStart: s.gold, raises: 0, flees: 0 });
+}
 function startTutorial() { if (rec && rec.status === 'in_progress' && rec.floors.length) { rec.status = 'abandoned'; save(); } sendReport(rec); s = E.newTutorial(); rec = null; tut = { step: 0 }; }
 
 // ---------- shared playtest log (db capability) ----------
@@ -726,6 +765,7 @@ const curFloor = () => rec && rec.floors[rec.floors.length - 1];
 function afterAction(prevPhase) {
   if (!rec) return;
   rec.actions++;
+  noteSurvivalFloor();
   const f = curFloor();
   if (prevPhase === 'room' && s.phase !== 'room' && f) { // floor or run just ended
     f.slain = s.slain;
@@ -745,19 +785,25 @@ function afterAction(prevPhase) {
 function currentHint() {
   if (tut) return null;
   const multi = s.offers && s.offers.length > 1;
+  const shopNow = s.phase === 'shop';
   const list = [
-    ['warmup', s.phase === 'bid' && !multi && s.floor === 0, 'Floor 1 is a warm-up with a single contract. Look at the room below, then sign it. More options open up as you go deeper.'],
-    ['met', s.phase === 'room' && s.contract && s.slain >= s.contract.target, '<b>Contract met!</b> Extra points only pay a little more gold, so from here on, <b>protect your health</b>: take the smallest hits and drink potions.'],
-    ['shop', s.phase === 'shop', 'Welcome to the guild hall. Spend gold on <b>relics</b>: each one bends a rule for the rest of the run. You don\'t have to buy anything.'],
-    ['tiers', s.phase === 'bid' && multi && !s.boss, '<b>New: Bold and Reckless contracts.</b> A bigger target pays more gold, but a miss is a strike. When in doubt, Safe is fine.'],
-    ['raise', s.phase === 'room' && E.canRaise(s), '<b>New: raise.</b> If a floor is going well, you can raise your contract one step between rooms, for more gold. Once per floor.'],
-    ['dues', s.phase === 'shop' && s.floor % 3 === 1, '<b>Guild dues:</b> after the next floor, the guild collects a fee (top of the screen). Keep enough gold, or it\'s a strike.'],
-    ['boss', s.phase === 'bid' && s.boss, '<b>Boss floor.</b> The boss adds one special rule for this floor. Read it before you sign.'],
-    ['clause', s.phase === 'bid' && s.offers.some(o => o.clause), '<b>New: clauses.</b> The offer with a second wax seal pays 1.5× as much, but adds a rule for this floor.'],
-    ['limit', s.phase === 'room' && s.weapon && s.weapon.limit != null, 'Your weapon has dulled: it only hits monsters up to the number shown under Weapon. Bigger ones need fists, or a new weapon.'],
+    ['survive', s.phase === 'room' && survival() && s.floor === 0, 'Just like training: <b>stay alive</b> for 4 rooms. Pick 3 cards in each room.', '.stat.hp'],
+    ['gold', shopNow && s.floor === 0, '<b>New: gold!</b> The guild paid you 6 gold for surviving. Your gold shows up here.', '.stat.gold'],
+    ['shop', shopNow && s.floor === 0, 'This is the <b>shop</b>. Tap <b>Buy</b> to spend gold. A <b>Bandage</b> heals 6 health before the next floor.', '.shop .services'],
+    ['leave', shopNow && s.floor === 0, 'Done shopping? Tap <b>Descend</b> to go down to the next floor.', '[data-leave]'],
+    ['contracts', s.phase === 'bid' && !multi, '<b>New: contracts.</b> Promise to kill this many monster points on this floor. Make it: you get gold. Miss it: you get a strike.', '.offers'],
+    ['strikes', s.phase === 'bid' && contractsOpen(), 'These are your <b>strikes</b>. Miss a contract and you get one. Three strikes ends your run.', '.stat.strikes'],
+    ['met', s.phase === 'room' && s.contract && !survival() && s.slain >= s.contract.target, '<b>Contract met!</b> Extra points only pay a little more gold, so from here on, <b>protect your health</b>: take the smallest hits and drink potions.', '.contract'],
+    ['relics', shopNow && relicsOpen() && s.shop.relics.length > 0, '<b>New: relics!</b> Each one gives you a power for the rest of the run. You can carry 4.', '.shop .relicgrid'],
+    ['dues', shopNow && s.floor % 3 === 1, '<b>Guild dues:</b> after the next floor, the guild collects this fee. Keep enough gold, or it\'s a strike.', '.stat.dues'],
+    ['tiers', s.phase === 'bid' && multi && !s.boss, '<b>New: Bold and Reckless contracts.</b> A bigger target pays more gold, but a miss is a strike. When in doubt, Safe is fine.', '.offers'],
+    ['raise', s.phase === 'room' && E.canRaise(s), '<b>New: raise.</b> If a floor is going well, you can raise your contract one step between rooms, for more gold. Once per floor.', '[data-raise]'],
+    ['boss', s.phase === 'bid' && s.boss, '<b>Boss floor.</b> The boss adds one special rule for this floor. Read it before you sign.', '.boss'],
+    ['clause', s.phase === 'bid' && s.offers.some(o => o.clause), '<b>New: clauses.</b> The offer with a second wax seal pays 1.5× as much, but adds a rule for this floor.', '.offer.clause'],
+    ['limit', s.phase === 'room' && s.weapon && s.weapon.limit != null, 'Your weapon has dulled: it only hits monsters up to the number shown under Weapon. Bigger ones need fists, or a new weapon.', '.stat.weapon'],
   ];
   const h = list.find(([k, cond]) => cond && !seenHints[k]);
-  return h ? { key: h[0], text: h[2] } : null;
+  return h ? { key: h[0], text: h[2], focus: h[3] } : null;
 }
 function duesWarning() {
   if (tut || !['bid', 'room', 'shop'].includes(s.phase)) return '';
@@ -768,6 +814,11 @@ function duesWarning() {
   return `<p class="warn ${short ? 'short' : ''}">Guild dues of <b class="num">${due}</b> gold are due after ${s.phase === 'shop' ? 'the next floor' : 'this floor'}. You have <b class="num">${s.gold}</b>.${short ? ' Miss them and it\'s a strike.' : ''}</p>`;
 }
 
+const survival = () => !!(tut || (s.contract && s.contract.survival));
+// The HUD and shop grow with the run: gold after floor 1, contracts (dues, strikes) on floor 2, relics after floor 2.
+const goldOpen = () => !tut && (s.floor > 0 || s.phase === 'shop');
+const contractsOpen = () => !tut && s.floor >= E.UNLOCK.contracts;
+const relicsOpen = () => !tut && (s.floor > E.UNLOCK.relics || (s.floor === E.UNLOCK.relics && s.phase === 'shop') || s.relics.length > 0);
 // ---------- goal line: what to do right now, in one sentence ----------
 function goalHTML() {
   if (tut) return '';
@@ -775,6 +826,7 @@ function goalHTML() {
   if (s.phase === 'bid') return `<p class="goal"><span class="label">Goal</span><span>Survive <b>${floorsLeft}</b> more floor${floorsLeft === 1 ? '' : 's'}. First, sign a contract for this one.</span></p>`;
   if (s.phase === 'room') {
     const need = s.contract.target - s.slain, left = roomsOnFloor() - s.roomsCleared;
+    if (survival()) return `<p class="goal"><span class="label">Goal</span><span>Get through <b>${left}</b> more room${left === 1 ? '' : 's'}. Don't let your health reach 0.</span></p>`;
     if (need <= 0) return `<p class="goal done"><span class="label">Contract met</span><span>Now just stay alive for ${left} more room${left === 1 ? '' : 's'}. Take small hits and drink potions.</span></p>`;
     return `<p class="goal"><span class="label">Goal</span><span>Kill <b>${need}</b> more monster points in <b>${left}</b> room${left === 1 ? '' : 's'}, without your health reaching 0.</span></p>`;
   }
@@ -791,6 +843,7 @@ function cardName(c) {
 function fightLabel(c, weapon) {
   const d = E.monsterDamage(s, c, weapon);
   if (d >= s.hp) return `${weapon ? 'Weapon' : 'Fists'}: take ${d} (fatal)`;
+  if (survival()) return `${weapon ? 'Weapon' : 'Fists'}: lose ${d} health`;
   const pts = E.contractPoints({ ...s, hp: s.hp - d }, c, !weapon);
   return `${weapon ? 'Weapon' : 'Fists'}: take ${d} · +${pts}`;
 }
@@ -814,7 +867,7 @@ function cardHTML(c, active) {
   } else if (c.kind === 'weapon') {
     acts = btn(null, `Equip${s.relics.includes('grindstone') ? ` as ${c.v + 1}♦` : ''}${s.weapon ? ` (drops ${s.weapon.v}♦)` : ''}`);
   } else acts = btn(null, potionPreview(c));
-  const lit = tut && TUTORIAL[tut.step] && TUTORIAL[tut.step].allow.v === c.v && s.phase === 'room';
+  const lit = tut && TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.v === c.v && s.phase === 'room';
   return `<article class="card ${c.kind} ${c.v >= 15 ? 'elite' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''}" data-card="${c.id}">
     <div class="art">${img(cardArt(c))}<span class="rank">${E.rankLabel(c.v)}<small>${c.suit}</small></span></div>
     <div class="name"><span class="face">${cardName(c)}</span><span class="kind">${c.v >= 15 ? 'Elite monster' : face[c.kind]}</span></div>
@@ -822,18 +875,19 @@ function cardHTML(c, active) {
 }
 function statusHTML() {
   const w = s.weapon ? `${s.weapon.v}♦ <span class="muted" style="font-size:13px">${s.weapon.limit == null ? 'fresh' : 'hits ≤ ' + E.rankLabel(s.weapon.limit)}</span>` : '<span class="muted">none</span>';
-  return `<section class="status" aria-label="Status">
-    <div class="stat"><span class="label">${img('icons/hud-hp.webp')}Health</span><span class="num">${s.hp}<span class="muted">/${s.maxHp}</span></span><div class="hpbar"><i style="width:${100 * s.hp / s.maxHp}%"></i></div></div>
-    <div class="stat"><span class="label">${img('icons/hud-gold.webp')}Gold</span><span class="num price">${s.gold}</span></div>
-    <div class="stat"><span class="label">${img('icons/hud-weapon-slot.webp')}Weapon</span><span class="num">${w}</span></div>
-    <div class="stat"><span class="label">${img('icons/emblem-guild.webp')}Dues after floor ${E.act(s) * 3 + 3}</span><span class="num price">${tut ? '—' : E.DUES[E.act(s)]}<span class="muted" style="font-size:13px"> gold</span></span></div>
-    <div class="stat"><span class="label">${img('icons/hud-strike.webp')}Strikes</span><div class="pips">${[0, 1, 2].map(i => `<span class="pip ${i < s.strikes ? 'on' : ''}"></span>`).join('')}</div></div>
-  </section>`;
+  const cells = [
+    `<div class="stat hp"><span class="label">${img('icons/hud-hp.webp')}Health</span><span class="num">${s.hp}<span class="muted">/${s.maxHp}</span></span><div class="hpbar"><i style="width:${100 * s.hp / s.maxHp}%"></i></div></div>`,
+    goldOpen() && `<div class="stat gold"><span class="label">${img('icons/hud-gold.webp')}Gold</span><span class="num price">${s.gold}</span></div>`,
+    `<div class="stat weapon"><span class="label">${img('icons/hud-weapon-slot.webp')}Weapon</span><span class="num">${w}</span></div>`,
+    contractsOpen() && `<div class="stat dues"><span class="label">${img('icons/emblem-guild.webp')}Dues after floor ${E.act(s) * 3 + 3}</span><span class="num price">${E.DUES[E.act(s)]}<span class="muted" style="font-size:13px"> gold</span></span></div>`,
+    contractsOpen() && `<div class="stat strikes"><span class="label">${img('icons/hud-strike.webp')}Strikes</span><div class="pips">${[0, 1, 2].map(i => `<span class="pip ${i < s.strikes ? 'on' : ''}"></span>`).join('')}</div></div>`,
+  ].filter(Boolean);
+  return `<section class="status n${cells.length}" aria-label="Status">${cells.join('')}</section>`;
 }
 const bossCard = (b, label) => `<div class="boss">${img(`portraits/${bossArt[b.key]}.webp`, '', b.name)}<div class="who"><span class="label">${label}</span><b>${b.name}</b><span>${b.rule}</span></div></div>`;
 const bossHTML = () => s.boss ? bossCard(s.boss, 'Boss floor') : '';
 function relicsHTML(withDrop) {
-  if (tut) return '';
+  if (!relicsOpen()) return '';
   if (!s.relics.length && !withDrop) return `<p class="muted" style="margin:0">No relics yet. Buy them in the shop between floors (${E.MAX_RELICS} slots).</p>`;
   const empty = withDrop ? Array.from({ length: E.MAX_RELICS - s.relics.length }, () => `<div class="relic empty">${img('icons/hud-relic-slot.webp', 'ico')}<span class="muted">Empty slot</span></div>`).join('') : '';
   return `<div class="relics">${s.relics.map(k => `<div class="relic">${img(iconOf(k), 'ico')}<div class="rbody"><div class="row"><b>${E.RELICS[k].name}</b>${withDrop ? `<button class="link" data-drop="${k}">Drop</button>` : ''}</div><span class="muted" style="font-size:14px">${E.RELICS[k].text}</span></div></div>`).join('')}${empty}</div>`;
@@ -841,6 +895,8 @@ function relicsHTML(withDrop) {
 const roomsOnFloor = () => s.tutorial ? 2 : E.ROOMS_PER_FLOOR;
 function contractHTML() {
   const c = s.contract;
+  if (survival()) return `<section class="contract paper"><div class="contract-row"><h2>${tut ? 'Training floor' : 'Survive this floor'}</h2>
+      <span class="pips" title="Rooms cleared">${Array.from({ length: roomsOnFloor() }, (_, i) => `<span class="pip room ${i < s.roomsCleared ? 'on' : ''}"></span>`).join('')}<span class="muted" style="font-size:13px">rooms</span></span></div></section>`;
   const pct = Math.min(100, 100 * s.slain / c.target);
   return `<section class="contract paper">${s.raises ? stamp('raised', `raise-${s.floor}-${s.raises}`) : ''}
     <div class="contract-row"><h2><span class="seals">${img(tierSeal(c.tier))}${c.clause ? img(clauseSeal(c.clause)) : ''}</span>${tut ? 'Training' : E.TIERS[c.tier]} contract</h2>${tut ? '' : `<span>Pays <span class="num price">${c.pay}</span> gold + overkill</span>`}</div>
@@ -857,17 +913,17 @@ function peekHTML() {
 }
 const logHTML = () => tut ? '' : `<section><div class="label" style="margin-bottom:6px">Log</div><div class="log">${s.log.map(l => `<p>${esc(l)}</p>`).join('') || '<p class="muted">Your deeds will be recorded here.</p>'}</div></section>`;
 function coachHTML() {
-  if (tut && TUTORIAL[tut.step]) return `<aside class="coach">${clerk('neutral')}<span class="label">Training · step ${tut.step + 1} of ${TUTORIAL.length}</span><p>${TUTORIAL[tut.step].text}</p><button class="link" data-skiptut>Skip training</button></aside>`;
+  if (tut && TUTORIAL[tut.step]) return `<aside class="coach">${clerk('neutral')}<span class="label">Training · ${tut.step + 1} of ${TUTORIAL.length}</span><p>${TUTORIAL[tut.step].text}</p><div class="tutnav">${TUTORIAL[tut.step].allow ? '' : '<button class="primary ok" data-tutnext>Next</button>'}<button class="link" data-skiptut>Skip training</button></div></aside>`;
   const h = currentHint();
-  return h ? `<aside class="coach hint">${clerk('neutral')}<span class="label">Tip</span><p>${h.text}</p><button class="link" data-hint="${h.key}">Got it</button></aside>` : '';
+  return h ? `<aside class="coach hint">${clerk('neutral')}<span class="label">The clerk says</span><p>${h.text}</p><button class="primary ok" data-hint="${h.key}">Got it</button></aside>` : '';
 }
-const rules = `<details class="rules"><summary>How to play</summary><ol>
-  <li><b>Goal:</b> survive ${E.FLOORS} floors. You lose if your health hits 0, or if you get 3 strikes.</li>
-  <li><b>Rooms:</b> each room shows 4 cards. Pick 3; the last one stays for the next room. A floor is ${E.ROOMS_PER_FLOOR} rooms.</li>
-  <li><b>Monsters</b> cost health equal to their number, and give you that many points. <b>Weapons</b> block damage equal to their number, but after a kill they only hit monsters no bigger than that one. <b>Potions</b> heal (one per room).</li>
-  <li><b>Contracts:</b> before each floor, promise how many monster points you'll kill. Make it and you get gold. Miss it and you get a strike.</li>
-  <li><b>Fleeing:</b> before touching a room you can skip it, but not two rooms in a row.</li>
-  <li><b>Gold</b> buys relics between floors. Every 3 floors the guild charges dues; if you can't pay, that's a strike.</li>
+const rulesHTML = () => `<details class="rules"><summary>How to play</summary><ol>
+  <li><b>Goal:</b> stay alive. If your health hits 0, the run is over.</li>
+  <li><b>Rooms:</b> each room shows 4 cards. Pick 3; the last one stays for the next room.</li>
+  <li><b>Monsters</b> hurt you by their number. <b>Weapons</b> block that much damage, but after a kill they only work on smaller monsters. <b>Potions</b> heal (one per room).</li>
+  <li><b>Running away:</b> before touching a room you can flee it, but not two rooms in a row.</li>
+  ${s.floor >= E.UNLOCK.contracts ? `<li><b>Contracts:</b> before each floor, promise how many monster points you'll kill. Make it: gold. Miss it: a strike. Three strikes ends the run.</li>
+  <li><b>Gold</b> buys relics between floors. Every 3 floors the guild charges dues; if you can't pay, that's a strike.</li>` : ''}
 </ol><button class="link" data-tutorial>Replay the training floor</button></details>`;
 function syncNote() {
   if (webReports()) return `<p class="muted sync">Playtest build: a summary of each run is sent to the designer when it ends.</p>`;
@@ -879,7 +935,7 @@ let lastHit = null; // the last monster fought, to explain a death
 function whyHTML() {
   if (s.phase !== 'lost' || !rec) return '';
   if (s.hp > 0) return `<div class="why"><p><b>What happened:</b> the guild took your license after 3 strikes. You get a strike for each missed contract or unpaid dues.</p><p><b>Try next time:</b> pick Safe contracts until you have a feel for it, and keep some gold for dues.</p></div>`;
-  const h = lastHit, met = s.contract && s.slain >= s.contract.target;
+  const h = lastHit, met = s.contract && !s.contract.survival && s.slain >= s.contract.target;
   const what = h ? `the ${esc(h.name)} (${h.v}) hit you for ${h.dmg}${h.mode === 'bare' ? ' because you fought it with fists' : ''}.` : 'your health reached 0.';
   const tip = met ? 'You had already met your contract, so you didn\'t need that fight. Once the bar turns gold, pick the cards that cost the least health.'
     : h && h.mode === 'bare' ? 'Fists cost a monster\'s full number in health. Pick up weapons early, use them on the biggest monsters first, and flee a room that looks too dangerous.'
@@ -924,18 +980,18 @@ function sendReport(r) {
 window.addEventListener('pagehide', () => { if (rec && rec.status === 'in_progress') rec.status = 'abandoned'; sendReport(rec); });
 function runReport(r = rec) {
   const out = { won: 'Won', died: 'Died', struck_out: 'Struck out' }[r.outcome] || (r.status === 'abandoned' ? 'Abandoned' : 'Ended');
-  const floors = r.floors.map(f => `F${f.floor} ${E.TIERS[f.tier]}${f.clause ? '+' + E.CLAUSES[f.clause].name : ''} ${f.slain ?? '?'}/${f.target}${f.met ? ' met' : f.met === false ? ' missed' : ''}${f.raises ? ' raised' : ''}${f.flees ? ` fled${f.flees}` : ''}`).join('; ');
+  const floors = r.floors.map(f => f.survival ? `F${f.floor} Survival ${f.died ? 'died' : f.hpEnd != null ? 'survived' : ''}`.trim() : `F${f.floor} ${E.TIERS[f.tier]}${f.clause ? '+' + E.CLAUSES[f.clause].name : ''} ${f.slain ?? '?'}/${f.target}${f.met ? ' met' : f.met === false ? ' missed' : ''}${f.raises ? ' raised' : ''}${f.flees ? ` fled${f.flees}` : ''}`).join('; ');
   const bought = r.shops.flatMap(sh => sh.bought.filter(k => E.RELICS[k]).map(k => E.RELICS[k].name)).join(', ') || 'none';
   const skipped = [...new Set(r.shops.flatMap(sh => sh.offered.filter(k => !sh.bought.includes(k)).map(k => E.RELICS[k].name)))].join(', ') || 'none';
   return `Guild Ledger v${VERSION} run report: ${out} on floor ${r.floorReached}, ${r.totalSlain} points, ${r.gold} gold.\nFloors: ${floors}\nRelics bought: ${bought}\nRelics passed on: ${skipped}`;
 }
 function tutDoneHTML() {
   return `<section class="end">${clerk('pleased')}<h2>Training complete</h2>
-    <p style="margin:0">${esc(s.lastResult)} You're ready.</p>
+    <p style="margin:0">${esc(s.lastResult)} Monsters hurt, weapons protect, potions heal. You're ready.</p>
     <ul class="recap">
-      <li>A real floor is <b>${E.ROOMS_PER_FLOOR} rooms</b>. Make your contract, and don't let health hit 0.</li>
-      <li>Missing a contract is a <b>strike</b>. Three strikes ends the run.</li>
-      <li>New options (bigger contracts, raises, relics, clauses) open up as you go. The clerk will explain each one.</li>
+      <li>Pick 3 of the 4 cards in each room.</li>
+      <li>Use weapons on big monsters first, then smaller ones.</li>
+      <li>Low on health? Drink a potion, or run away from a room before touching it.</li>
     </ul>
     <button class="primary" data-new>Start your first run</button></section>`;
 }
@@ -959,7 +1015,7 @@ function render() {
   const head = `<header><h1>${img('icons/emblem-guild.webp', 'emblem')}Guild Ledger</h1><span class="muted">${tut ? 'Training floor' : `Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span></header>`;
   let body = '';
   if (s.phase === 'bid') {
-    body = `${goalHTML()}${statusHTML()}${bossHTML()}${coachHTML()}${duesWarning()}
+    body = `${coachHTML()}${goalHTML()}${statusHTML()}${bossHTML()}${duesWarning()}
       <section class="contract board"><div class="contract-row"><h2>${s.offers.length > 1 ? 'Choose this floor\'s contract' : 'Sign this floor\'s contract'}</h2>${E.canRedraw(s) ? '<button data-redraw>Redraw room (Fortune Teller)</button>' : ''}</div>
         <p class="muted" style="margin:0">${s.offers.length > 1 ? `Here's the first room. How many monster points can you kill across ${roomsOnFloor()} rooms? Higher targets pay more.` : `Here's the first room. Kill this many monster points across ${roomsOnFloor()} rooms to get paid.`}</p>
         <div class="offers">${s.offers.map((o, i) => {
@@ -970,36 +1026,38 @@ function render() {
         }).join('')}</div>
       </section>
       <div class="room">${s.room.map(c => cardHTML(c, false)).join('')}</div>
-      ${relicsHTML(false)}${tut ? '' : rules}${logHTML()}${statsHTML()}`;
+      ${relicsHTML(false)}${tut ? '' : rulesHTML()}${logHTML()}${statsHTML()}`;
   } else if (s.phase === 'room') {
     const fleeNote = s.boss && s.boss.key === 'fleeToll' ? ' (costs 4 HP)' : '';
-    body = `${goalHTML()}${statusHTML()}${bossHTML()}${contractHTML()}${coachHTML()}${duesWarning()}
+    body = `${coachHTML()}${goalHTML()}${statusHTML()}${bossHTML()}${contractHTML()}${duesWarning()}
       <div class="roombar"><span><span class="pile" title="Cards left in the draw pile">${img('cards/back.webp')}<span class="num">${s.draw.length}</span></span>Room ${s.roomsCleared + 1}: deal with <b>${3 - s.handled}</b> more card${3 - s.handled === 1 ? '' : 's'}.</span>
         <span style="display:flex;gap:8px;flex-wrap:wrap">${E.canRaise(s) && !tut ? `<button data-raise>${img('icons/hud-raise.webp', 'bi')}Raise to ${E.TIERS[s.contract.tier + 1]}: slay ${E.TARGETS[s.floor][s.contract.tier + 1]}, pays ${E.payout(s, s.contract.tier + 1, s.contract.clause)}</button>` : ''}
         <button data-flee ${E.canFlee(s) && !tut ? '' : 'disabled'}>${img(E.canFlee(s) && !tut ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room${fleeNote}</button></span></div>
       <div class="room">${s.room.map(c => cardHTML(c, true)).join('')}</div>
-      ${peekHTML()}${relicsHTML(false)}${tut ? '' : rules}${logHTML()}${statsHTML()}`;
+      ${peekHTML()}${relicsHTML(false)}${tut ? '' : rulesHTML()}${logHTML()}${statsHTML()}`;
   } else if (s.phase === 'shop') {
     const full = s.relics.length >= E.MAX_RELICS;
     const ware = (k, item) => `<div class="ware"><div class="whead">${img(iconOf(k), 'ico')}<b>${item.name}</b></div><span class="muted" style="font-size:14px">${item.text}</span>
       <button data-buy="${k}" ${s.shop.bought[k] || s.gold < item.cost || (E.RELICS[k] && full) ? 'disabled' : ''}>${s.shop.bought[k] ? 'Bought' : `Buy · <span class="num">${item.cost}</span>g`}</button></div>`;
-    body = `${goalHTML()}${statusHTML()}
-      ${settleHTML()}${coachHTML()}${duesWarning()}
+    body = `${coachHTML()}${goalHTML()}${statusHTML()}
+      ${settleHTML()}${duesWarning()}
       <section class="shop"><div class="contract-row"><h2>Guild hall</h2><span class="muted">Next: floor ${s.floor + 2}${E.BOSSES[s.floor + 1] ? ' · <span style="color:var(--blood)">boss</span>' : ''}</span></div>
         ${E.BOSSES[s.floor + 1] ? bossCard(E.BOSSES[s.floor + 1], 'Next floor') : ''}
-        <div class="label">Relics ${full ? '(slots full: drop one to buy)' : ''}</div>
-        <div class="shopgrid">${s.shop.relics.map(k => ware(k, E.RELICS[k])).join('') || '<p class="muted">Sold out.</p>'}</div>
+        ${relicsOpen() ? `<div class="label">Relics ${full ? '(slots full: drop one to buy)' : ''}</div>
+        <div class="shopgrid relicgrid">${s.shop.relics.map(k => ware(k, E.RELICS[k])).join('') || '<p class="muted">Sold out.</p>'}</div>` : ''}
         <div class="label">Services</div>
-        <div class="shopgrid">${Object.entries(E.SERVICES).map(([k, v]) => ware(k, v)).join('')}</div>
+        <div class="shopgrid services">${Object.entries(E.SERVICES).map(([k, v]) => ware(k, v)).join('')}</div>
         <div><button class="primary" data-leave>Descend to floor ${s.floor + 2}</button></div>
       </section>
-      <div class="label">Your relics (${s.relics.length}/${E.MAX_RELICS})</div>${relicsHTML(true)}${logHTML()}${statsHTML()}`;
+      ${relicsOpen() ? `<div class="label">Your relics (${s.relics.length}/${E.MAX_RELICS})</div>${relicsHTML(true)}` : ''}${logHTML()}${statsHTML()}`;
   } else if (s.phase === 'tutdone') {
     body = tutDoneHTML();
   } else {
     body = endHTML() + logHTML() + statsHTML();
   }
   app.innerHTML = head + body + syncNote() + `<p class="muted version">v${VERSION}</p>`;
+  const focus = tut ? TUTORIAL[tut.step] && TUTORIAL[tut.step].focus : (currentHint() || {}).focus;
+  if (focus && s.phase !== 'tutdone') app.querySelectorAll(focus).forEach(el => el.classList.add('tut-focus'));
 }
 
 // ---------- owner stats ----------
@@ -1073,6 +1131,7 @@ app.addEventListener('click', async e => {
     startRun(); acted = false;
   }
   else if ('tutorial' in d) { startTutorial(); acted = false; }
+  else if ('tutnext' in d) { if (tut) tut.step++; acted = false; }
   else if ('skiptut' in d) { store.set('tutorial', true); startRun(); acted = false; }
   else if (d.hint) { seenHints[d.hint] = true; store.set('hints', seenHints); acted = false; }
   else if ('fb' in d) {
@@ -1170,8 +1229,8 @@ render();
     const app = document.getElementById('app');
     const header = app.querySelector('header');
     if (header && !inTraining()) header.insertAdjacentHTML('beforeend', `<span class="lh-toggle"><button class="link" data-livehints><img src="assets/icons/hud-hints.webp" alt="" class="bi">Hints: ${prefs.on ? 'on' : 'off'}</button></span>`);
-    const tips = ['Reach 0 and the run ends.', 'Earned from contracts. Pays for relics, services and dues.', 'Softens monster hits. After a kill it can only hit monsters up to that size.', "Paid at the end of each act. Can't pay: a strike.", 'Missed contracts and unpaid dues. 3 strikes ends the run.'];
-    app.querySelectorAll('.status .stat').forEach((el, i) => { el.title = tips[i] || ''; });
+    const tips = { Health: 'Reach 0 and the run ends.', Gold: 'Earned on each floor. Pays for relics, services and dues.', Weapon: 'Softens monster hits. After a kill it can only hit monsters up to that size.', Dues: "Paid at the end of each act. Can't pay: a strike.", Strikes: 'Missed contracts and unpaid dues. 3 strikes ends the run.' };
+    app.querySelectorAll('.status .stat').forEach(el => { const k = Object.keys(tips).find(k => el.querySelector('.label').textContent.includes(k)); el.title = k ? tips[k] : ''; });
     if (!prefs.on || inTraining()) return;
 
     if (s.phase === 'bid') {
