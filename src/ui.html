@@ -197,6 +197,7 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 .offer .clause-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
 .offer .clause-row .seal { width: 34px; height: 34px; margin: 0; }
 .offer .cl { color: var(--paper-red); }
+.offer .wild { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--paper-red); }
 .contract.paper { position: relative; background: #e3d8bd url(assets/ui/texture-parchment.webp) 0 0 / 320px; color: var(--paper-ink); border: 1px solid #8b7a5a; box-shadow: 0 4px 14px rgba(0,0,0,.45); }
 .contract.paper .price { color: var(--paper-gold); font-weight: 700; }
 .contract.paper .muted, .paper .lh { color: var(--paper-muted); }
@@ -469,7 +470,7 @@ function currentHint() {
     ['raise', s.phase === 'room' && E.canRaise(s), '<b>New! Raise.</b> If a floor is going well, you can raise your contract one step between rooms, for more gold. Once per floor.', '[data-raise]'],
     ['bossroom', s.phase === 'room' && survival() && s.boss, `<b>Boss floor!</b> ${s.boss ? esc(s.boss.name) : ''} has a special rule. ${s.boss ? esc(s.boss.rule) : ''}`, '.boss'],
     ['boss', s.phase === 'bid' && s.boss, '<b>Boss floor.</b> The boss adds one special rule for this floor. Read it before you sign.', '.boss'],
-    ['clause', s.phase === 'bid' && s.offers.some(o => o.clause), '<b>New! Clauses.</b> The offer with a second wax seal pays 1.5× as much, but adds a rule for this floor.', '.offer.clause'],
+    ['clause', s.phase === 'bid' && s.offers.some(o => o.clause), `<b>New! The Wildcard.</b> One offer now pays ${E.WILDCARD_MULT}× as much, more than the next contract up. The catch is that it adds one extra rule for this floor.`, '.offer.clause'],
     ['limit', s.phase === 'room' && s.weapon && s.weapon.limit != null, 'Your weapon has dulled. It only hits monsters up to the number shown under Weapon. Bigger ones need fists, or a new weapon.', '.stat.weapon'],
   ];
   const h = list.find(([k, cond]) => cond && !seenHints[k]);
@@ -621,7 +622,7 @@ function contractHTML() {
   const pct = Math.min(100, 100 * s.slain / c.target);
   return `<section class="contract paper">${s.raises ? stamp('raised', `raise-${s.floor}-${s.raises}`) : ''}
     <div class="contract-row"><h2><span class="seals">${img(tierSeal(c.tier))}${c.clause ? img(clauseSeal(c.clause)) : ''}</span>${tut ? 'Training' : E.TIERS[c.tier]} contract</h2>${tut ? '' : `<span>Pays <span class="num price">${c.pay}</span> gold + overkill</span>`}</div>
-    ${c.clause ? `<div class="cline"><b>${E.CLAUSES[c.clause].name}:</b> ${E.CLAUSES[c.clause].text}</div>` : ''}
+    ${c.clause ? `<div class="cline"><b>Wildcard, ${E.CLAUSES[c.clause].name}:</b> ${E.CLAUSES[c.clause].text}</div>` : ''}
     <div class="contract-row"><span>Slain <span class="num">${s.slain}</span> of <span class="num">${c.target}</span> points</span>
       <span class="pips" title="Rooms cleared">${Array.from({ length: roomsOnFloor() }, (_, i) => `<span class="pip room ${i < s.roomsCleared ? 'on' : ''}"></span>`).join('')}<span class="muted" style="font-size:13px">rooms</span></span></div>
     <div class="progress ${s.slain >= c.target ? 'met' : ''}"><i style="width:${pct}%"></i></div>
@@ -645,6 +646,7 @@ const rulesHTML = () => `<details class="rules"><summary>How to play</summary><o
   <li><b>Running away:</b> before touching a room you can flee it, but not two rooms in a row.</li>
   ${s.floor >= E.UNLOCK.contracts ? `<li><b>Contracts:</b> before each floor, promise how many monster points you'll kill. Make it: gold. Miss it: a strike. Three strikes ends the run.</li>
   <li><b>Gold</b> buys relics between floors. Every 3 floors the guild charges dues; if you can't pay, that's a strike.</li>` : ''}
+  ${s.floor >= E.UNLOCK.clauses ? `<li><b>Wildcard:</b> one offer per floor pays ${E.WILDCARD_MULT}× as much, but adds one extra rule for that floor.</li>` : ''}
 </ol><button class="link" data-tutorial>Replay the training floor</button></details>`;
 function syncNote() {
   if (webReports()) return `<p class="muted sync">Playtest build: a summary of each run is sent to the designer when it ends.</p>`;
@@ -742,7 +744,7 @@ function render() {
         <div class="offers">${s.offers.map((o, i) => {
           const c = tut ? { target: 12, pay: 0 } : { target: E.TARGETS[s.floor][o.tier], pay: E.payout(s, o.tier, o.clause) };
           return `<button class="offer ${o.clause ? 'clause' : ''} ${tut ? 'lit' : ''}" data-bid="${i}">
-          ${img(tierSeal(o.tier), 'seal')}<span class="tier">${tut ? 'Training' : E.TIERS[o.tier]}</span><span>Slay <span class="num">${c.target}</span></span>${tut ? '' : `<span class="muted">Pays <span class="num price">${c.pay}</span> gold</span>`}
+          ${o.clause ? '<span class="wild">Wildcard</span>' : ''}${img(tierSeal(o.tier), 'seal')}<span class="tier">${tut ? 'Training' : E.TIERS[o.tier]}</span><span>Slay <span class="num">${c.target}</span></span>${tut ? '' : `<span class="muted">Pays <span class="num price">${c.pay}</span> gold</span>`}
           ${o.clause ? `<span class="clause-row">${img(clauseSeal(o.clause), 'seal')}<span class="cl">${E.CLAUSES[o.clause].name}</span></span><span class="muted" style="font-size:13px">${E.CLAUSES[o.clause].text}</span>` : ''}</button>`;
         }).join('')}</div>
       </section>
@@ -934,7 +936,7 @@ render();
   }
   function fleeReason() {
     if (E.canFlee(s)) return fleeToll() ? 'The Warden charges 4 health to flee.' : 'Flee to send this room to the bottom of the pile.';
-    if (s.contract && s.contract.clause === 'sworn') return 'Your Sworn clause forbids fleeing.';
+    if (s.contract && s.contract.clause === 'sworn') return 'Your Wildcard (Sworn) forbids fleeing.';
     if (s.handled > (has('scout') ? 1 : 0)) return 'You can only flee before touching a room.';
     if (fleeToll() && s.hp <= 4) return 'Too hurt to pay the Warden 4 health.';
     return "You can't flee two rooms in a row.";

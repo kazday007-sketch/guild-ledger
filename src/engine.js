@@ -27,7 +27,10 @@
   const UNLOCK = { contracts: 3, relics: 1, tiers: 4, raise: 4, clauses: 6 };
   const SURVIVAL_PAY = 6;
   const locked = (s, k) => s.guided && s.floor < UNLOCK[k];
-  // Clauses: one contract offer per floor carries one. It pays x1.5 and bends a rule for that floor.
+  // Clauses (shown to players as the "Wildcard" contract): one offer per floor carries one. It pays
+  // WILDCARD_MULT times its tier and bends a rule for that floor. 2.5 makes a Wildcard pay more than the
+  // next tier up, while the simulator's guided win rate stays within about 1 point (tuned with sim.js).
+  const WILDCARD_MULT = 2.5;
   const CLAUSES = {
     sworn: { name: 'Sworn', text: 'You cannot flee this floor.' },
     abstain: { name: 'Abstinent', text: 'Potions do not heal this floor.' },
@@ -199,7 +202,7 @@
   function payout(s, tier, cl) {
     const mult = tier === 2 && has(s, 'ledger') ? 6 : TIER_MULT[tier];
     const base = (3 + act(s)) * mult;
-    return cl ? Math.ceil(base * 1.5) : base;
+    return cl ? Math.ceil(base * WILDCARD_MULT) : base;
   }
   function makeContract(s, tier, cl) {
     return { tier, clause: cl || null, target: TARGETS[s.floor][tier], pay: payout(s, tier, cl) };
@@ -208,7 +211,7 @@
     const o = s.offers[i];
     if (s.phase !== 'bid' || !o) return false;
     s.contract = makeContract(s, o.tier, o.clause);
-    log(s, `Signed a ${TIERS[o.tier]}${o.clause ? ' ' + CLAUSES[o.clause].name : ''} contract: slay ${s.contract.target} for ${s.contract.pay} gold.`);
+    log(s, `Signed a ${TIERS[o.tier]}${o.clause ? ` Wildcard (${CLAUSES[o.clause].name})` : ''} contract: slay ${s.contract.target} for ${s.contract.pay} gold.`);
     s.phase = 'room';
     return true;
   }
@@ -339,7 +342,7 @@
   }
 
   const api = {
-    MAX_HP, ROOMS_PER_FLOOR, TUTORIAL_ROOMS, FLOORS, UNLOCK, SURVIVAL_PAY, MAX_RELICS, TIERS, TARGETS, DUES, BOSSES, RELICS, SERVICES, CLAUSES,
+    MAX_HP, ROOMS_PER_FLOOR, TUTORIAL_ROOMS, FLOORS, UNLOCK, SURVIVAL_PAY, MAX_RELICS, TIERS, TARGETS, DUES, BOSSES, RELICS, SERVICES, CLAUSES, WILDCARD_MULT,
     newGame, newTutorial, bid, flee, canFlee, handle, buy, dropRelic, leaveShop, allowedTiers, payout,
     canRaise, raise, canRedraw, redraw,
     canUseWeapon, monsterDamage, contractPoints, potionHeal, resolveCard, rankLabel, act,
