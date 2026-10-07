@@ -288,7 +288,7 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.5.0';
+const VERSION = '1.6.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const webReports = () => !!(REPORT.url && REPORT.entry) && dbState !== 'on';
@@ -397,7 +397,7 @@ function noteSurvivalFloor() { // a floor with no contract starts without a bid,
   if (f && f.floor === s.floor + 1) return;
   rec.floors.push({ floor: s.floor + 1, tier: null, survival: true, clause: null, target: 0, boss: s.boss ? s.boss.key : null, hpStart: s.hp, goldStart: s.gold, raises: 0, flees: 0 });
 }
-function startTutorial() { if (rec && rec.status === 'in_progress' && rec.floors.length) { rec.status = 'abandoned'; save(); } sendReport(rec); s = E.newTutorial(); rec = null; tut = { step: 0 }; }
+function startTutorial() { readReportForm(); if (rec && rec.status === 'in_progress' && rec.floors.length) { rec.status = 'abandoned'; save(); } sendReport(rec); s = E.newTutorial(); rec = null; tut = { step: 0 }; }
 
 // ---------- shared playtest log (db capability) ----------
 let db = null, uid = null, owner = false, myDoc = null, saving = Promise.resolve(), dbState = 'connecting';
@@ -685,8 +685,13 @@ function webFormHTML() {
       <input id="pname" maxlength="40" value="${esc(store.get('name', ''))}">
       <label class="fb" for="wnote">Anything confusing, boring or great? One line helps.</label>
       <textarea id="wnote" rows="2" maxlength="600">${esc(rec.note || '')}</textarea>
-      <button data-send ${rec.sent ? 'disabled' : ''}>${rec.sent ? 'Report sent. Thanks!' : 'Send report'}</button>
-      <p class="muted" style="margin:0;font-size:13px">If you skip this, the report is sent without a note when you start a new run.</p>`;
+      <p class="muted" style="margin:0;font-size:13px">Your run report is sent when you tap New run.</p>`;
+}
+// Picks up the end screen's name and note, so the report sent on New run carries them.
+function readReportForm() {
+  const n = document.getElementById('pname'), t = document.getElementById('wnote');
+  if (n) store.set('name', n.value.trim().slice(0, 40));
+  if (t && rec) rec.note = t.value.trim().slice(0, 600);
 }
 // Posts the run to the Google Form. no-cors: the response can't be read, so this is fire-and-forget.
 function sendReport(r) {
@@ -700,7 +705,7 @@ function sendReport(r) {
     else fetch(REPORT.url, { method: 'POST', mode: 'no-cors', body }).catch(() => {});
   } catch {}
 }
-window.addEventListener('pagehide', () => { if (rec && rec.status === 'in_progress') rec.status = 'abandoned'; sendReport(rec); });
+window.addEventListener('pagehide', () => { readReportForm(); if (rec && rec.status === 'in_progress') rec.status = 'abandoned'; sendReport(rec); });
 function runReport(r = rec) {
   const out = { won: 'Won', died: 'Died', struck_out: 'Struck out' }[r.outcome] || (r.status === 'abandoned' ? 'Abandoned' : 'Ended');
   const floors = r.floors.map(f => f.survival ? `F${f.floor} Survival ${f.died ? 'died' : f.hpEnd != null ? 'survived' : ''}`.trim() : `F${f.floor} ${E.TIERS[f.tier]}${f.clause ? '+' + E.CLAUSES[f.clause].name : ''} ${f.slain ?? '?'}/${f.target}${f.met ? ' met' : f.met === false ? ' missed' : ''}${f.raises ? ' raised' : ''}${f.flees ? ` fled${f.flees}` : ''}`).join('; ');
@@ -858,6 +863,7 @@ app.addEventListener('click', async e => {
   else if (d.drop) E.dropRelic(s, d.drop);
   else if ('leave' in d) E.leaveShop(s);
   else if ('new' in d) {
+    readReportForm();
     if (rec && rec.status === 'in_progress' && rec.floors.length) { rec.status = 'abandoned'; save(); }
     sendReport(rec);
     startRun(); acted = false;
@@ -874,12 +880,6 @@ app.addEventListener('click', async e => {
     b.disabled = false; return;
   }
   else if ('stats' in d) { loadStats(); return; }
-  else if ('send' in d) {
-    const n = document.getElementById('pname'), t = document.getElementById('wnote');
-    if (n) store.set('name', n.value.trim().slice(0, 40));
-    if (t) rec.note = t.value.trim().slice(0, 600);
-    sendReport(rec); render(); return;
-  }
   else if ('copy' in d) {
     const t = document.getElementById('report'), st = document.getElementById('copystate');
     try { await navigator.clipboard.writeText(t.value); if (st) st.textContent = 'Copied.'; }
@@ -931,8 +931,7 @@ render();
       if (E.potionHeal(s, c) === 0) return `<p class="lh warn">${s.potionUsed ? 'You already used a potion this room.' : 'Potions are blocked this floor.'}</p>`;
       return '';
     }
-    const nv = c.v + (has('grindstone') ? 1 : 0);
-    return s.weapon && nv < s.weapon.v ? `<p class="lh warn">Weaker than your ${s.weapon.v}♦.</p>` : '';
+    return '';
   }
   function fleeReason() {
     if (E.canFlee(s)) return fleeToll() ? 'The Warden charges 4 health to flee.' : 'Flee to send this room to the bottom of the pile.';
