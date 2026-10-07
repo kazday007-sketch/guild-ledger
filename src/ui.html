@@ -122,9 +122,127 @@ textarea, input#pname { width: 100%; max-width: 480px; font: 15px var(--body); c
 textarea:focus-visible, input#pname:focus-visible { outline: 2px solid var(--verdigris); }
 .recap { text-align: left; max-width: 520px; margin: 0; padding-left: 20px; display: grid; gap: 6px; }
 #statsbody p { margin: 6px 0; }
+
+/* ---------- art (assets/ is built by src/import_art.py) ---------- */
+:root {
+  --panel-bg: linear-gradient(rgba(27,33,43,.9), rgba(27,33,43,.9)), url(assets/ui/texture-slate.webp) 0 0 / 256px;
+  --paper-ink: #2b241c; --paper-muted: #5e5345; --paper-gold: #8a5f0c; --paper-red: #8e2d26;
+}
+html { background: var(--stone); }
+body { background: transparent; }
+#scene { position: fixed; inset: 0; z-index: 0; background: var(--stone) center / cover no-repeat; }
+#scene::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(14,17,23,.5), rgba(14,17,23,.8) 45%, rgba(14,17,23,.9)); }
+#scene.dim::after { background: linear-gradient(180deg, rgba(10,12,16,.74), rgba(10,12,16,.92) 45%); }
+main { position: relative; z-index: 1; }
+.stat, .shop, .log, details.rules, .end, .relic, .warn:not(.lh), .coach.hint, .contract.board { background: var(--panel-bg); }
+h1 { display: flex; align-items: center; gap: 10px; }
+header { align-items: center; }
+h1 .emblem { width: 44px; height: 44px; filter: drop-shadow(0 2px 3px rgba(0,0,0,.6)); }
+.stat .label { display: flex; align-items: center; gap: 6px; }
+.stat .label img, .ico-sm { width: 22px; height: 22px; flex: none; }
+.bi { width: 20px; height: 20px; vertical-align: -5px; margin-right: 6px; }
+button.primary { background: #c9a24a url(assets/ui/texture-brass.webp) center / cover; color: #2a1d05; border-color: #7d5f1c; text-shadow: 0 1px 0 rgba(255,240,200,.35); }
+button.primary:hover:not(:disabled) { border-color: #f1d488; filter: brightness(1.06); }
+
+/* cards: the frame, rank and name are drawn here, the art sits whole in a 4:5 window */
+div.room { background: #3a2a1d url(assets/ui/texture-wood.webp) 0 0 / 256px; padding: 12px; border-radius: 12px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.6), inset 0 0 40px rgba(0,0,0,.55), 0 4px 18px rgba(0,0,0,.45); }
+.card { min-height: 0; padding: 6px 6px 8px; gap: 6px; display: flex; flex-direction: column; border-radius: 12px; border: 3px solid #8b7a5a; background: #e9e2d0 url(assets/ui/texture-parchment.webp) 0 0 / 220px; box-shadow: 0 3px 0 rgba(0,0,0,.35), 0 6px 14px rgba(0,0,0,.45); }
+.card.monster { background: #e9e2d0 url(assets/ui/texture-parchment.webp) 0 0 / 220px; }
+.card.weapon { border-color: #4f7aa8; }
+.card.potion { border-color: #a3423f; }
+.card.elite { outline: 0; border-color: #c99a2e; box-shadow: 0 0 0 2px #6d4f12, 0 0 18px rgba(224,180,80,.45), 0 6px 14px rgba(0,0,0,.45); }
+.card .art { position: relative; aspect-ratio: 4 / 5; border-radius: 7px; overflow: hidden; background: #151a21; box-shadow: inset 0 0 0 1px rgba(0,0,0,.6); }
+.card .art img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.card .art::after { content: ''; position: absolute; inset: 0; border-radius: 7px; box-shadow: inset 0 0 0 2px rgba(0,0,0,.35), inset 0 0 14px rgba(0,0,0,.35); pointer-events: none; }
+.card .rank { position: absolute; top: 5px; left: 5px; z-index: 1; min-width: 34px; padding: 4px 6px 3px; border-radius: 6px; text-align: center; background: rgba(233,226,208,.94); color: var(--ink); font: 700 20px/1 var(--mono); box-shadow: 0 1px 3px rgba(0,0,0,.5); }
+.card .rank small { font-size: 15px; margin-left: 1px; }
+.card.weapon .rank { color: #2e5f93; } .card.potion .rank { color: #a3323a; } .card.elite .rank { background: #e7c66e; }
+.card .name { display: grid; gap: 1px; text-align: center; }
+.card .face { font: 400 16px/1.15 var(--display); }
+.card .kind { font-size: 10px; text-transform: uppercase; letter-spacing: .14em; font-weight: 700; color: #6b5f4e; }
+.card.weapon .kind { color: #2e5f93; } .card.potion .kind { color: #a3323a; } .card.elite .kind { color: #8a5f0c; }
+.card .acts { margin-top: auto; }
+.pile { display: inline-flex; align-items: center; gap: 6px; margin-right: 10px; vertical-align: middle; }
+.pile img { width: 24px; height: 34px; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
+
+/* contracts: offers on parchment with wax seals, the signed contract on paper */
+.offers { grid-template-columns: repeat(auto-fit, minmax(140px, 170px)); justify-content: center; gap: 14px; }
+.offer, .offer.clause { position: relative; background: url(assets/ui/contract-parchment.webp) center / 100% 100% no-repeat; border: 0; border-radius: 0; color: var(--paper-ink); padding: 20px 15% 34px; min-height: 220px; justify-items: center; align-content: start; text-align: center; gap: 3px; filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)); transition: transform .15s; }
+.offer:hover:not(:disabled) { transform: translateY(-3px) rotate(-.6deg); }
+.offer:focus-visible { outline: 2px solid var(--verdigris); outline-offset: 3px; }
+.offer.lit { outline: 3px solid var(--verdigris); outline-offset: 2px; border-radius: 6px; }
+.offer .seal { width: 56px; height: 56px; margin-bottom: 2px; filter: drop-shadow(0 2px 2px rgba(0,0,0,.35)); }
+.offer .tier { font: 400 20px var(--display); }
+.offer .muted { color: var(--paper-muted); }
+.offer .price { color: var(--paper-gold); font-weight: 700; }
+.offer .clause-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+.offer .clause-row .seal { width: 34px; height: 34px; margin: 0; }
+.offer .cl { color: var(--paper-red); }
+.contract.paper { position: relative; background: #e3d8bd url(assets/ui/texture-parchment.webp) 0 0 / 320px; color: var(--paper-ink); border: 1px solid #8b7a5a; box-shadow: 0 4px 14px rgba(0,0,0,.45); }
+.contract.paper .price { color: var(--paper-gold); font-weight: 700; }
+.contract.paper .muted, .paper .lh { color: var(--paper-muted); }
+.paper .lh b { color: var(--paper-ink); }
+.paper .lh.warn, .paper .lh.warn b { color: var(--paper-red); }
+.contract.paper .cline { color: var(--paper-red); }
+.contract.paper .progress { background: rgba(60,45,25,.18); box-shadow: inset 0 1px 2px rgba(0,0,0,.25); }
+.contract.paper .progress i { background: #2f6f5f; }
+.contract.paper .progress.met i { background: #b8892a; }
+.contract.paper .pip { border-color: #9c8a6a; }
+.contract.paper .pip.room.on { background: #2f6f5f; border-color: #2f6f5f; }
+.seals { display: inline-flex; gap: 4px; align-items: center; }
+.seals img { width: 40px; height: 40px; }
+.contract.paper h2 { display: flex; align-items: center; gap: 8px; }
+
+/* stamps: ink marks from the art, the word set in type */
+.stamp { position: absolute; z-index: 2; width: 132px; aspect-ratio: 512 / 232; display: grid; place-items: center; pointer-events: none; opacity: .92; }
+.stamp.fresh { animation: stampin .35s cubic-bezier(.2,1.5,.4,1) both; }
+.stamp img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.stamp b { position: relative; font: 700 20px/1 var(--mono); letter-spacing: .14em; transform: rotate(-8deg); }
+.stamp.paid b { color: #2f8f3e; } .stamp.strike b { color: #c8312f; } .stamp.raised b { color: #c8901a; }
+.contract.paper .stamp { left: 50%; margin-left: -60px; top: 2px; width: 120px; }
+@media (max-width: 560px) { .contract.paper .stamp { left: auto; right: 8px; margin: 0; top: -16px; width: 104px; } .contract.paper .stamp b { font-size: 16px; } }
+@keyframes stampin { from { transform: scale(1.8); opacity: 0; } to { transform: none; opacity: .92; } }
+
+/* people: bosses, the guild clerk */
+.boss { background: var(--panel-bg); border: 1px solid rgba(208,84,91,.6); align-items: center; flex-wrap: nowrap; gap: 12px; }
+.boss img, .clerk { width: 64px; height: 80px; border-radius: 6px; flex: none; object-fit: contain; box-shadow: 0 0 0 1px rgba(0,0,0,.6), 0 2px 6px rgba(0,0,0,.5); }
+.boss .who { display: grid; gap: 2px; }
+.boss .who .label { color: var(--blood); }
+.coach { grid-template-columns: auto 1fr; column-gap: 14px; align-items: start; }
+.coach > .clerk { grid-row: span 3; width: 56px; height: 70px; }
+.coach > :not(.clerk) { grid-column: 2; }
+.settle { position: relative; display: flex; gap: 14px; align-items: center; background: var(--panel-bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+.settle .clerk { width: 72px; height: 90px; }
+.settle .say { display: grid; gap: 4px; min-width: 0; }
+.settle .stamp { right: 12px; top: -16px; }
+.settle p { margin: 0; font-size: 17px; }
+.settle.stamped p { padding-top: 14px; }
+.end { position: relative; background: var(--panel-bg); }
+.end .stamp { right: 18px; top: 14px; width: 150px; }
+.end .clerk { width: 96px; height: 120px; }
+@media (max-width: 560px) { .end .stamp { right: 8px; top: 6px; width: 110px; } .end .stamp b { font-size: 16px; } }
+
+/* relics and shop wares with their icons */
+.relic { display: flex; flex-direction: row; align-items: center; gap: 10px; }
+.relic .ico { width: 44px; height: 44px; flex: none; filter: drop-shadow(0 2px 2px rgba(0,0,0,.5)); }
+.relic .rbody { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.relic.empty { opacity: .55; border-style: dashed; }
+.ware .whead { display: flex; align-items: center; gap: 10px; }
+.ware .ico { width: 52px; height: 52px; flex: none; filter: drop-shadow(0 2px 2px rgba(0,0,0,.5)); }
+
+/* effects */
+#fx { position: fixed; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
+#fx img { position: absolute; animation: fxpop .6s ease-out forwards; }
+#fx img.fx-ink { animation-duration: .9s; }
+#fx img.fx-smoke { animation-duration: .8s; }
+.card.leaving { transition: transform .26s ease-in, opacity .26s ease-in; transform: translateY(-10px) scale(.94); opacity: 0; pointer-events: none; }
+@keyframes fxpop { 0% { transform: scale(.4); opacity: 0; } 25% { opacity: 1; } 100% { transform: scale(1.15); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .stamp { animation: none; } .offer { transition: none; } }
 </style>
 
+<div id="scene" aria-hidden="true"></div>
 <main id="app"></main>
+<div id="fx" aria-hidden="true"></div>
 
 <script>/*ENGINE*/</script>
 
@@ -137,8 +255,62 @@ const webReports = () => !!(REPORT.url && REPORT.entry) && dbState !== 'on';
 const app = document.getElementById('app');
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const face = { monster: 'Monster', weapon: 'Weapon', potion: 'Potion' };
-const monsterNames = { 2: 'Rat', 3: 'Bat', 4: 'Slime', 5: 'Goblin', 6: 'Skeleton', 7: 'Wolf', 8: 'Orc', 9: 'Ghoul', 10: 'Troll', 11: 'Knight', 12: 'Witch', 13: 'Ogre King', 14: 'Wyrm', 15: 'Elite Golem', 17: 'Elite Dragon' };
-const weaponNames = { 2: 'Dagger', 3: 'Club', 4: 'Hatchet', 5: 'Mace', 6: 'Spear', 7: 'Sword', 8: 'Axe', 9: 'Warhammer', 10: 'Greatsword' };
+// Card names match the card art: spades are the undead, clubs the beasts and goblinkin.
+const monsterNames = {
+  '♠': { 2: 'Rats', 3: 'Bone Spider', 4: 'Zombie', 5: 'Ghost', 6: 'Skeleton Warrior', 7: 'Ghoul', 8: 'Wraith', 9: 'Mummy', 10: 'Bone Golem', 11: 'Jailer', 12: 'Banshee Matriarch', 13: 'Skeleton King', 14: 'Vampire Lord' },
+  '♣': { 2: 'Goblin Scavenger', 3: 'Cave Bat', 4: 'Kobold Trapper', 5: 'Dire Wolf', 6: 'Hobgoblin', 7: 'Centipede', 8: 'Bugbear', 9: 'Owlbear', 10: 'Cave Troll', 11: 'Orc Warden', 12: 'Spider Broodmother', 13: 'Goblin King', 14: 'Forest Wyrm' },
+  '★': { 15: 'Dungeon Horror', 17: 'Dread Dragon' },
+};
+const weaponNames = { 2: 'Kitchen Knife', 3: 'Club', 4: 'Dagger', 5: 'Hand Axe', 6: 'Mace', 7: 'Short Sword', 8: 'War Hammer', 9: 'Longsword', 10: 'Runed Greatsword' };
+
+// ---------- art (files in assets/, made by src/import_art.py) ----------
+const ART = 'assets/';
+const img = (path, cls = '', alt = '') => `<img src="${ART}${path}" alt="${alt}"${cls ? ` class="${cls}"` : ''} decoding="async">`;
+const potionSize = v => v >= 8 ? 'large' : v >= 5 ? 'medium' : 'small';
+function cardArt(c) {
+  if (c.kind === 'monster') return c.suit === '★' ? `cards/elite-${c.v}.webp` : `cards/${c.suit === '♠' ? 'spades' : 'clubs'}-${c.v}.webp`;
+  if (c.kind === 'weapon') return `cards/weapon-${Math.max(2, Math.min(10, c.v))}.webp`;
+  return `cards/potion-${potionSize(c.v)}.webp`;
+}
+const iconOf = k => E.RELICS[k] ? `icons/relic-${k === 'keenedge' ? 'keen-edge' : k}.webp` : `icons/service-${k}.webp`;
+const tierSeal = t => `ui/seal-tier-${['safe', 'bold', 'reckless'][t]}.webp`;
+const clauseSeal = k => `ui/seal-clause-${({ sworn: 'sworn', abstain: 'abstinent', steel: 'steel-oath', bare: 'bare-oath' })[k]}.webp`;
+const bossArt = { fleeToll: 'boss-warden', halfPotion: 'boss-plague-hag', recklessOnly: 'boss-lich-auditor' };
+const clerk = (mood, cls = 'clerk') => img(`portraits/clerk-${mood}.webp`, cls, 'The guild clerk');
+// A stamp slams down once; later renders of the same stamp sit still.
+const stamped = new Set();
+const stamp = (kind, key) => {
+  const fresh = !stamped.has(key); stamped.add(key);
+  return `<span class="stamp ${kind} ${fresh ? 'fresh' : ''}">${img(`ui/stamp-${kind}.webp`)}<b>${kind.toUpperCase()}</b></span>`;
+};
+function scene() {
+  if (s.phase === 'bid') return 'contract-board';
+  if (s.phase === 'room') return ['act1-crypt', 'act2-sewers', 'act3-vault'][Math.min(2, E.act(s))];
+  if (s.phase === 'shop') return 'guild-hall';
+  if (s.phase === 'tutdone') return 'title';
+  return s.phase === 'won' ? 'victory' : 'defeat';
+}
+let shownScene = '';
+function setScene() {
+  const sc = scene(); if (sc === shownScene) return;
+  shownScene = sc;
+  const el = document.getElementById('scene');
+  el.style.backgroundImage = `url(${ART}backgrounds/${sc}.webp)`;
+  el.classList.toggle('dim', sc === 'act2-sewers'); // the sewer art is busy behind cards
+}
+// Effects: a one-shot sprite over a spot on screen. Skipped for reduced motion.
+const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+function fx(name, rect) {
+  const layer = document.getElementById('fx');
+  if (reduceMotion || !rect || !layer || !rect.width) return;
+  const size = Math.round(Math.min(200, Math.max(96, rect.width * 0.9)));
+  const el = document.createElement('img');
+  el.src = `${ART}fx/${name}.webp`; el.alt = ''; el.className = 'fx-' + name;
+  el.style.cssText = `left:${rect.left + rect.width / 2 - size / 2}px;top:${rect.top + rect.height / 2 - size / 2}px;width:${size}px;height:${size}px`;
+  el.addEventListener('animationend', () => el.remove());
+  layer.appendChild(el); setTimeout(() => el.remove(), 2000);
+}
+const rectOf = sel => { const el = document.querySelector(sel); return el && el.getBoundingClientRect(); };
 
 // ---------- per-viewer conveniences (browser storage; may be unavailable) ----------
 const store = {
@@ -151,11 +323,11 @@ let seenHints = store.get('hints', {});
 // Each step allows exactly one action, so the coach text always matches the table.
 const TUTORIAL = [
   { allow: { bid: 0 }, text: 'Welcome to the guild. Every floor starts with a <b>contract</b>: you promise to slay a number of monster points. You get to see the first room before you sign. Sign this training contract: slay 12 points.' },
-  { allow: { v: 7, mode: null }, text: 'A room shows 4 cards. You deal with <b>3 of them</b>, and the 4th waits for the next room. Start by equipping the <b>Sword (7♦)</b>.' },
-  { allow: { v: 9, mode: 'weapon' }, text: 'Weapons soften hits: you take the monster\'s value <b>minus</b> the weapon\'s. Fight the <b>Ghoul (9)</b> with your sword. You take only 2, and its 9 points go toward your contract.' },
-  { allow: { v: 5, mode: 'weapon' }, text: 'Weapons <b>dull</b>: your sword can now only hit monsters of 9 or lower (see Weapon above). Hit the <b>Goblin (5)</b> with it for free.' },
-  { allow: { v: 3, mode: 'weapon' }, text: 'Room cleared. The Salve stayed behind and 3 new cards joined it. Your sword now only hits <b>5 or lower</b>, so use it on the <b>Bat (3)</b>.' },
-  { allow: { v: 10, mode: 'bare' }, text: 'The <b>Troll (10)</b> is too strong for your dulled sword, so it\'s fists: you take the full 10. In a real run you could <b>flee</b> a room before touching it instead. Its cards go to the bottom of the pile, but you can\'t flee two rooms in a row.' },
+  { allow: { v: 7, mode: null }, text: 'A room shows 4 cards. You deal with <b>3 of them</b>, and the 4th waits for the next room. Start by equipping the <b>Short Sword (7♦)</b>.' },
+  { allow: { v: 9, mode: 'weapon' }, text: 'Weapons soften hits: you take the monster\'s value <b>minus</b> the weapon\'s. Fight the <b>Owlbear (9)</b> with your sword. You take only 2, and its 9 points go toward your contract.' },
+  { allow: { v: 5, mode: 'weapon' }, text: 'Weapons <b>dull</b>: your sword can now only hit monsters of 9 or lower (see Weapon above). Hit the <b>Ghost (5)</b> with it for free.' },
+  { allow: { v: 3, mode: 'weapon' }, text: 'Room cleared. The Salve stayed behind and 3 new cards joined it. Your sword now only hits <b>5 or lower</b>, so use it on the <b>Cave Bat (3)</b>.' },
+  { allow: { v: 10, mode: 'bare' }, text: 'The <b>Bone Golem (10)</b> is too strong for your dulled sword, so it\'s fists: you take the full 10. In a real run you could <b>flee</b> a room before touching it instead. Its cards go to the bottom of the pile, but you can\'t flee two rooms in a row.' },
   { allow: { v: 6, mode: null }, text: 'Patch up with the <b>Tonic (6)</b>. Only the first potion you drink in each room heals.' },
 ];
 let tut = null; // { step } while the tutorial runs
@@ -229,7 +401,7 @@ function currentHint() {
   if (tut) return null;
   const list = [
     ['contract', s.phase === 'bid', 'Bold and Reckless pay more but need more kills. A missed contract is a strike, and three strikes ends the run.'],
-    ['clause', s.phase === 'bid' && s.offers.some(o => o.clause), 'The dashed offer carries a <b>clause</b>: it pays ×1.5 but bends a rule for this floor.'],
+    ['clause', s.phase === 'bid' && s.offers.some(o => o.clause), 'The offer with a second wax seal carries a <b>clause</b>: it pays ×1.5 but bends a rule for this floor.'],
     ['boss', s.phase === 'bid' && s.boss, 'Boss floor: the boss rule applies to this whole floor, so plan your bid around it.'],
     ['raise', s.phase === 'room' && E.canRaise(s), 'Running hot? <b>Raise</b> moves your contract up one tier for more gold. You can raise once per floor, between rooms.'],
     ['limit', s.phase === 'room' && s.weapon && s.weapon.limit != null, 'Your weapon has dulled: it only hits monsters at or below the number shown under Weapon. Bigger monsters need fists, or a fresh weapon.'],
@@ -249,9 +421,9 @@ function duesWarning() {
 
 // ---------- rendering ----------
 function cardName(c) {
-  if (c.kind === 'monster') return monsterNames[c.v] || 'Horror';
+  if (c.kind === 'monster') return (monsterNames[c.suit] || {})[c.v] || 'Horror';
   if (c.kind === 'weapon') return weaponNames[c.v] || 'Blade';
-  return c.v >= 8 ? 'Elixir' : c.v >= 5 ? 'Tonic' : 'Salve';
+  return { large: 'Elixir', medium: 'Tonic', small: 'Salve' }[potionSize(c.v)];
 }
 function fightLabel(c, weapon) {
   const d = E.monsterDamage(s, c, weapon);
@@ -280,33 +452,35 @@ function cardHTML(c, active) {
     acts = btn(null, `Equip${s.relics.includes('grindstone') ? ` as ${c.v + 1}♦` : ''}${s.weapon ? ` (drops ${s.weapon.v}♦)` : ''}`);
   } else acts = btn(null, potionPreview(c));
   const lit = tut && TUTORIAL[tut.step] && TUTORIAL[tut.step].allow.v === c.v && s.phase === 'room';
-  return `<article class="card ${c.kind} ${c.v >= 15 ? 'elite' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''}">
-    <div class="corner"><span class="rank">${E.rankLabel(c.v)}<small>${c.suit}</small></span><span class="kind">${face[c.kind]}</span></div>
-    <div class="face">${cardName(c)}</div>
+  return `<article class="card ${c.kind} ${c.v >= 15 ? 'elite' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''}" data-card="${c.id}">
+    <div class="art">${img(cardArt(c))}<span class="rank">${E.rankLabel(c.v)}<small>${c.suit}</small></span></div>
+    <div class="name"><span class="face">${cardName(c)}</span><span class="kind">${c.v >= 15 ? 'Elite monster' : face[c.kind]}</span></div>
     <div class="acts">${acts}</div></article>`;
 }
 function statusHTML() {
   const w = s.weapon ? `${s.weapon.v}♦ <span class="muted" style="font-size:13px">${s.weapon.limit == null ? 'fresh' : 'hits ≤ ' + E.rankLabel(s.weapon.limit)}</span>` : '<span class="muted">none</span>';
   return `<section class="status" aria-label="Status">
-    <div class="stat"><span class="label">Health</span><span class="num">${s.hp}<span class="muted">/${s.maxHp}</span></span><div class="hpbar"><i style="width:${100 * s.hp / s.maxHp}%"></i></div></div>
-    <div class="stat"><span class="label">Gold</span><span class="num price">${s.gold}</span></div>
-    <div class="stat"><span class="label">Weapon</span><span class="num">${w}</span></div>
-    <div class="stat"><span class="label">Dues after floor ${E.act(s) * 3 + 3}</span><span class="num price">${tut ? '—' : E.DUES[E.act(s)]}<span class="muted" style="font-size:13px"> gold</span></span></div>
-    <div class="stat"><span class="label">Strikes</span><div class="pips">${[0, 1, 2].map(i => `<span class="pip ${i < s.strikes ? 'on' : ''}"></span>`).join('')}</div></div>
+    <div class="stat"><span class="label">${img('icons/hud-hp.webp')}Health</span><span class="num">${s.hp}<span class="muted">/${s.maxHp}</span></span><div class="hpbar"><i style="width:${100 * s.hp / s.maxHp}%"></i></div></div>
+    <div class="stat"><span class="label">${img('icons/hud-gold.webp')}Gold</span><span class="num price">${s.gold}</span></div>
+    <div class="stat"><span class="label">${img('icons/hud-weapon-slot.webp')}Weapon</span><span class="num">${w}</span></div>
+    <div class="stat"><span class="label">${img('icons/emblem-guild.webp')}Dues after floor ${E.act(s) * 3 + 3}</span><span class="num price">${tut ? '—' : E.DUES[E.act(s)]}<span class="muted" style="font-size:13px"> gold</span></span></div>
+    <div class="stat"><span class="label">${img('icons/hud-strike.webp')}Strikes</span><div class="pips">${[0, 1, 2].map(i => `<span class="pip ${i < s.strikes ? 'on' : ''}"></span>`).join('')}</div></div>
   </section>`;
 }
-const bossHTML = () => s.boss ? `<div class="boss"><b>${s.boss.name}</b><span>${s.boss.rule}</span></div>` : '';
+const bossCard = (b, label) => `<div class="boss">${img(`portraits/${bossArt[b.key]}.webp`, '', b.name)}<div class="who"><span class="label">${label}</span><b>${b.name}</b><span>${b.rule}</span></div></div>`;
+const bossHTML = () => s.boss ? bossCard(s.boss, 'Boss floor') : '';
 function relicsHTML(withDrop) {
   if (tut) return '';
-  if (!s.relics.length) return `<p class="muted" style="margin:0">No relics yet. Buy them in the shop between floors (${E.MAX_RELICS} slots).</p>`;
-  return `<div class="relics">${s.relics.map(k => `<div class="relic"><div class="row"><b>${E.RELICS[k].name}</b>${withDrop ? `<button class="link" data-drop="${k}">Drop</button>` : ''}</div><span class="muted" style="font-size:14px">${E.RELICS[k].text}</span></div>`).join('')}</div>`;
+  if (!s.relics.length && !withDrop) return `<p class="muted" style="margin:0">No relics yet. Buy them in the shop between floors (${E.MAX_RELICS} slots).</p>`;
+  const empty = withDrop ? Array.from({ length: E.MAX_RELICS - s.relics.length }, () => `<div class="relic empty">${img('icons/hud-relic-slot.webp', 'ico')}<span class="muted">Empty slot</span></div>`).join('') : '';
+  return `<div class="relics">${s.relics.map(k => `<div class="relic">${img(iconOf(k), 'ico')}<div class="rbody"><div class="row"><b>${E.RELICS[k].name}</b>${withDrop ? `<button class="link" data-drop="${k}">Drop</button>` : ''}</div><span class="muted" style="font-size:14px">${E.RELICS[k].text}</span></div></div>`).join('')}${empty}</div>`;
 }
 const roomsOnFloor = () => s.tutorial ? 2 : E.ROOMS_PER_FLOOR;
 function contractHTML() {
   const c = s.contract;
   const pct = Math.min(100, 100 * s.slain / c.target);
-  return `<section class="contract">
-    <div class="contract-row"><h2>${tut ? 'Training' : E.TIERS[c.tier]} contract</h2>${tut ? '' : `<span>Pays <span class="num price">${c.pay}</span> gold + overkill</span>`}</div>
+  return `<section class="contract paper">${s.raises ? stamp('raised', `raise-${s.floor}-${s.raises}`) : ''}
+    <div class="contract-row"><h2><span class="seals">${img(tierSeal(c.tier))}${c.clause ? img(clauseSeal(c.clause)) : ''}</span>${tut ? 'Training' : E.TIERS[c.tier]} contract</h2>${tut ? '' : `<span>Pays <span class="num price">${c.pay}</span> gold + overkill</span>`}</div>
     ${c.clause ? `<div class="cline"><b>${E.CLAUSES[c.clause].name}:</b> ${E.CLAUSES[c.clause].text}</div>` : ''}
     <div class="contract-row"><span>Slain <span class="num">${s.slain}</span> of <span class="num">${c.target}</span> points</span>
       <span class="pips" title="Rooms cleared">${Array.from({ length: roomsOnFloor() }, (_, i) => `<span class="pip room ${i < s.roomsCleared ? 'on' : ''}"></span>`).join('')}<span class="muted" style="font-size:13px">rooms</span></span></div>
@@ -320,9 +494,9 @@ function peekHTML() {
 }
 const logHTML = () => tut ? '' : `<section><div class="label" style="margin-bottom:6px">Log</div><div class="log">${s.log.map(l => `<p>${esc(l)}</p>`).join('') || '<p class="muted">Your deeds will be recorded here.</p>'}</div></section>`;
 function coachHTML() {
-  if (tut && TUTORIAL[tut.step]) return `<aside class="coach"><span class="label">Training · step ${tut.step + 1} of ${TUTORIAL.length}</span><p>${TUTORIAL[tut.step].text}</p><button class="link" data-skiptut>Skip training</button></aside>`;
+  if (tut && TUTORIAL[tut.step]) return `<aside class="coach">${clerk('neutral')}<span class="label">Training · step ${tut.step + 1} of ${TUTORIAL.length}</span><p>${TUTORIAL[tut.step].text}</p><button class="link" data-skiptut>Skip training</button></aside>`;
   const h = currentHint();
-  return h ? `<aside class="coach hint"><span class="label">Tip</span><p>${h.text}</p><button class="link" data-hint="${h.key}">Got it</button></aside>` : '';
+  return h ? `<aside class="coach hint">${clerk('neutral')}<span class="label">Tip</span><p>${h.text}</p><button class="link" data-hint="${h.key}">Got it</button></aside>` : '';
 }
 const rules = `<details class="rules"><summary>How to play</summary><ol>
   <li>The dungeon is a deck. <b>Monsters</b> (♠ ♣) hurt you, <b>weapons</b> (♦) soften hits, <b>potions</b> (♥) heal.</li>
@@ -342,7 +516,9 @@ function endHTML() {
   const fb = dbState === 'on' && rec ? `<label class="fb" for="fb">Anything confusing, boring or great? One line helps.</label>
       <textarea id="fb" rows="2" maxlength="600">${esc(rec.note || '')}</textarea>
       <button data-fb>${rec.note ? 'Update note' : 'Save note'}</button><span id="fbstate" class="muted"></span>` : '';
-  return `<section class="end"><h2>${won ? 'Ledger closed. You survived.' : 'Run over'}</h2>
+  const key = 'end-' + (rec ? rec.id : s.floor);
+  const mark = won ? stamp('paid', key) : /revokes your license/.test(s.lastResult || '') ? stamp('strike', key) : '';
+  return `<section class="end">${mark}${clerk(won ? 'pleased' : 'disapproving')}<h2>${won ? 'Ledger closed. You survived.' : 'Run over'}</h2>
       <p style="margin:0">${esc(s.lastResult || '')}</p>
       <p class="muted" style="margin:0">Reached floor <span class="num">${s.floor + 1}</span> · slew <span class="num">${s.totalSlain + (won ? 0 : s.slain)}</span> points · <span class="num">${s.gold}</span> gold</p>
       ${fb}${webReports() && rec ? webFormHTML() : ''}
@@ -379,7 +555,7 @@ function runReport(r = rec) {
   return `Guild Ledger ${VERSION} run report: ${out} on floor ${r.floorReached}, ${r.totalSlain} points, ${r.gold} gold.\nFloors: ${floors}\nRelics bought: ${bought}\nRelics passed on: ${skipped}`;
 }
 function tutDoneHTML() {
-  return `<section class="end"><h2>Training complete</h2>
+  return `<section class="end">${clerk('pleased')}<h2>Training complete</h2>
     <p style="margin:0">${esc(s.lastResult)} You're ready.</p>
     <ul class="recap">
       <li>A real floor is <b>4 rooms</b>, and a run is <b>9 floors</b> in 3 acts.</li>
@@ -395,19 +571,29 @@ function statsHTML() {
   return `<details class="rules" id="stats"><summary>Playtest stats (only you see this)</summary><div id="statsbody"><button data-stats>Load stats</button></div></details>`;
 }
 
+// The clerk reads out how the floor was settled, and stamps it.
+function settleHTML() {
+  const r = s.lastResult || '';
+  const strike = /strike \d of 3/i.test(r), met = r.startsWith('Contract met');
+  const mood = strike ? 'disapproving' : met ? 'pleased' : 'neutral';
+  const mark = strike ? stamp('strike', 'floor-' + s.floor) : met ? stamp('paid', 'floor-' + s.floor) : '';
+  return `<section class="settle ${mark ? 'stamped' : ''}">${mark}${clerk(mood)}<div class="say"><span class="label">The clerk's ledger</span><p class="result">${esc(r)}</p></div></section>`;
+}
+
 function render() {
   if (!s) return;
-  const head = `<header><h1>Guild Ledger</h1><span class="muted">${tut ? 'Training floor' : `Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span></header>`;
+  setScene();
+  const head = `<header><h1>${img('icons/emblem-guild.webp', 'emblem')}Guild Ledger</h1><span class="muted">${tut ? 'Training floor' : `Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span></header>`;
   let body = '';
   if (s.phase === 'bid') {
     body = `${statusHTML()}${bossHTML()}${coachHTML()}${duesWarning()}
-      <section class="contract"><div class="contract-row"><h2>Choose this floor's contract</h2>${E.canRedraw(s) ? '<button data-redraw>Redraw room (Fortune Teller)</button>' : ''}</div>
+      <section class="contract board"><div class="contract-row"><h2>Choose this floor's contract</h2>${E.canRedraw(s) ? '<button data-redraw>Redraw room (Fortune Teller)</button>' : ''}</div>
         <p class="muted" style="margin:0">Here's the first room. How many monster points will you slay across ${roomsOnFloor()} rooms?</p>
         <div class="offers">${s.offers.map((o, i) => {
           const c = tut ? { target: 12, pay: 0 } : { target: E.TARGETS[s.floor][o.tier], pay: E.payout(s, o.tier, o.clause) };
           return `<button class="offer ${o.clause ? 'clause' : ''} ${tut ? 'lit' : ''}" data-bid="${i}">
-          <span class="tier">${tut ? 'Training' : E.TIERS[o.tier]}</span><span>Slay <span class="num">${c.target}</span></span>${tut ? '' : `<span class="muted">Pays <span class="num price">${c.pay}</span> gold</span>`}
-          ${o.clause ? `<span class="cl">${E.CLAUSES[o.clause].name}</span><span class="muted" style="font-size:13px">${E.CLAUSES[o.clause].text}</span>` : ''}</button>`;
+          ${img(tierSeal(o.tier), 'seal')}<span class="tier">${tut ? 'Training' : E.TIERS[o.tier]}</span><span>Slay <span class="num">${c.target}</span></span>${tut ? '' : `<span class="muted">Pays <span class="num price">${c.pay}</span> gold</span>`}
+          ${o.clause ? `<span class="clause-row">${img(clauseSeal(o.clause), 'seal')}<span class="cl">${E.CLAUSES[o.clause].name}</span></span><span class="muted" style="font-size:13px">${E.CLAUSES[o.clause].text}</span>` : ''}</button>`;
         }).join('')}</div>
       </section>
       <div class="room">${s.room.map(c => cardHTML(c, false)).join('')}</div>
@@ -415,18 +601,19 @@ function render() {
   } else if (s.phase === 'room') {
     const fleeNote = s.boss && s.boss.key === 'fleeToll' ? ' (costs 4 HP)' : '';
     body = `${statusHTML()}${bossHTML()}${contractHTML()}${coachHTML()}${duesWarning()}
-      <div class="roombar"><span>Room ${s.roomsCleared + 1}: deal with <b>${3 - s.handled}</b> more card${3 - s.handled === 1 ? '' : 's'}.</span>
-        <span style="display:flex;gap:8px;flex-wrap:wrap">${E.canRaise(s) && !tut ? `<button data-raise>Raise to ${E.TIERS[s.contract.tier + 1]}: slay ${E.TARGETS[s.floor][s.contract.tier + 1]}, pays ${E.payout(s, s.contract.tier + 1, s.contract.clause)}</button>` : ''}
-        <button data-flee ${E.canFlee(s) && !tut ? '' : 'disabled'}>Flee room${fleeNote}</button></span></div>
+      <div class="roombar"><span><span class="pile" title="Cards left in the draw pile">${img('cards/back.webp')}<span class="num">${s.draw.length}</span></span>Room ${s.roomsCleared + 1}: deal with <b>${3 - s.handled}</b> more card${3 - s.handled === 1 ? '' : 's'}.</span>
+        <span style="display:flex;gap:8px;flex-wrap:wrap">${E.canRaise(s) && !tut ? `<button data-raise>${img('icons/hud-raise.webp', 'bi')}Raise to ${E.TIERS[s.contract.tier + 1]}: slay ${E.TARGETS[s.floor][s.contract.tier + 1]}, pays ${E.payout(s, s.contract.tier + 1, s.contract.clause)}</button>` : ''}
+        <button data-flee ${E.canFlee(s) && !tut ? '' : 'disabled'}>${img(E.canFlee(s) && !tut ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room${fleeNote}</button></span></div>
       <div class="room">${s.room.map(c => cardHTML(c, true)).join('')}</div>
       ${peekHTML()}${relicsHTML(false)}${tut ? '' : rules}${logHTML()}${statsHTML()}`;
   } else if (s.phase === 'shop') {
     const full = s.relics.length >= E.MAX_RELICS;
-    const ware = (k, item) => `<div class="ware"><b>${item.name}</b><span class="muted" style="font-size:14px">${item.text}</span>
+    const ware = (k, item) => `<div class="ware"><div class="whead">${img(iconOf(k), 'ico')}<b>${item.name}</b></div><span class="muted" style="font-size:14px">${item.text}</span>
       <button data-buy="${k}" ${s.shop.bought[k] || s.gold < item.cost || (E.RELICS[k] && full) ? 'disabled' : ''}>${s.shop.bought[k] ? 'Bought' : `Buy · <span class="num">${item.cost}</span>g`}</button></div>`;
     body = `${statusHTML()}
-      <p class="result" style="margin:0">${esc(s.lastResult || '')}</p>${coachHTML()}${duesWarning()}
+      ${settleHTML()}${coachHTML()}${duesWarning()}
       <section class="shop"><div class="contract-row"><h2>Guild hall</h2><span class="muted">Next: floor ${s.floor + 2}${E.BOSSES[s.floor + 1] ? ' · <span style="color:var(--blood)">boss</span>' : ''}</span></div>
+        ${E.BOSSES[s.floor + 1] ? bossCard(E.BOSSES[s.floor + 1], 'Next floor') : ''}
         <div class="label">Relics ${full ? '(slots full: drop one to buy)' : ''}</div>
         <div class="shopgrid">${s.shop.relics.map(k => ware(k, E.RELICS[k])).join('') || '<p class="muted">Sold out.</p>'}</div>
         <div class="label">Services</div>
@@ -471,22 +658,39 @@ async function loadStats() {
 }
 
 // ---------- input ----------
+let busy = false; // true while a card's leave animation plays
 app.addEventListener('click', async e => {
-  const b = e.target.closest('button'); if (!b || b.disabled) return;
+  const b = e.target.closest('button'); if (!b || b.disabled || busy) return;
   const d = b.dataset, prev = s.phase;
-  let acted = true;
+  let acted = true, effect = null;
+  const cardEl = b.closest('.card');
   if (d.bid !== undefined) {
     if (!E.bid(s, +d.bid)) return;
     if (rec) rec.floors.push({ floor: s.floor + 1, tier: s.contract.tier, clause: s.contract.clause, target: s.contract.target, boss: s.boss ? s.boss.key : null, hpStart: s.hp, goldStart: s.gold, raises: 0, flees: 0 });
     if (rec && s.floor === 0) save();
+    effect = () => fx('ink', rectOf('.contract.paper'));
   } else if (d.act) {
-    if (!E.handle(s, +d.id, d.act === 'take' ? null : d.act)) return;
-  } else if ('flee' in d) { if (E.flee(s) && curFloor()) curFloor().flees++; }
+    // The effect plays on the card while it leaves the table, then the move resolves.
+    const c = s.room.find(x => x.id === +d.id); if (!c) return;
+    const name = c.kind === 'monster' ? (d.act === 'weapon' ? 'slash' : 'punch') : c.kind === 'potion' && E.potionHeal(s, c) > 0 && s.hp < s.maxHp ? 'heal' : null;
+    if (cardEl && !reduceMotion) {
+      busy = true; if (name) fx(name, cardEl.getBoundingClientRect()); cardEl.classList.add('leaving');
+      await new Promise(r => setTimeout(r, 260)); busy = false;
+    }
+    if (!E.handle(s, +d.id, d.act === 'take' ? null : d.act)) { render(); return; }
+  } else if ('flee' in d) {
+    const at = rectOf('.room');
+    if (E.flee(s) && curFloor()) curFloor().flees++;
+    effect = () => fx('smoke', at);
+  }
   else if ('raise' in d) {
     if (E.raise(s) && curFloor()) { const f = curFloor(); f.raises++; f.target = s.contract.target; f.tier = s.contract.tier; f.raisedAtRoom = s.roomsCleared + 1; }
   }
   else if ('redraw' in d) E.redraw(s);
-  else if (d.buy) { if (E.buy(s, d.buy) && rec && rec.shops.length) rec.shops[rec.shops.length - 1].bought.push(d.buy); }
+  else if (d.buy) {
+    const at = b.closest('.ware') && b.closest('.ware').getBoundingClientRect();
+    if (E.buy(s, d.buy)) { effect = () => fx('coins', at); if (rec && rec.shops.length) rec.shops[rec.shops.length - 1].bought.push(d.buy); }
+  }
   else if (d.drop) E.dropRelic(s, d.drop);
   else if ('leave' in d) E.leaveShop(s);
   else if ('new' in d) {
@@ -520,7 +724,11 @@ app.addEventListener('click', async e => {
   else return;
   if (tut && acted) { tut.step++; if (s.phase === 'tutdone') store.set('tutorial', true); }
   if (acted) afterAction(prev);
+  if (prev === 'room' && s.phase === 'shop' && (s.lastResult || '').startsWith('Contract met')) {
+    const last = effect; effect = () => { if (last) last(); fx('coins', rectOf('.status .stat:nth-child(2)')); };
+  }
   render();
+  if (effect) effect();
 });
 
 if (store.get('tutorial', false)) startRun(); else { s = E.newTutorial(); tut = { step: 0 }; }
@@ -595,7 +803,7 @@ render();
     if (typeof s === 'undefined' || !s) return;
     const app = document.getElementById('app');
     const header = app.querySelector('header');
-    if (header && !inTraining()) header.insertAdjacentHTML('beforeend', `<span class="lh-toggle"><button class="link" data-livehints>Hints: ${prefs.on ? 'on' : 'off'}</button></span>`);
+    if (header && !inTraining()) header.insertAdjacentHTML('beforeend', `<span class="lh-toggle"><button class="link" data-livehints><img src="assets/icons/hud-hints.webp" alt="" class="bi">Hints: ${prefs.on ? 'on' : 'off'}</button></span>`);
     const tips = ['Reach 0 and the run ends.', 'Earned from contracts. Pays for relics, services and dues.', 'Softens monster hits. After a kill it can only hit monsters up to that size.', "Paid at the end of each act. Can't pay: a strike.", 'Missed contracts and unpaid dues. 3 strikes ends the run.'];
     app.querySelectorAll('.status .stat').forEach((el, i) => { el.title = tips[i] || ''; });
     if (!prefs.on || inTraining()) return;
