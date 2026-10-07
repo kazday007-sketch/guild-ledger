@@ -1,0 +1,630 @@
+<title>Guild Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Alegreya+Sans:wght@400;500;700&family=Spline+Sans+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: a single-column dungeon table. Status ledger on top, the room of four cards in the middle, contract and log below. Deliberately dark, single theme. */
+:root {
+  color-scheme: dark;
+  --stone: #12161d;      /* page ground */
+  --slab: #1b212b;       /* panels */
+  --slab-2: #242c38;     /* raised */
+  --line: #333d4c;
+  --bone: #e9e2d0;       /* card faces, primary text */
+  --ash: #9aa3b2;        /* secondary text */
+  --verdigris: #4fb7a0;  /* accent: guild seal */
+  --blood: #d0545b;      /* potions, damage */
+  --steel: #7aa6d8;      /* weapons */
+  --ink: #1d1a17;        /* text on bone */
+  --gold: #e0b450;
+  --display: "IM Fell English SC", "Iowan Old Style", Georgia, serif;
+  --body: "Alegreya Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "Spline Sans Mono", ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--stone); color: var(--bone); }
+body { font: 16px/1.45 var(--body); margin: 0; padding-inline: 16px; padding-block: 16px 40px; }
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 14px; }
+h1 { font: 400 30px/1 var(--display); margin: 0; letter-spacing: .02em; }
+h2 { font: 400 20px/1.1 var(--display); margin: 0; letter-spacing: .03em; text-wrap: balance; }
+.mono, .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--ash); }
+.label { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--ash); }
+header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+button { font: 600 15px var(--body); color: var(--bone); background: var(--slab-2); border: 1px solid var(--line); border-radius: 6px; padding: 9px 14px; cursor: pointer; }
+button:hover:not(:disabled) { border-color: var(--verdigris); }
+button:focus-visible { outline: 2px solid var(--verdigris); outline-offset: 2px; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button.primary { background: var(--verdigris); color: #08201b; border-color: var(--verdigris); }
+.link { background: none; border: 0; padding: 0; color: var(--verdigris); text-decoration: underline; font-weight: 500; }
+
+/* status ledger */
+.status { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stat { background: var(--slab); padding: 10px 12px; display: grid; gap: 4px; min-width: 0; }
+.stat .num { font-size: 20px; font-weight: 700; }
+.hpbar { height: 6px; background: var(--slab-2); border-radius: 3px; overflow: hidden; }
+.hpbar i { display: block; height: 100%; background: var(--blood); transition: width .3s; }
+.pips { display: flex; gap: 5px; align-items: center; height: 26px; }
+.pip { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line); }
+.pip.on { background: var(--blood); border-color: var(--blood); }
+.pip.room.on { background: var(--verdigris); border-color: var(--verdigris); }
+@media (max-width: 620px) { .status { grid-template-columns: repeat(2, minmax(0, 1fr)); } .status .stat:first-child { grid-column: 1 / -1; } }
+
+/* contract */
+.contract { background: var(--slab); border: 1px solid var(--line); border-radius: 8px; padding: 14px; display: grid; gap: 10px; }
+.contract-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.progress { height: 12px; background: var(--slab-2); border-radius: 6px; overflow: hidden; position: relative; }
+.progress i { display: block; height: 100%; background: var(--verdigris); transition: width .3s; }
+.progress.met i { background: var(--gold); }
+.boss { border: 1px dashed var(--blood); border-radius: 8px; padding: 10px 14px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.boss b { font-family: var(--display); font-weight: 400; font-size: 18px; color: var(--blood); }
+.offers { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.offer.clause { border-style: dashed; border-color: var(--gold); }
+.offer .cl { color: var(--gold); font-weight: 700; font-size: 14px; }
+.cline { color: var(--gold); }
+.offer { text-align: left; display: grid; gap: 4px; padding: 12px; }
+.offer .tier { font: 400 18px var(--display); }
+.offer .num { font-size: 18px; }
+
+
+/* room */
+.room { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 560px) { .room { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.card { background: var(--bone); color: var(--ink); border-radius: 10px; padding: 10px; min-height: 168px; display: grid; grid-template-rows: auto 1fr auto; gap: 6px; box-shadow: 0 2px 0 rgba(0,0,0,.4); animation: deal .25s ease-out; }
+@keyframes deal { from { transform: translateY(-8px); opacity: .3; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .card { animation: none; } .hpbar i, .progress i { transition: none; } }
+.card .corner { display: flex; justify-content: space-between; align-items: baseline; }
+.card .rank { font: 700 26px/1 var(--mono); }
+.card .kind { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; font-weight: 700; }
+.card .face { font: 400 15px/1.2 var(--display); align-self: center; text-align: center; }
+.card.monster .kind, .card.monster .rank { color: #2a2622; }
+.card.monster { background: linear-gradient(#e9e2d0, #d9d0bb); }
+.card.weapon .kind, .card.weapon .rank { color: #2e5f93; }
+.card.potion .kind, .card.potion .rank { color: #a3323a; }
+.card.elite { outline: 2px solid var(--gold); }
+.card .acts { display: grid; gap: 6px; }
+.card .acts button { background: var(--ink); color: var(--bone); border-color: var(--ink); padding: 7px 8px; font-size: 13px; text-align: left; }
+.card .acts button:hover:not(:disabled) { border-color: var(--verdigris); }
+.card.idle .acts button { visibility: hidden; }
+.roombar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* relics, shop */
+.relics { display: flex; flex-wrap: wrap; gap: 8px; }
+.relic { background: var(--slab); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; display: grid; gap: 2px; min-width: 0; flex: 1 1 200px; }
+.relic b { font-family: var(--display); font-weight: 400; font-size: 16px; color: var(--verdigris); }
+.relic .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.shop { display: grid; gap: 14px; background: var(--slab); border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
+.shopgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 560px) { .shopgrid { grid-template-columns: 1fr; } }
+.ware { background: var(--slab-2); border: 1px solid var(--line); border-radius: 6px; padding: 10px; display: grid; gap: 6px; align-content: start; }
+.ware b { font-family: var(--display); font-weight: 400; font-size: 17px; }
+.price { color: var(--gold); }
+
+.log { background: var(--slab); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; max-height: 170px; overflow-y: auto; font-size: 14px; }
+.log p { margin: 0; padding: 3px 0; border-bottom: 1px solid var(--slab-2); }
+.log p:first-child { color: var(--bone); } .log p { color: var(--ash); }
+.result { font-size: 17px; }
+.end { text-align: center; display: grid; gap: 12px; padding: 30px 14px; background: var(--slab); border: 1px solid var(--line); border-radius: 8px; justify-items: center; }
+.end h2 { font-size: 32px; }
+details.rules { background: var(--slab); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; }
+details.rules summary { cursor: pointer; font-weight: 700; }
+details.rules ol { margin: 8px 0 4px; padding-left: 20px; display: grid; gap: 4px; }
+.peek { font-size: 14px; }
+.coach { border: 1px solid var(--verdigris); background: color-mix(in srgb, var(--verdigris) 12%, var(--slab)); border-radius: 8px; padding: 12px 14px; display: grid; gap: 6px; justify-items: start; }
+.coach p { margin: 0; max-width: 65ch; }
+.coach.hint { border-color: var(--line); background: var(--slab); }
+.warn { margin: 0; padding: 8px 12px; border-radius: 6px; background: var(--slab); border: 1px solid var(--line); }
+.warn.short { border-color: var(--blood); }
+.card.lit { outline: 3px solid var(--verdigris); outline-offset: 2px; }
+.offer.lit { border-color: var(--verdigris); }
+.sync { font-size: 13px; text-align: center; margin: 4px 0 0; }
+.fb { font-weight: 500; }
+textarea, input#pname { width: 100%; max-width: 480px; font: 15px var(--body); color: var(--bone); background: var(--slab-2); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
+textarea:focus-visible, input#pname:focus-visible { outline: 2px solid var(--verdigris); }
+.recap { text-align: left; max-width: 520px; margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+#statsbody p { margin: 6px 0; }
+</style>
+
+<main id="app"></main>
+
+<script>/*ENGINE*/</script>
+
+<script>
+const E = window.Engine;
+const VERSION = 'v3';
+// Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
+const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
+const webReports = () => !!(REPORT.url && REPORT.entry) && dbState !== 'on';
+const app = document.getElementById('app');
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const face = { monster: 'Monster', weapon: 'Weapon', potion: 'Potion' };
+const monsterNames = { 2: 'Rat', 3: 'Bat', 4: 'Slime', 5: 'Goblin', 6: 'Skeleton', 7: 'Wolf', 8: 'Orc', 9: 'Ghoul', 10: 'Troll', 11: 'Knight', 12: 'Witch', 13: 'Ogre King', 14: 'Wyrm', 15: 'Elite Golem', 17: 'Elite Dragon' };
+const weaponNames = { 2: 'Dagger', 3: 'Club', 4: 'Hatchet', 5: 'Mace', 6: 'Spear', 7: 'Sword', 8: 'Axe', 9: 'Warhammer', 10: 'Greatsword' };
+
+// ---------- per-viewer conveniences (browser storage; may be unavailable) ----------
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('gl-' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('gl-' + k, JSON.stringify(v)); } catch {} },
+};
+let seenHints = store.get('hints', {});
+
+// ---------- tutorial ----------
+// Each step allows exactly one action, so the coach text always matches the table.
+const TUTORIAL = [
+  { allow: { bid: 0 }, text: 'Welcome to the guild. Every floor starts with a <b>contract</b>: you promise to slay a number of monster points. You get to see the first room before you sign. Sign this training contract: slay 12 points.' },
+  { allow: { v: 7, mode: null }, text: 'A room shows 4 cards. You deal with <b>3 of them</b>, and the 4th waits for the next room. Start by equipping the <b>Sword (7♦)</b>.' },
+  { allow: { v: 9, mode: 'weapon' }, text: 'Weapons soften hits: you take the monster\'s value <b>minus</b> the weapon\'s. Fight the <b>Ghoul (9)</b> with your sword. You take only 2, and its 9 points go toward your contract.' },
+  { allow: { v: 5, mode: 'weapon' }, text: 'Weapons <b>dull</b>: your sword can now only hit monsters of 9 or lower (see Weapon above). Hit the <b>Goblin (5)</b> with it for free.' },
+  { allow: { v: 3, mode: 'weapon' }, text: 'Room cleared. The Salve stayed behind and 3 new cards joined it. Your sword now only hits <b>5 or lower</b>, so use it on the <b>Bat (3)</b>.' },
+  { allow: { v: 10, mode: 'bare' }, text: 'The <b>Troll (10)</b> is too strong for your dulled sword, so it\'s fists: you take the full 10. In a real run you could <b>flee</b> a room before touching it instead. Its cards go to the bottom of the pile, but you can\'t flee two rooms in a row.' },
+  { allow: { v: 6, mode: null }, text: 'Patch up with the <b>Tonic (6)</b>. Only the first potion you drink in each room heals.' },
+];
+let tut = null; // { step } while the tutorial runs
+
+// ---------- game state and playtest record ----------
+let s;
+let rec = null;
+function newRec() {
+  return {
+    id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), version: VERSION,
+    startedAt: new Date().toISOString(), endedAt: null, status: 'in_progress', outcome: null,
+    floorReached: 1, totalSlain: 0, gold: 0, strikes: 0, relics: [], floors: [], shops: [], actions: 0, note: '',
+  };
+}
+function startRun() { tut = null; s = E.newGame(); rec = newRec(); store.set('tutorial', true); }
+function startTutorial() { if (rec && rec.status === 'in_progress' && rec.floors.length) { rec.status = 'abandoned'; save(); } sendReport(rec); s = E.newTutorial(); rec = null; tut = { step: 0 }; }
+
+// ---------- shared playtest log (db capability) ----------
+let db = null, uid = null, owner = false, myDoc = null, saving = Promise.resolve(), dbState = 'connecting';
+(async () => {
+  try {
+    const user = await window.claude?.use?.('user');
+    db = await window.claude?.use?.('db');
+    if (!db || !user) { dbState = 'off'; render(); return; }
+    uid = await user.id();
+    owner = await user.isOwner();
+    if (!uid) { dbState = 'off'; render(); return; }
+    if (!owner && (await user.can('data.write')) === false) { dbState = 'readonly'; render(); return; }
+    const snap = await db.doc('playtests/' + uid).get();
+    myDoc = snap.exists ? { ...snap.data() } : { runs: [] };
+    myDoc.runs = Array.isArray(myDoc.runs) ? myDoc.runs.slice() : [];
+    dbState = 'on';
+  } catch { dbState = 'off'; }
+  render();
+})();
+function save() {
+  if (dbState !== 'on' || !rec) return;
+  const snapshot = JSON.parse(JSON.stringify(rec));
+  saving = saving.then(async () => {
+    const runs = myDoc.runs.filter(r => r.id !== snapshot.id);
+    runs.push(snapshot);
+    myDoc = { runs: runs.slice(-100), tutorialDone: !!store.get('tutorial', false), updatedAt: new Date().toISOString() };
+    try { await db.doc('playtests/' + uid).set(myDoc); }
+    catch (e) { if (e && e.code === 'invalid_argument') { dbState = 'readonly'; render(); } }
+  });
+  return saving;
+}
+
+// ---------- recording hooks ----------
+const curFloor = () => rec && rec.floors[rec.floors.length - 1];
+function afterAction(prevPhase) {
+  if (!rec) return;
+  rec.actions++;
+  const f = curFloor();
+  if (prevPhase === 'room' && s.phase !== 'room' && f) { // floor or run just ended
+    f.slain = s.slain;
+    f.met = f.slain >= f.target; f.hpEnd = s.hp; f.died = s.hp === 0;
+    rec.totalSlain = s.totalSlain;
+  }
+  if (s.phase === 'shop' && prevPhase !== 'shop') rec.shops.push({ floor: s.floor + 1, offered: s.shop.relics.slice(), bought: [], goldIn: s.gold });
+  rec.floorReached = s.floor + 1; rec.gold = s.gold; rec.strikes = s.strikes; rec.relics = s.relics.slice();
+  if (s.phase === 'won' || s.phase === 'lost') {
+    rec.status = 'finished'; rec.outcome = s.phase === 'won' ? 'won' : s.hp === 0 ? 'died' : 'struck_out';
+    rec.endedAt = new Date().toISOString(); rec.lastResult = s.lastResult;
+  }
+  if (prevPhase !== s.phase || s.phase === 'won' || s.phase === 'lost') save();
+}
+
+// ---------- hints (one-time tips for real runs) ----------
+function currentHint() {
+  if (tut) return null;
+  const list = [
+    ['contract', s.phase === 'bid', 'Bold and Reckless pay more but need more kills. A missed contract is a strike, and three strikes ends the run.'],
+    ['clause', s.phase === 'bid' && s.offers.some(o => o.clause), 'The dashed offer carries a <b>clause</b>: it pays ×1.5 but bends a rule for this floor.'],
+    ['boss', s.phase === 'bid' && s.boss, 'Boss floor: the boss rule applies to this whole floor, so plan your bid around it.'],
+    ['raise', s.phase === 'room' && E.canRaise(s), 'Running hot? <b>Raise</b> moves your contract up one tier for more gold. You can raise once per floor, between rooms.'],
+    ['limit', s.phase === 'room' && s.weapon && s.weapon.limit != null, 'Your weapon has dulled: it only hits monsters at or below the number shown under Weapon. Bigger monsters need fists, or a fresh weapon.'],
+    ['shop', s.phase === 'shop', 'Relics bend the rules for the rest of the run (4 slots). Keep some gold back: guild dues are due at the end of each act.'],
+  ];
+  const h = list.find(([k, cond]) => cond && !seenHints[k]);
+  return h ? { key: h[0], text: h[2] } : null;
+}
+function duesWarning() {
+  if (tut || !['bid', 'room', 'shop'].includes(s.phase)) return '';
+  const lastOfAct = s.phase === 'shop' ? s.floor % 3 === 1 : s.floor % 3 === 2;
+  if (!lastOfAct) return '';
+  const due = E.DUES[s.phase === 'shop' ? E.act({ floor: s.floor + 1 }) : E.act(s)];
+  const short = s.gold < due;
+  return `<p class="warn ${short ? 'short' : ''}">Guild dues of <b class="num">${due}</b> gold are due after ${s.phase === 'shop' ? 'the next floor' : 'this floor'}. You have <b class="num">${s.gold}</b>.${short ? ' Miss them and it\'s a strike.' : ''}</p>`;
+}
+
+// ---------- rendering ----------
+function cardName(c) {
+  if (c.kind === 'monster') return monsterNames[c.v] || 'Horror';
+  if (c.kind === 'weapon') return weaponNames[c.v] || 'Blade';
+  return c.v >= 8 ? 'Elixir' : c.v >= 5 ? 'Tonic' : 'Salve';
+}
+function fightLabel(c, weapon) {
+  const d = E.monsterDamage(s, c, weapon);
+  if (d >= s.hp) return `${weapon ? 'Weapon' : 'Fists'}: take ${d} (fatal)`;
+  const pts = E.contractPoints({ ...s, hp: s.hp - d }, c, !weapon);
+  return `${weapon ? 'Weapon' : 'Fists'}: take ${d} · +${pts}`;
+}
+function potionPreview(c) {
+  const h = E.potionHeal(s, c);
+  if (!h) return 'Discard (no healing)';
+  const heal = Math.min(h, s.maxHp - s.hp);
+  return `Drink: heal ${heal}` + (s.relics.includes('alchemist') && h > heal ? ` · +${h - heal}` : '');
+}
+function allowed(c, mode) {
+  if (!tut) return true;
+  const a = TUTORIAL[tut.step] && TUTORIAL[tut.step].allow;
+  return !!a && a.v === c.v && a.mode === mode;
+}
+function cardHTML(c, active) {
+  const btn = (mode, label) => `<button data-act="${mode || 'take'}" data-id="${c.id}" ${allowed(c, mode) ? '' : 'disabled'}>${label}</button>`;
+  let acts = '';
+  if (c.kind === 'monster') {
+    if (E.canUseWeapon(s, c)) acts += btn('weapon', fightLabel(c, true));
+    acts += btn('bare', fightLabel(c, false));
+  } else if (c.kind === 'weapon') {
+    acts = btn(null, `Equip${s.relics.includes('grindstone') ? ` as ${c.v + 1}♦` : ''}${s.weapon ? ` (drops ${s.weapon.v}♦)` : ''}`);
+  } else acts = btn(null, potionPreview(c));
+  const lit = tut && TUTORIAL[tut.step] && TUTORIAL[tut.step].allow.v === c.v && s.phase === 'room';
+  return `<article class="card ${c.kind} ${c.v >= 15 ? 'elite' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''}">
+    <div class="corner"><span class="rank">${E.rankLabel(c.v)}<small>${c.suit}</small></span><span class="kind">${face[c.kind]}</span></div>
+    <div class="face">${cardName(c)}</div>
+    <div class="acts">${acts}</div></article>`;
+}
+function statusHTML() {
+  const w = s.weapon ? `${s.weapon.v}♦ <span class="muted" style="font-size:13px">${s.weapon.limit == null ? 'fresh' : 'hits ≤ ' + E.rankLabel(s.weapon.limit)}</span>` : '<span class="muted">none</span>';
+  return `<section class="status" aria-label="Status">
+    <div class="stat"><span class="label">Health</span><span class="num">${s.hp}<span class="muted">/${s.maxHp}</span></span><div class="hpbar"><i style="width:${100 * s.hp / s.maxHp}%"></i></div></div>
+    <div class="stat"><span class="label">Gold</span><span class="num price">${s.gold}</span></div>
+    <div class="stat"><span class="label">Weapon</span><span class="num">${w}</span></div>
+    <div class="stat"><span class="label">Dues after floor ${E.act(s) * 3 + 3}</span><span class="num price">${tut ? '—' : E.DUES[E.act(s)]}<span class="muted" style="font-size:13px"> gold</span></span></div>
+    <div class="stat"><span class="label">Strikes</span><div class="pips">${[0, 1, 2].map(i => `<span class="pip ${i < s.strikes ? 'on' : ''}"></span>`).join('')}</div></div>
+  </section>`;
+}
+const bossHTML = () => s.boss ? `<div class="boss"><b>${s.boss.name}</b><span>${s.boss.rule}</span></div>` : '';
+function relicsHTML(withDrop) {
+  if (tut) return '';
+  if (!s.relics.length) return `<p class="muted" style="margin:0">No relics yet. Buy them in the shop between floors (${E.MAX_RELICS} slots).</p>`;
+  return `<div class="relics">${s.relics.map(k => `<div class="relic"><div class="row"><b>${E.RELICS[k].name}</b>${withDrop ? `<button class="link" data-drop="${k}">Drop</button>` : ''}</div><span class="muted" style="font-size:14px">${E.RELICS[k].text}</span></div>`).join('')}</div>`;
+}
+const roomsOnFloor = () => s.tutorial ? 2 : E.ROOMS_PER_FLOOR;
+function contractHTML() {
+  const c = s.contract;
+  const pct = Math.min(100, 100 * s.slain / c.target);
+  return `<section class="contract">
+    <div class="contract-row"><h2>${tut ? 'Training' : E.TIERS[c.tier]} contract</h2>${tut ? '' : `<span>Pays <span class="num price">${c.pay}</span> gold + overkill</span>`}</div>
+    ${c.clause ? `<div class="cline"><b>${E.CLAUSES[c.clause].name}:</b> ${E.CLAUSES[c.clause].text}</div>` : ''}
+    <div class="contract-row"><span>Slain <span class="num">${s.slain}</span> of <span class="num">${c.target}</span> points</span>
+      <span class="pips" title="Rooms cleared">${Array.from({ length: roomsOnFloor() }, (_, i) => `<span class="pip room ${i < s.roomsCleared ? 'on' : ''}"></span>`).join('')}<span class="muted" style="font-size:13px">rooms</span></span></div>
+    <div class="progress ${s.slain >= c.target ? 'met' : ''}"><i style="width:${pct}%"></i></div>
+  </section>`;
+}
+function peekHTML() {
+  if (!s.relics.includes('lantern') || !s.draw.length) return '';
+  const n = s.draw[0];
+  return `<p class="peek muted" style="margin:0">Lantern: the next card is <b style="color:var(--bone)">${E.rankLabel(n.v)}${n.suit} ${cardName(n)}</b>.</p>`;
+}
+const logHTML = () => tut ? '' : `<section><div class="label" style="margin-bottom:6px">Log</div><div class="log">${s.log.map(l => `<p>${esc(l)}</p>`).join('') || '<p class="muted">Your deeds will be recorded here.</p>'}</div></section>`;
+function coachHTML() {
+  if (tut && TUTORIAL[tut.step]) return `<aside class="coach"><span class="label">Training · step ${tut.step + 1} of ${TUTORIAL.length}</span><p>${TUTORIAL[tut.step].text}</p><button class="link" data-skiptut>Skip training</button></aside>`;
+  const h = currentHint();
+  return h ? `<aside class="coach hint"><span class="label">Tip</span><p>${h.text}</p><button class="link" data-hint="${h.key}">Got it</button></aside>` : '';
+}
+const rules = `<details class="rules"><summary>How to play</summary><ol>
+  <li>The dungeon is a deck. <b>Monsters</b> (♠ ♣) hurt you, <b>weapons</b> (♦) soften hits, <b>potions</b> (♥) heal.</li>
+  <li>A room shows 4 cards. Deal with 3 of them; the 4th stays for the next room. A floor is ${E.ROOMS_PER_FLOOR} rooms.</li>
+  <li>Fists cost a monster's full value in HP. A weapon takes the difference, but afterwards it can only hit monsters equal to or lower than the last one it killed.</li>
+  <li>Before touching a room you may flee: its cards go to the bottom. You can't flee two rooms in a row.</li>
+  <li>Before each floor, sign a contract to slay a number of monster points. Meet it for gold (plus 1 per 5 points over); miss it for a strike. Between rooms you may <b>raise</b> once to the next tier. At the end of each act, pay the guild's dues or take a strike. Three strikes or 0 HP ends the run. Survive ${E.FLOORS} floors to win.</li>
+</ol><button class="link" data-tutorial>Replay the training floor</button></details>`;
+function syncNote() {
+  if (webReports()) return `<p class="muted sync">Playtest build: a summary of each run is sent to the designer when it ends.</p>`;
+  if (dbState === 'on') return `<p class="muted sync">This run is saved to the guild's playtest log.</p>`;
+  if (dbState === 'readonly') return `<p class="muted sync">Runs aren't saved automatically on this link. Use "Copy run report" at the end of a run and send it to whoever shared the game.</p>`;
+  return '';
+}
+function endHTML() {
+  const won = s.phase === 'won';
+  const fb = dbState === 'on' && rec ? `<label class="fb" for="fb">Anything confusing, boring or great? One line helps.</label>
+      <textarea id="fb" rows="2" maxlength="600">${esc(rec.note || '')}</textarea>
+      <button data-fb>${rec.note ? 'Update note' : 'Save note'}</button><span id="fbstate" class="muted"></span>` : '';
+  return `<section class="end"><h2>${won ? 'Ledger closed. You survived.' : 'Run over'}</h2>
+      <p style="margin:0">${esc(s.lastResult || '')}</p>
+      <p class="muted" style="margin:0">Reached floor <span class="num">${s.floor + 1}</span> · slew <span class="num">${s.totalSlain + (won ? 0 : s.slain)}</span> points · <span class="num">${s.gold}</span> gold</p>
+      ${fb}${webReports() && rec ? webFormHTML() : ''}
+      ${dbState !== 'on' && rec && !webReports() ? `<p class="muted" style="margin:0">Playtesting? Copy this report and send it to whoever shared the game.</p>
+      <textarea id="report" rows="4" readonly>${esc(runReport())}</textarea><button data-copy>Copy run report</button><span id="copystate" class="muted"></span>` : ''}
+      <button class="primary" data-new>New run</button></section>`;
+}
+function webFormHTML() {
+  return `<label class="fb" for="pname">Your name (optional)</label>
+      <input id="pname" maxlength="40" value="${esc(store.get('name', ''))}">
+      <label class="fb" for="wnote">Anything confusing, boring or great? One line helps.</label>
+      <textarea id="wnote" rows="2" maxlength="600">${esc(rec.note || '')}</textarea>
+      <button data-send ${rec.sent ? 'disabled' : ''}>${rec.sent ? 'Report sent. Thanks!' : 'Send report'}</button>
+      <p class="muted" style="margin:0;font-size:13px">If you skip this, the report is sent without a note when you start a new run.</p>`;
+}
+// Posts the run to the Google Form. no-cors: the response can't be read, so this is fire-and-forget.
+function sendReport(r) {
+  if (!webReports() || !r || r.sent || !r.floors.length) return;
+  r.sent = true;
+  const name = store.get('name', '');
+  const text = `${name ? 'Player: ' + name + '\n' : ''}${r.note ? 'Note: ' + r.note + '\n' : ''}${runReport(r)}\nData: ${JSON.stringify(r)}`;
+  const body = new URLSearchParams({ [REPORT.entry]: text });
+  try {
+    if (document.visibilityState === 'hidden' && navigator.sendBeacon) navigator.sendBeacon(REPORT.url, body);
+    else fetch(REPORT.url, { method: 'POST', mode: 'no-cors', body }).catch(() => {});
+  } catch {}
+}
+window.addEventListener('pagehide', () => { if (rec && rec.status === 'in_progress') rec.status = 'abandoned'; sendReport(rec); });
+function runReport(r = rec) {
+  const out = { won: 'Won', died: 'Died', struck_out: 'Struck out' }[r.outcome] || (r.status === 'abandoned' ? 'Abandoned' : 'Ended');
+  const floors = r.floors.map(f => `F${f.floor} ${E.TIERS[f.tier]}${f.clause ? '+' + E.CLAUSES[f.clause].name : ''} ${f.slain ?? '?'}/${f.target}${f.met ? ' met' : f.met === false ? ' missed' : ''}${f.raises ? ' raised' : ''}${f.flees ? ` fled${f.flees}` : ''}`).join('; ');
+  const bought = r.shops.flatMap(sh => sh.bought.filter(k => E.RELICS[k]).map(k => E.RELICS[k].name)).join(', ') || 'none';
+  const skipped = [...new Set(r.shops.flatMap(sh => sh.offered.filter(k => !sh.bought.includes(k)).map(k => E.RELICS[k].name)))].join(', ') || 'none';
+  return `Guild Ledger ${VERSION} run report: ${out} on floor ${r.floorReached}, ${r.totalSlain} points, ${r.gold} gold.\nFloors: ${floors}\nRelics bought: ${bought}\nRelics passed on: ${skipped}`;
+}
+function tutDoneHTML() {
+  return `<section class="end"><h2>Training complete</h2>
+    <p style="margin:0">${esc(s.lastResult)} You're ready.</p>
+    <ul class="recap">
+      <li>A real floor is <b>4 rooms</b>, and a run is <b>9 floors</b> in 3 acts.</li>
+      <li>Contracts come in three tiers. <b>Safe</b>, <b>Bold</b> and <b>Reckless</b> pay more as the target rises. A miss is a strike.</li>
+      <li>Between rooms you can <b>raise</b> your contract once. Points over the target pay a little extra.</li>
+      <li>Spend gold on <b>relics</b> in the shop, but keep enough for the <b>guild dues</b> at the end of each act.</li>
+      <li>Three strikes, or 0 HP, ends the run.</li>
+    </ul>
+    <button class="primary" data-new>Start your first run</button></section>`;
+}
+function statsHTML() {
+  if (!owner || dbState === 'off' || tut) return '';
+  return `<details class="rules" id="stats"><summary>Playtest stats (only you see this)</summary><div id="statsbody"><button data-stats>Load stats</button></div></details>`;
+}
+
+function render() {
+  if (!s) return;
+  const head = `<header><h1>Guild Ledger</h1><span class="muted">${tut ? 'Training floor' : `Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span></header>`;
+  let body = '';
+  if (s.phase === 'bid') {
+    body = `${statusHTML()}${bossHTML()}${coachHTML()}${duesWarning()}
+      <section class="contract"><div class="contract-row"><h2>Choose this floor's contract</h2>${E.canRedraw(s) ? '<button data-redraw>Redraw room (Fortune Teller)</button>' : ''}</div>
+        <p class="muted" style="margin:0">Here's the first room. How many monster points will you slay across ${roomsOnFloor()} rooms?</p>
+        <div class="offers">${s.offers.map((o, i) => {
+          const c = tut ? { target: 12, pay: 0 } : { target: E.TARGETS[s.floor][o.tier], pay: E.payout(s, o.tier, o.clause) };
+          return `<button class="offer ${o.clause ? 'clause' : ''} ${tut ? 'lit' : ''}" data-bid="${i}">
+          <span class="tier">${tut ? 'Training' : E.TIERS[o.tier]}</span><span>Slay <span class="num">${c.target}</span></span>${tut ? '' : `<span class="muted">Pays <span class="num price">${c.pay}</span> gold</span>`}
+          ${o.clause ? `<span class="cl">${E.CLAUSES[o.clause].name}</span><span class="muted" style="font-size:13px">${E.CLAUSES[o.clause].text}</span>` : ''}</button>`;
+        }).join('')}</div>
+      </section>
+      <div class="room">${s.room.map(c => cardHTML(c, false)).join('')}</div>
+      ${relicsHTML(false)}${tut ? '' : rules}${logHTML()}${statsHTML()}`;
+  } else if (s.phase === 'room') {
+    const fleeNote = s.boss && s.boss.key === 'fleeToll' ? ' (costs 4 HP)' : '';
+    body = `${statusHTML()}${bossHTML()}${contractHTML()}${coachHTML()}${duesWarning()}
+      <div class="roombar"><span>Room ${s.roomsCleared + 1}: deal with <b>${3 - s.handled}</b> more card${3 - s.handled === 1 ? '' : 's'}.</span>
+        <span style="display:flex;gap:8px;flex-wrap:wrap">${E.canRaise(s) && !tut ? `<button data-raise>Raise to ${E.TIERS[s.contract.tier + 1]}: slay ${E.TARGETS[s.floor][s.contract.tier + 1]}, pays ${E.payout(s, s.contract.tier + 1, s.contract.clause)}</button>` : ''}
+        <button data-flee ${E.canFlee(s) && !tut ? '' : 'disabled'}>Flee room${fleeNote}</button></span></div>
+      <div class="room">${s.room.map(c => cardHTML(c, true)).join('')}</div>
+      ${peekHTML()}${relicsHTML(false)}${tut ? '' : rules}${logHTML()}${statsHTML()}`;
+  } else if (s.phase === 'shop') {
+    const full = s.relics.length >= E.MAX_RELICS;
+    const ware = (k, item) => `<div class="ware"><b>${item.name}</b><span class="muted" style="font-size:14px">${item.text}</span>
+      <button data-buy="${k}" ${s.shop.bought[k] || s.gold < item.cost || (E.RELICS[k] && full) ? 'disabled' : ''}>${s.shop.bought[k] ? 'Bought' : `Buy · <span class="num">${item.cost}</span>g`}</button></div>`;
+    body = `${statusHTML()}
+      <p class="result" style="margin:0">${esc(s.lastResult || '')}</p>${coachHTML()}${duesWarning()}
+      <section class="shop"><div class="contract-row"><h2>Guild hall</h2><span class="muted">Next: floor ${s.floor + 2}${E.BOSSES[s.floor + 1] ? ' · <span style="color:var(--blood)">boss</span>' : ''}</span></div>
+        <div class="label">Relics ${full ? '(slots full: drop one to buy)' : ''}</div>
+        <div class="shopgrid">${s.shop.relics.map(k => ware(k, E.RELICS[k])).join('') || '<p class="muted">Sold out.</p>'}</div>
+        <div class="label">Services</div>
+        <div class="shopgrid">${Object.entries(E.SERVICES).map(([k, v]) => ware(k, v)).join('')}</div>
+        <div><button class="primary" data-leave>Descend to floor ${s.floor + 2}</button></div>
+      </section>
+      <div class="label">Your relics (${s.relics.length}/${E.MAX_RELICS})</div>${relicsHTML(true)}${logHTML()}${statsHTML()}`;
+  } else if (s.phase === 'tutdone') {
+    body = tutDoneHTML();
+  } else {
+    body = endHTML() + logHTML() + statsHTML();
+  }
+  app.innerHTML = head + body + syncNote();
+}
+
+// ---------- owner stats ----------
+async function loadStats() {
+  const el = document.getElementById('statsbody'); if (!el) return;
+  el.innerHTML = '<p class="muted">Loading…</p>';
+  let docs;
+  try { docs = (await db.collection('playtests').get()).docs.map(d => d.data()); }
+  catch { el.innerHTML = '<p class="muted">Couldn\'t load the playtest log. Try again in a moment.</p>'; return; }
+  const runs = docs.flatMap(d => Array.isArray(d.runs) ? d.runs : []);
+  const done = runs.filter(r => r.status === 'finished');
+  if (!runs.length) { el.innerHTML = '<p class="muted">No runs recorded yet. Share the game with playtesters at Contributor level, and their runs will show up here.</p>'; return; }
+  const pctOf = (n, d) => d ? Math.round(100 * n / d) + '%' : '–';
+  const ends = Array(9).fill(0); done.forEach(r => { if (r.outcome !== 'won') ends[Math.min(8, r.floorReached - 1)]++; });
+  const floors = runs.flatMap(r => r.floors || []);
+  const tiers = [0, 1, 2].map(t => floors.filter(f => f.tier === t));
+  const offered = {}, bought = {};
+  runs.forEach(r => (r.shops || []).forEach(sh => { sh.offered.forEach(k => offered[k] = (offered[k] || 0) + 1); sh.bought.forEach(k => bought[k] = (bought[k] || 0) + 1); }));
+  const picks = Object.keys(offered).filter(k => E.RELICS[k] && offered[k] >= 2).map(k => ({ k, rate: (bought[k] || 0) / offered[k], n: offered[k] })).sort((a, b) => b.rate - a.rate);
+  const notes = runs.filter(r => r.note).slice(-8).reverse();
+  el.innerHTML = `
+    <p><b class="num">${docs.length}</b> player${docs.length === 1 ? '' : 's'} · <b class="num">${runs.length}</b> run${runs.length === 1 ? '' : 's'} (${done.length} finished, ${runs.filter(r => r.status === 'abandoned').length} abandoned, the rest unfinished) · ${docs.filter(d => d.tutorialDone).length} finished the training</p>
+    <p>Finished runs: won <b>${pctOf(done.filter(r => r.outcome === 'won').length, done.length)}</b>, died <b>${pctOf(done.filter(r => r.outcome === 'died').length, done.length)}</b>, struck out <b>${pctOf(done.filter(r => r.outcome === 'struck_out').length, done.length)}</b></p>
+    <p>Runs lost on floors 1–9: <span class="num">${ends.join(' · ')}</span></p>
+    <p>Contracts: ${tiers.map((f, t) => `${E.TIERS[t]} ${f.length} signed, ${pctOf(f.filter(x => x.met).length, f.filter(x => x.met !== undefined).length)} met`).join(' · ')}. Raises: ${floors.reduce((a, f) => a + (f.raises || 0), 0)}. Flees: ${floors.reduce((a, f) => a + (f.flees || 0), 0)}.</p>
+    ${picks.length ? `<p>Relic pick rate (bought when offered): most picked ${picks.slice(0, 4).map(p => `${E.RELICS[p.k].name} ${pctOf(p.rate, 1)}`).join(', ')}; least picked ${picks.slice(-4).reverse().map(p => `${E.RELICS[p.k].name} ${pctOf(p.rate, 1)}`).join(', ')}.</p>` : ''}
+    ${notes.length ? `<div class="label">Latest notes</div><ul class="recap">${notes.map(r => `<li>${esc(r.note)} <span class="muted">(${({ won: 'won', died: 'died', struck_out: 'struck out', abandoned: 'abandoned', in_progress: 'unfinished' })[r.outcome || r.status]}, floor ${r.floorReached})</span></li>`).join('')}</ul>` : ''}
+    <button data-stats>Refresh</button>`;
+}
+
+// ---------- input ----------
+app.addEventListener('click', async e => {
+  const b = e.target.closest('button'); if (!b || b.disabled) return;
+  const d = b.dataset, prev = s.phase;
+  let acted = true;
+  if (d.bid !== undefined) {
+    if (!E.bid(s, +d.bid)) return;
+    if (rec) rec.floors.push({ floor: s.floor + 1, tier: s.contract.tier, clause: s.contract.clause, target: s.contract.target, boss: s.boss ? s.boss.key : null, hpStart: s.hp, goldStart: s.gold, raises: 0, flees: 0 });
+    if (rec && s.floor === 0) save();
+  } else if (d.act) {
+    if (!E.handle(s, +d.id, d.act === 'take' ? null : d.act)) return;
+  } else if ('flee' in d) { if (E.flee(s) && curFloor()) curFloor().flees++; }
+  else if ('raise' in d) {
+    if (E.raise(s) && curFloor()) { const f = curFloor(); f.raises++; f.target = s.contract.target; f.tier = s.contract.tier; f.raisedAtRoom = s.roomsCleared + 1; }
+  }
+  else if ('redraw' in d) E.redraw(s);
+  else if (d.buy) { if (E.buy(s, d.buy) && rec && rec.shops.length) rec.shops[rec.shops.length - 1].bought.push(d.buy); }
+  else if (d.drop) E.dropRelic(s, d.drop);
+  else if ('leave' in d) E.leaveShop(s);
+  else if ('new' in d) {
+    if (rec && rec.status === 'in_progress' && rec.floors.length) { rec.status = 'abandoned'; save(); }
+    sendReport(rec);
+    startRun(); acted = false;
+  }
+  else if ('tutorial' in d) { startTutorial(); acted = false; }
+  else if ('skiptut' in d) { store.set('tutorial', true); startRun(); acted = false; }
+  else if (d.hint) { seenHints[d.hint] = true; store.set('hints', seenHints); acted = false; }
+  else if ('fb' in d) {
+    const t = document.getElementById('fb'); if (!t || !rec) return;
+    rec.note = t.value.trim().slice(0, 600);
+    b.disabled = true; await save();
+    const st = document.getElementById('fbstate'); if (st) st.textContent = dbState === 'on' ? 'Saved. Thanks!' : 'Couldn\'t save.';
+    b.disabled = false; return;
+  }
+  else if ('stats' in d) { loadStats(); return; }
+  else if ('send' in d) {
+    const n = document.getElementById('pname'), t = document.getElementById('wnote');
+    if (n) store.set('name', n.value.trim().slice(0, 40));
+    if (t) rec.note = t.value.trim().slice(0, 600);
+    sendReport(rec); render(); return;
+  }
+  else if ('copy' in d) {
+    const t = document.getElementById('report'), st = document.getElementById('copystate');
+    try { await navigator.clipboard.writeText(t.value); if (st) st.textContent = 'Copied.'; }
+    catch { t.focus(); t.select(); if (st) st.textContent = 'Press Ctrl+C (or Cmd+C) to copy.'; }
+    return;
+  }
+  else return;
+  if (tut && acted) { tut.step++; if (s.phase === 'tutdone') store.set('tutorial', true); }
+  if (acted) afterAction(prev);
+  render();
+});
+
+if (store.get('tutorial', false)) startRun(); else { s = E.newTutorial(); tut = { step: 0 }; }
+render();
+</script>
+<script>
+// Guild Ledger: live on-screen hints. A self-contained add-on loaded after the game's UI script.
+// It wraps the global render() and decorates the DOM it produces; it never changes game state.
+// Complements the scripted tutorial and one-time tips: these hints react to the current cards and stay on (toggle in the header).
+(function () {
+  const KEY = 'gl-livehints';
+  let prefs = { on: true };
+  try { prefs = { ...prefs, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(prefs)); } catch (e) {} };
+
+  const css = document.createElement('style');
+  css.textContent = `
+.lh { font-size: 13px; line-height: 1.3; color: var(--ash); margin: 0; }
+.lh b { color: var(--bone); font-weight: 600; }
+.lh.warn, .lh.warn b { color: var(--gold); }
+.card .lh { color: #5a5248; font-size: 12px; }
+.card .lh.warn { color: #9a3a2e; font-weight: 600; }
+.lh-toggle { display: flex; gap: 14px; align-items: baseline; font-size: 14px; }
+`;
+  document.head.appendChild(css);
+
+  const E = window.Engine;
+  const R = v => E.rankLabel(v);
+  const has = k => s.relics.includes(k);
+  const fleeToll = () => s.boss && s.boss.key === 'fleeToll';
+
+  // On-screen hints: always available, toggled from the header.
+  function monsterHint(c) {
+    const can = s.weapon && E.canUseWeapon(s, c);
+    if (s.weapon && !can) return `<p class="lh">Too strong for your weapon (hits ${R(s.weapon.limit)} or lower).</p>`;
+    if (!can && E.monsterDamage(s, c, false) >= s.hp) return `<p class="lh warn">Fists would kill you.</p>`;
+    if (can) {
+      const old = s.weapon.limit == null ? Infinity : s.weapon.limit;
+      if (c.v < old) return `<p class="lh">A weapon kill dulls it to ${R(c.v)} or lower.</p>`;
+    }
+    return '';
+  }
+  function cardHint(c) {
+    if (c.kind === 'monster') return monsterHint(c);
+    if (c.kind === 'potion') {
+      if (E.potionHeal(s, c) === 0) return `<p class="lh warn">${s.potionUsed ? 'You already used a potion this room.' : 'Potions are blocked this floor.'}</p>`;
+      if (s.hp === s.maxHp) return `<p class="lh">You're at full health.</p>`;
+      return '';
+    }
+    const nv = c.v + (has('grindstone') ? 1 : 0);
+    if (!s.weapon) return `<p class="lh">Equip to soften monster hits by ${nv}.</p>`;
+    if (s.weapon.limit != null) return `<p class="lh">Fresh, so it can hit anything. Yours is dulled to ${R(s.weapon.limit)}.</p>`;
+    return nv < s.weapon.v ? `<p class="lh warn">Weaker than your ${s.weapon.v}♦.</p>` : '';
+  }
+  function fleeReason() {
+    if (E.canFlee(s)) return fleeToll() ? 'The Warden charges 4 health to flee.' : 'Flee to send this room to the bottom of the pile.';
+    if (s.contract && s.contract.clause === 'sworn') return 'Your Sworn clause forbids fleeing.';
+    if (s.handled > (has('scout') ? 1 : 0)) return 'You can only flee before touching a room.';
+    if (fleeToll() && s.hp <= 4) return 'Too hurt to pay the Warden 4 health.';
+    return "You can't flee two rooms in a row.";
+  }
+  function paceHint() {
+    const c = s.contract, need = c.target - s.slain;
+    if (need <= 0) return `<p class="lh"><b>Contract met.</b> Every 5 points over pays 1 more gold${has('taxman') ? ' (every 2, with Taxman)' : ''}. Play safe or push for overkill.</p>`;
+    const left = E.ROOMS_PER_FLOOR - s.roomsCleared;
+    const roomPts = s.room.filter(x => x.kind === 'monster').reduce((a, x) => a + x.v, 0);
+    const per = Math.ceil(need / left);
+    return `<p class="lh ${per > 18 ? 'warn' : ''}">Need <b>${need}</b> more points in ${left} room${left === 1 ? '' : 's'}, about <b>${per}</b> per room. Monsters here are worth ${roomPts}.</p>`;
+  }
+  const inTraining = () => typeof tut !== 'undefined' && tut;
+  function decorate() {
+    if (typeof s === 'undefined' || !s) return;
+    const app = document.getElementById('app');
+    const header = app.querySelector('header');
+    if (header && !inTraining()) header.insertAdjacentHTML('beforeend', `<span class="lh-toggle"><button class="link" data-livehints>Hints: ${prefs.on ? 'on' : 'off'}</button></span>`);
+    const tips = ['Reach 0 and the run ends.', 'Earned from contracts. Pays for relics, services and dues.', 'Softens monster hits. After a kill it can only hit monsters up to that size.', "Paid at the end of each act. Can't pay: a strike.", 'Missed contracts and unpaid dues. 3 strikes ends the run.'];
+    app.querySelectorAll('.status .stat').forEach((el, i) => { el.title = tips[i] || ''; });
+    if (!prefs.on || inTraining()) return;
+
+    if (s.phase === 'bid') {
+      const offers = app.querySelector('.offers');
+      const pts = s.room.filter(c => c.kind === 'monster').reduce((a, c) => a + c.v, 0);
+      if (offers) offers.insertAdjacentHTML('afterend', `<p class="lh">This first room has <b>${pts}</b> monster points. A floor is about 12 cards. A miss is a strike (you have ${3 - s.strikes} left).</p>`);
+    } else if (s.phase === 'room') {
+      const prog = app.querySelector('.contract .progress');
+      if (prog) prog.insertAdjacentHTML('afterend', paceHint());
+      app.querySelectorAll('.room .card').forEach(el => {
+        const btn = el.querySelector('[data-id]'); if (!btn) return;
+        const c = s.room.find(x => x.id === +btn.dataset.id); if (!c) return;
+        const h = cardHint(c); if (h) el.querySelector('.acts').insertAdjacentHTML('beforebegin', h);
+      });
+      const fb = app.querySelector('[data-flee]');
+      if (fb) fb.title = fleeReason();
+      const bar = app.querySelector('.roombar');
+      if (bar && !E.canFlee(s) && s.handled === 0) bar.insertAdjacentHTML('afterend', `<p class="lh">${fleeReason()}</p>`);
+    }
+  }
+
+  const baseRender = render;
+  render = function () { baseRender(); decorate(); };
+  document.getElementById('app').addEventListener('click', e => {
+    const b = e.target.closest('button[data-livehints]'); if (!b) return;
+    prefs.on = !prefs.on; save(); render();
+  });
+  render();
+})();
+</script>
