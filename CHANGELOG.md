@@ -8,6 +8,11 @@ Guild Ledger uses a three-part version number, `MAJOR.MINOR.PATCH`:
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.8.0 (2026-10-08)
+- New **Top scores** leaderboard, with separate boards for Guided start and Full game. It sits under How to play during a run and opens on the end screen. It shows each named player's best run (top 10 by points, gold breaks ties), and runs without a name show as Anonymous. Scores come from the run reports in the Google Sheet, through a published Leaderboard tab, and can take about 5 minutes to appear. Runs from before 1.7.0 (no game mode) and impossible scores are left out. The board stays hidden until `leaderboard_csv` is set in `src/config.json`.
+- The name box on the end screen now says the name is shown on the public leaderboard.
+- Fix: a run that ends in death now counts the points from its last floor, in the run report and on the end screen. A run that strikes out no longer counts its last floor twice on the end screen.
+
 ## 1.7.0 (2026-10-07)
 - New switch at the top of the screen: **Guided start** (the default) begins with just health, weapons and potions and adds gold, contracts and relics as you go. **Full game** has contracts, gold, strikes, dues and relics from floor 1. Switching starts a new run, and asks first if you're partway through one. Run reports from Full game say "(full game)".
 - On laptop and desktop screens (900px wide or more), every screen now fits without scrolling at 100% zoom, including training, contracts and the shop. The clerk, goal, health and contract sit on the left. The room, offers or shop sit on the right, and the cards shrink to fit the height. Relics show as a compact row under the room. The end-of-run log is folded away under "Log". Phones keep the single scrolling column.

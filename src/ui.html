@@ -279,6 +279,14 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 @keyframes fxpop { 0% { transform: scale(.4); opacity: 0; } 25% { opacity: 1; } 100% { transform: scale(1.15); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .stamp { animation: none; } .offer { transition: none; } }
 
+/* leaderboard */
+.boardtabs { margin: 8px 0 4px; }
+ol.lbrows { margin: 6px 0 2px; padding-left: 26px; display: grid; gap: 3px; }
+ol.lbrows li { display: grid; grid-template-columns: 1fr auto 4.5em; gap: 10px; align-items: baseline; }
+ol.lbrows .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+ol.lbrows li.me .who { color: var(--gold); font-weight: 700; }
+ol.lbrows .muted { font-size: 13px; text-align: right; }
+.end + details.lb { width: 100%; max-width: 560px; box-sizing: border-box; margin: 12px auto 0; align-self: center; }
 /* game mode switch in the header */
 .mode { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--slab); }
 .mode button { border: 0; border-radius: 0; padding: 6px 12px; font-size: 14px; background: none; color: var(--ash); }
@@ -360,9 +368,10 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.7.0';
+const VERSION = '1.8.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
+const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
 const webReports = () => !!(REPORT.url && REPORT.entry) && dbState !== 'on';
 const app = document.getElementById('app');
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -505,6 +514,8 @@ function save() {
 }
 
 // ---------- recording hooks ----------
+// A death ends the floor early, so its points aren't in totalSlain yet. Win and strike-out already counted them.
+const runPoints = () => s.totalSlain + (s.phase === 'lost' && s.hp === 0 ? s.slain : 0);
 const curFloor = () => rec && rec.floors[rec.floors.length - 1];
 function afterAction(prevPhase) {
   if (!rec) return;
@@ -514,7 +525,7 @@ function afterAction(prevPhase) {
   if (prevPhase === 'room' && s.phase !== 'room' && f) { // floor or run just ended
     f.slain = s.slain;
     f.met = f.slain >= f.target; f.hpEnd = s.hp; f.died = s.hp === 0;
-    rec.totalSlain = s.totalSlain;
+    rec.totalSlain = runPoints();
   }
   if (s.phase === 'shop' && prevPhase !== 'shop') rec.shops.push({ floor: s.floor + 1, offered: s.shop.relics.slice(), bought: [], goldIn: s.gold });
   rec.floorReached = s.floor + 1; rec.gold = s.gold; rec.strikes = s.strikes; rec.relics = s.relics.slice();
@@ -748,14 +759,14 @@ function endHTML() {
   const mark = won ? stamp('paid', key) : /revokes your license/.test(s.lastResult || '') ? stamp('strike', key) : '';
   return `<section class="end">${mark}<div class="endsum">${clerk(won ? 'pleased' : 'disapproving')}<h2>${won ? 'Ledger closed. You survived.' : 'Run over'}</h2>
       <p style="margin:0">${esc(s.lastResult || '')}</p>${whyHTML()}
-      <p class="muted" style="margin:0">Reached floor <span class="num">${s.floor + 1}</span> · slew <span class="num">${s.totalSlain + (won ? 0 : s.slain)}</span> points · <span class="num">${s.gold}</span> gold</p>
+      <p class="muted" style="margin:0">Reached floor <span class="num">${s.floor + 1}</span> · slew <span class="num">${runPoints()}</span> points · <span class="num">${s.gold}</span> gold</p>
       </div><div class="endform">${fb}${webReports() && rec ? webFormHTML() : ''}
       ${dbState !== 'on' && rec && !webReports() ? `<p class="muted" style="margin:0">Playtesting? Copy this report and send it to whoever shared the game.</p>
       <textarea id="report" rows="4" readonly>${esc(runReport())}</textarea><button data-copy>Copy run report</button><span id="copystate" class="muted"></span>` : ''}
       <button class="primary" data-new>New run</button></div></section>`;
 }
 function webFormHTML() {
-  return `<label class="fb" for="pname">Your name (optional)</label>
+  return `<label class="fb" for="pname">Your name (optional, shown on the public leaderboard)</label>
       <input id="pname" maxlength="40" value="${esc(store.get('name', ''))}">
       <label class="fb" for="wnote">Anything confusing, boring or great? One line helps.</label>
       <textarea id="wnote" rows="2" maxlength="600">${esc(rec.note || '')}</textarea>
@@ -797,6 +808,70 @@ function tutDoneHTML() {
     </ul>
     <button class="primary" data-new>Start your first run</button></section>`;
 }
+// ---------- leaderboard (top scores from the Sheet's published Leaderboard tab) ----------
+// The tab has one row per reported run: mode, name, points, floor, outcome, gold, version, date.
+// Google refreshes a published CSV about every 5 minutes, so a new score can take that long to show.
+const BOARD_MAX_POINTS = E.FLOORS * E.ROOMS_PER_FLOOR * 3 * 17; // every card handled being the biggest monster: anything above is fake
+let board = null, boardState = BOARD_CSV ? 'idle' : 'off', boardMode = null, boardAt = 0;
+function parseCSV(text) {
+  const rows = []; let row = [], cell = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += c; }
+    else if (c === '"') q = true;
+    else if (c === ',') { row.push(cell); cell = ''; }
+    else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; row.push(cell); rows.push(row); row = []; cell = ''; }
+    else cell += c;
+  }
+  if (cell || row.length) { row.push(cell); rows.push(row); }
+  return rows;
+}
+// Keeps plausible runs, then each named player's best run per mode, highest points first (more gold breaks ties).
+function boardFromCSV(text) {
+  const [head, ...rows] = parseCSV(text.trim());
+  const col = k => head.findIndex(h => h.trim().toLowerCase() === k);
+  const at = { mode: col('mode'), name: col('name'), points: col('points'), floor: col('floor'), outcome: col('outcome'), gold: col('gold') };
+  if (Object.values(at).some(i => i < 0)) throw new Error('unexpected columns');
+  const out = { guided: [], full: [] }, best = {};
+  for (const r of rows) {
+    const e = { mode: r[at.mode], name: (r[at.name] || '').trim().slice(0, 40), points: +r[at.points], floor: +r[at.floor], outcome: r[at.outcome], gold: +r[at.gold] || 0 };
+    if (!out[e.mode] || !Number.isInteger(e.points) || e.points < 0 || e.points > BOARD_MAX_POINTS || !(e.floor >= 1 && e.floor <= E.FLOORS)) continue;
+    const better = (a, b) => a.points - b.points || a.gold - b.gold;
+    if (e.name) {
+      const k = e.mode + '|' + e.name.toLowerCase();
+      if (best[k] && better(best[k], e) >= 0) continue;
+      if (best[k]) out[e.mode].splice(out[e.mode].indexOf(best[k]), 1);
+      best[k] = e;
+    }
+    out[e.mode].push(e);
+  }
+  for (const m in out) out[m] = out[m].sort((a, b) => -((a.points - b.points) || (a.gold - b.gold))).slice(0, 10);
+  return out;
+}
+async function loadBoard() {
+  if (boardState === 'off' || boardState === 'loading') return;
+  boardState = 'loading'; paintBoards();
+  try {
+    const res = await fetch(BOARD_CSV, { cache: 'no-store' });
+    if (!res.ok) throw new Error(res.status);
+    board = boardFromCSV(await res.text()); boardState = 'ready'; boardAt = Date.now();
+  } catch { boardState = board ? 'ready' : 'error'; }
+  paintBoards();
+}
+function boardBody() {
+  const m = boardMode || gameMode();
+  const tabs = `<div class="mode boardtabs" role="group" aria-label="Leaderboard mode">${[['guided', 'Guided start'], ['full', 'Full game']].map(([k, label]) =>
+    `<button data-board="${k}" aria-pressed="${m === k}">${label}</button>`).join('')}</div>`;
+  if (!board) return tabs + `<p class="muted" style="margin:6px 0 0">${boardState === 'error' ? 'Couldn\'t load the leaderboard. Try again later.' : 'Loading…'}</p>`;
+  const me = store.get('name', '').toLowerCase(), list = board[m];
+  if (!list.length) return tabs + '<p class="muted" style="margin:6px 0 0">No scores yet. Be the first.</p>';
+  return tabs + `<ol class="lbrows">${list.map(e => `<li class="${e.name && e.name.toLowerCase() === me ? 'me' : ''}"><span class="who">${esc(e.name || 'Anonymous')}</span>
+    <span class="num">${e.points}</span><span class="muted">${e.outcome === 'won' ? 'won' : 'floor ' + e.floor}</span></li>`).join('')}</ol>`;
+}
+let boardOpen = false;
+const boardHTML = (open = boardOpen) => boardState === 'off' || tut ? '' : `<details class="rules lb" ${open ? 'open' : ''}><summary>Top scores</summary><div class="lbbody">${boardBody()}</div></details>`;
+function paintBoards() { app.querySelectorAll('.lbbody').forEach(el => { el.innerHTML = boardBody(); }); }
+app.addEventListener('toggle', e => { if (e.target.classList && e.target.classList.contains('lb')) { boardOpen = e.target.open; if (boardOpen && boardState === 'idle') loadBoard(); } }, true);
 function statsHTML() {
   if (!owner || dbState === 'off' || tut) return '';
   return `<details class="rules" id="stats"><summary>Playtest stats (only you see this)</summary><div id="statsbody"><button data-stats>Load stats</button></div></details>`;
@@ -820,7 +895,7 @@ function render() {
   const cols = (side, stage) => `<div class="cols"><div class="side">${side}${syncNote()}<p class="muted version">v${VERSION}</p></div><div class="stage">${stage}</div></div>`;
   let body = '';
   if (s.phase === 'bid') {
-    body = cols(`${coachHTML()}${goalHTML()}${statusHTML()}${bossHTML()}${duesWarning()}${tut ? '' : rulesHTML()}${statsHTML()}`, `
+    body = cols(`${coachHTML()}${goalHTML()}${statusHTML()}${bossHTML()}${duesWarning()}${tut ? '' : rulesHTML()}${boardHTML()}${statsHTML()}`, `
       <section class="contract board"><div class="contract-row"><h2>${s.offers.length > 1 ? 'Choose this floor\'s contract' : 'Sign this floor\'s contract'}</h2>${E.canRedraw(s) ? '<button data-redraw>Redraw room (Fortune Teller)</button>' : ''}</div>
         <p class="muted" style="margin:0">${s.offers.length > 1 ? `Here's the first room. How many monster points can you kill across ${roomsOnFloor()} rooms? Higher targets pay more.` : `Here's the first room. Kill this many monster points across ${roomsOnFloor()} rooms to get paid.`}</p>
         <div class="offers">${s.offers.map((o, i) => {
@@ -834,7 +909,7 @@ function render() {
   } else if (s.phase === 'room') {
     const fleeNote = s.boss && s.boss.key === 'fleeToll' ? ' (costs 4 HP)' : '';
     const fleeOk = E.canFlee(s) && (!tut || !!(TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.flee));
-    body = cols(`${coachHTML()}${goalHTML()}${statusHTML()}${bossHTML()}${survival() ? '' : contractHTML()}${duesWarning()}${peekHTML()}${tut ? '' : rulesHTML()}${statsHTML()}`, `
+    body = cols(`${coachHTML()}${goalHTML()}${statusHTML()}${bossHTML()}${survival() ? '' : contractHTML()}${duesWarning()}${peekHTML()}${tut ? '' : rulesHTML()}${boardHTML()}${statsHTML()}`, `
       ${roomHTML(true, `${E.canRaise(s) && !tut ? `<button data-raise>${img('icons/hud-raise.webp', 'bi')}Raise to ${E.TIERS[s.contract.tier + 1]}: slay ${E.TARGETS[s.floor][s.contract.tier + 1]}, pays ${E.payout(s, s.contract.tier + 1, s.contract.clause)}</button>` : ''}
         <button data-flee ${fleeOk ? '' : 'disabled'} class="${tut && fleeOk ? 'lit' : ''}">${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room${fleeNote}</button>`)}${relicsHTML(false)}`);
   } else if (s.phase === 'shop') {
@@ -855,12 +930,13 @@ function render() {
   } else if (s.phase === 'tutdone') {
     body = tutDoneHTML();
   } else {
-    body = endHTML() + logHTML() + statsHTML();
+    body = endHTML() + boardHTML(true) + logHTML() + statsHTML();
   }
   const framed = body.startsWith('<div class="cols">');
   app.className = framed ? 'play' : 'solo';
   app.innerHTML = head + body + (framed ? '' : syncNote() + `<p class="muted version">v${VERSION}</p>`);
   dealIn();
+  if ((s.phase === 'won' || s.phase === 'lost') && boardState !== 'off' && boardState !== 'loading' && Date.now() - boardAt > 60000) { boardMode = null; loadBoard(); } // fresh scores on the end screen
   const focus = tut ? TUTORIAL[tut.step] && TUTORIAL[tut.step].focus : (currentHint() || {}).focus;
   if (focus && s.phase !== 'tutdone') app.querySelectorAll(focus).forEach(el => el.classList.add('tut-focus'));
 }
@@ -965,6 +1041,7 @@ app.addEventListener('click', async e => {
     b.disabled = false; return;
   }
   else if ('stats' in d) { loadStats(); return; }
+  else if (d.board) { boardMode = d.board; paintBoards(); return; }
   else if ('copy' in d) {
     const t = document.getElementById('report'), st = document.getElementById('copystate');
     try { await navigator.clipboard.writeText(t.value); if (st) st.textContent = 'Copied.'; }
