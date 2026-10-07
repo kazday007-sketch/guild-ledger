@@ -70,9 +70,8 @@ button.primary { background: var(--verdigris); color: #08201b; border-color: var
 /* room */
 .room { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 @media (max-width: 560px) { .room { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.card { background: var(--bone); color: var(--ink); border-radius: 10px; padding: 10px; min-height: 168px; display: grid; grid-template-rows: auto 1fr auto; gap: 6px; box-shadow: 0 2px 0 rgba(0,0,0,.4); animation: deal .25s ease-out; }
-@keyframes deal { from { transform: translateY(-8px); opacity: .3; } to { transform: none; opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .card { animation: none; } .hpbar i, .progress i { transition: none; } }
+.card { position: relative; background: var(--bone); color: var(--ink); border-radius: 10px; padding: 10px; min-height: 168px; display: grid; grid-template-rows: auto 1fr auto; gap: 6px; box-shadow: 0 2px 0 rgba(0,0,0,.4); }
+@media (prefers-reduced-motion: reduce) { .hpbar i, .progress i { transition: none; } }
 .card .corner { display: flex; justify-content: space-between; align-items: baseline; }
 .card .rank { font: 700 26px/1 var(--mono); }
 .card .kind { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; font-weight: 700; }
@@ -86,7 +85,6 @@ button.primary { background: var(--verdigris); color: #08201b; border-color: var
 .card .acts button { background: var(--ink); color: var(--bone); border-color: var(--ink); padding: 7px 8px; font-size: 13px; text-align: left; }
 .card .acts button:hover:not(:disabled) { border-color: var(--verdigris); }
 .card.idle .acts button { visibility: hidden; }
-.roombar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
 
 /* relics, shop */
 .relics { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -155,6 +153,22 @@ button.primary:hover:not(:disabled) { border-color: #f1d488; filter: brightness(
 
 /* cards: the frame, rank and name are drawn here, the art sits whole in a 4:5 window */
 div.room { background: #3a2a1d url(assets/ui/texture-wood.webp) 0 0 / 256px; padding: 12px; border-radius: 12px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.6), inset 0 0 40px rgba(0,0,0,.55), 0 4px 18px rgba(0,0,0,.45); }
+/* A room is one framed table: its name and progress on top, the draw pile it is dealt from, and four slots. */
+section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/texture-wood.webp) 0 0 / 256px; padding: 10px; border-radius: 14px; border: 2px solid #6b4e33; box-shadow: inset 0 0 40px rgba(0,0,0,.55), 0 4px 18px rgba(0,0,0,.45); }
+.chamber div.room { background: none; padding: 0; box-shadow: none; }
+.chamber-head { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; background: rgba(12,9,6,.62); border-radius: 10px; padding: 10px 12px; color: var(--bone); }
+.chamber-title { display: grid; gap: 4px; flex: 1; min-width: 170px; }
+.chamber-title h2 { font-size: 22px; }
+.chamber-title h2 .muted { font-size: 16px; }
+.chamber-title > span { font-size: 15px; }
+.chamber-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.chamber .pile { position: relative; width: 46px; height: 64px; flex: none; margin: 0 4px 0 0; }
+.chamber .pile img { position: absolute; width: 42px; height: 58px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,.6); }
+.chamber .pile img:nth-child(2) { left: 2px; top: 2px; } .chamber .pile img:nth-child(3) { left: 4px; top: 4px; }
+.pip.pick { width: 12px; height: 12px; } .pip.pick.on { background: var(--gold); border-color: var(--gold); }
+.slot { border: 2px dashed rgba(233,226,208,.35); border-radius: 12px; display: grid; place-content: center; justify-items: center; gap: 4px; color: rgba(233,226,208,.65); min-height: 140px; }
+.slot b { font-size: 28px; line-height: 1; } .slot small { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+.cardback { position: absolute; inset: -3px; border-radius: 12px; background: #1b212b url(assets/cards/back.webp) center / cover; pointer-events: none; z-index: 3; }
 .card { min-height: 0; padding: 6px 6px 8px; gap: 6px; display: flex; flex-direction: column; border-radius: 12px; border: 3px solid #8b7a5a; background: #e9e2d0 url(assets/ui/texture-parchment.webp) 0 0 / 220px; box-shadow: 0 3px 0 rgba(0,0,0,.35), 0 6px 14px rgba(0,0,0,.45); }
 .card.monster { background: #e9e2d0 url(assets/ui/texture-parchment.webp) 0 0 / 220px; }
 .card.weapon { border-color: #4f7aa8; }
@@ -171,8 +185,6 @@ div.room { background: #3a2a1d url(assets/ui/texture-wood.webp) 0 0 / 256px; pad
 .card .kind { font-size: 10px; text-transform: uppercase; letter-spacing: .14em; font-weight: 700; color: #6b5f4e; }
 .card.weapon .kind { color: #2e5f93; } .card.potion .kind { color: #a3323a; } .card.elite .kind { color: #8a5f0c; }
 .card .acts { margin-top: auto; }
-.pile { display: inline-flex; align-items: center; gap: 6px; margin-right: 10px; vertical-align: middle; }
-.pile img { width: 24px; height: 34px; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
 
 /* contracts: offers on parchment with wax seals, the signed contract on paper */
 .offers { grid-template-columns: repeat(auto-fit, minmax(140px, 170px)); justify-content: center; gap: 14px; }
@@ -702,7 +714,7 @@ let seenHints = store.get('hints', {});
 const TUTORIAL = [
   { focus: '.stat.hp', text: 'This is your <b>health</b>. If it reaches 0, you lose. Your only goal: <b>stay alive</b>.' },
   { focus: '.stat.weapon', text: 'This is your <b>weapon</b>. A weapon blocks damage from monsters. You don\'t have one yet.' },
-  { focus: '.room', text: 'This is a <b>room</b>: 4 cards. You pick 3 of them. The last one stays for the next room.' },
+  { focus: '.chamber', text: 'This is a <b>room</b>. It\'s dealt from the pile: 4 cards. You pick 3 of them, and the last one stays for the next room.' },
   { focus: '.goal', text: 'These circles count the <b>rooms</b> you get through. Training has 3.' },
   { allow: { v: 7, mode: null }, text: 'Let\'s play. Pick up the <b>Short Sword</b>.' },
   { allow: { v: 9, mode: 'weapon' }, focus: '.stat.weapon', text: 'Now you have a weapon. The <b>Owlbear</b> hits for 9, your sword blocks 7, so you only lose <b>2</b>. Fight it with your sword.' },
@@ -824,6 +836,57 @@ const survival = () => !!(tut || (s.contract && s.contract.survival));
 const goldOpen = () => !tut && (s.floor > 0 || s.phase === 'shop');
 const contractsOpen = () => !tut && s.floor >= E.UNLOCK.contracts;
 const relicsOpen = () => !tut && (s.floor > E.UNLOCK.relics || (s.floor === E.UNLOCK.relics && s.phase === 'shop') || s.relics.length > 0);
+// ---------- the room: a framed table of four slots, dealt from the pile ----------
+let roomSlots = [null, null, null, null]; // card ids by slot, so cards keep their place while you pick
+function roomHTML(active, actions = '') {
+  const ids = s.room.map(c => c.id);
+  roomSlots = roomSlots.map(id => ids.includes(id) ? id : null);
+  ids.forEach(id => { if (!roomSlots.includes(id)) roomSlots[roomSlots.indexOf(null)] = id; });
+  const left = 3 - s.handled;
+  const say = !active ? 'This is your first room. Sign a contract to step in.'
+    : s.handled === 0 ? 'Pick <b>3</b> of these 4 cards. The last one stays for the next room.'
+    : `Pick <b>${left}</b> more card${left === 1 ? '' : 's'}.`;
+  const slots = roomSlots.map(id => {
+    const c = id != null && s.room.find(x => x.id === id);
+    return c ? cardHTML(c, active) : '<div class="slot"><b>✓</b><small>Picked</small></div>';
+  }).join('');
+  return `<section class="chamber" aria-label="Room ${s.roomsCleared + 1}">
+    <div class="chamber-head"><div class="pile" aria-hidden="true">${img('cards/back.webp')}${img('cards/back.webp')}${img('cards/back.webp')}</div>
+      <div class="chamber-title"><h2>Room ${s.roomsCleared + 1} <span class="muted">of ${roomsOnFloor()}</span></h2><span>${say}</span>
+        ${active ? `<span class="pips" title="Cards picked">${[0, 1, 2].map(i => `<span class="pip pick ${i < s.handled ? 'on' : ''}"></span>`).join('')}</span>` : ''}</div>
+      ${actions ? `<div class="chamber-actions">${actions}</div>` : ''}</div>
+    <div class="room">${slots}</div></section>`;
+}
+// New cards fly out of the pile to their slot, face down, and turn over as they land. Any re-render
+// mid-deal replays each card's animation from where it was, so tips and hints can't cut it short.
+let shownRoom = new Set();
+const dealing = new Map(); // card id -> time its flight starts
+const DEAL_MS = 650;
+function dealIn() {
+  const els = [...app.querySelectorAll('.chamber .card[data-card]')];
+  const pile = app.querySelector('.chamber .pile');
+  const now = performance.now();
+  if (pile && !reduceMotion) {
+    const p = pile.getBoundingClientRect();
+    let n = 0;
+    els.forEach(el => {
+      const id = +el.dataset.card;
+      if (!shownRoom.has(id)) dealing.set(id, now + 130 * n++);
+      const t0 = dealing.get(id);
+      if (t0 == null || now > t0 + DEAL_MS) return;
+      const r = el.getBoundingClientRect(), delay = t0 - now; // negative when resuming mid-flight
+      const dx = p.left + p.width / 2 - (r.left + r.width / 2), dy = p.top + p.height / 2 - (r.top + r.height / 2);
+      el.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${p.width / r.width}) rotate(-10deg)` }, { transform: 'none' }],
+        { duration: 450, delay, easing: 'cubic-bezier(.2,.75,.25,1)', fill: 'backwards' });
+      const back = document.createElement('div'); back.className = 'cardback'; el.appendChild(back);
+      back.animate([{ transform: 'scaleX(1)' }, { transform: 'scaleX(1)', offset: .7 }, { transform: 'scaleX(0)' }],
+        { duration: DEAL_MS, delay, easing: 'ease-in', fill: 'forwards' }).onfinish = () => back.remove();
+    });
+  }
+  shownRoom = new Set(els.map(el => +el.dataset.card));
+  for (const [id, t0] of dealing) if (!shownRoom.has(id) || now > t0 + DEAL_MS) dealing.delete(id);
+}
+
 // ---------- goal line: what to do right now, in one sentence ----------
 function goalHTML() {
   if (tut && s.phase !== 'room') return '';
@@ -1030,16 +1093,14 @@ function render() {
           ${o.clause ? `<span class="clause-row">${img(clauseSeal(o.clause), 'seal')}<span class="cl">${E.CLAUSES[o.clause].name}</span></span><span class="muted" style="font-size:13px">${E.CLAUSES[o.clause].text}</span>` : ''}</button>`;
         }).join('')}</div>
       </section>
-      <div class="room">${s.room.map(c => cardHTML(c, false)).join('')}</div>
+      ${roomHTML(false)}
       ${relicsHTML(false)}${tut ? '' : rulesHTML()}${statsHTML()}`;
   } else if (s.phase === 'room') {
     const fleeNote = s.boss && s.boss.key === 'fleeToll' ? ' (costs 4 HP)' : '';
     const fleeOk = E.canFlee(s) && (!tut || !!(TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.flee));
     body = `${coachHTML()}${goalHTML()}${statusHTML()}${bossHTML()}${survival() ? '' : contractHTML()}${duesWarning()}
-      <div class="roombar"><span>Room ${s.roomsCleared + 1}: pick <b>${3 - s.handled}</b> more card${3 - s.handled === 1 ? '' : 's'}.</span>
-        <span style="display:flex;gap:8px;flex-wrap:wrap">${E.canRaise(s) && !tut ? `<button data-raise>${img('icons/hud-raise.webp', 'bi')}Raise to ${E.TIERS[s.contract.tier + 1]}: slay ${E.TARGETS[s.floor][s.contract.tier + 1]}, pays ${E.payout(s, s.contract.tier + 1, s.contract.clause)}</button>` : ''}
-        <button data-flee ${fleeOk ? '' : 'disabled'} class="${tut && fleeOk ? 'lit' : ''}">${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room${fleeNote}</button></span></div>
-      <div class="room">${s.room.map(c => cardHTML(c, true)).join('')}</div>
+      ${roomHTML(true, `${E.canRaise(s) && !tut ? `<button data-raise>${img('icons/hud-raise.webp', 'bi')}Raise to ${E.TIERS[s.contract.tier + 1]}: slay ${E.TARGETS[s.floor][s.contract.tier + 1]}, pays ${E.payout(s, s.contract.tier + 1, s.contract.clause)}</button>` : ''}
+        <button data-flee ${fleeOk ? '' : 'disabled'} class="${tut && fleeOk ? 'lit' : ''}">${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room${fleeNote}</button>`)}
       ${peekHTML()}${relicsHTML(false)}${tut ? '' : rulesHTML()}${statsHTML()}`;
   } else if (s.phase === 'shop') {
     const full = s.relics.length >= E.MAX_RELICS;
@@ -1062,6 +1123,7 @@ function render() {
     body = endHTML() + logHTML() + statsHTML();
   }
   app.innerHTML = head + body + syncNote() + `<p class="muted version">v${VERSION}</p>`;
+  dealIn();
   const focus = tut ? TUTORIAL[tut.step] && TUTORIAL[tut.step].focus : (currentHint() || {}).focus;
   if (focus && s.phase !== 'tutdone') app.querySelectorAll(focus).forEach(el => el.classList.add('tut-focus'));
 }
@@ -1117,7 +1179,16 @@ app.addEventListener('click', async e => {
     if (c.kind === 'monster') { const w = d.act === 'weapon' && E.canUseWeapon(s, c); lastHit = { name: cardName(c), v: c.v, mode: w ? 'weapon' : 'bare', dmg: E.monsterDamage(s, c, w) }; }
     if (!E.handle(s, +d.id, d.act === 'take' ? null : d.act)) { render(); return; }
   } else if ('flee' in d) {
-    const at = rectOf('.room');
+    const at = rectOf('.room'), p = rectOf('.chamber .pile');
+    if (p && !reduceMotion) {
+      busy = true;
+      app.querySelectorAll('.chamber .card').forEach((el, i) => {
+        const r = el.getBoundingClientRect();
+        el.animate([{ transform: 'none' }, { transform: `translate(${p.left + p.width / 2 - (r.left + r.width / 2)}px, ${p.top + p.height / 2 - (r.top + r.height / 2)}px) scale(${p.width / r.width})`, opacity: .3 }],
+          { duration: 320, delay: 50 * i, easing: 'ease-in', fill: 'forwards' });
+      });
+      await new Promise(r => setTimeout(r, 480)); busy = false;
+    }
     if (E.flee(s) && curFloor()) curFloor().flees++;
     effect = () => fx('smoke', at);
   }
