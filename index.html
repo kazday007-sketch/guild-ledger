@@ -257,6 +257,8 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 .settle p { margin: 0; font-size: 17px; }
 .settle.stamped p { padding-top: 14px; }
 .end { position: relative; background: var(--panel-bg); }
+.endsum, .endform { display: grid; gap: 12px; justify-items: center; min-width: 0; }
+.endform > input, .endform > textarea { width: min(100%, 480px); }
 .end .stamp { right: 18px; top: 14px; width: 150px; }
 .end .clerk { width: 96px; height: 120px; }
 @media (max-width: 560px) { .end .stamp { right: 8px; top: 6px; width: 110px; } .end .stamp b { font-size: 16px; } }
@@ -277,6 +279,76 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 .card.leaving { transition: transform .26s ease-in, opacity .26s ease-in; transform: translateY(-10px) scale(.94); opacity: 0; pointer-events: none; }
 @keyframes fxpop { 0% { transform: scale(.4); opacity: 0; } 25% { opacity: 1; } 100% { transform: scale(1.15); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .stamp { animation: none; } .offer { transition: none; } }
+
+/* game mode switch in the header */
+.mode { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--slab); }
+.mode button { border: 0; border-radius: 0; padding: 6px 12px; font-size: 14px; background: none; color: var(--ash); }
+.mode button + button { border-left: 1px solid var(--line); }
+.mode button[aria-pressed="true"] { background: color-mix(in srgb, var(--gold) 22%, var(--slab-2)); color: var(--bone); }
+.cols, .side, .stage { display: grid; gap: 14px; min-width: 0; }
+.side .version { margin: 0; }
+/* Narrow screens: one column. The table comes right after the status, and the rules and footer go last. */
+@media not ((min-width: 900px) and (min-height: 520px)) {
+  .cols { display: flex; flex-direction: column; }
+  .side { display: contents; }
+  .stage { order: 1; }
+  .side > details, .side > .sync, .side > .version { order: 2; }
+}
+
+/* Landscape screens: everything fits without scrolling. Status and talk on the left, the table on the right,
+   and the cards shrink to the height that's left. */
+@media (min-width: 900px) and (min-height: 520px) {
+  body { padding: 10px 16px; }
+  main.play { max-width: 1400px; height: calc(100vh - 20px); grid-template-rows: auto minmax(0, 1fr); gap: 10px; }
+  main.play header h1 { font-size: 26px; } main.play h1 .emblem { width: 36px; height: 36px; }
+  .cols { grid-template-columns: minmax(300px, 370px) minmax(0, 1fr); gap: 16px; min-height: 0; align-items: stretch; }
+  .side { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; min-height: 0; padding: 4px; margin: -4px; }
+  .side > * { flex: none; }
+  .stage .relics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .stage .relic { padding: 6px 8px; gap: 8px; align-items: start; }
+  .stage .relic .ico { width: 30px; height: 30px; }
+  .stage .relic b { font-size: 15px; }
+  .stage .relic .muted { font-size: 12.5px !important; line-height: 1.25; }
+  .side .stat { padding: 8px 10px; }
+  .side .goal { padding: 8px 12px; }
+  .side .status, .side .status.n3, .side .status.n4, .side .status.n5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .side .status .stat:first-child { grid-column: 1 / -1; }
+  .side .status.n2 .stat:first-child { grid-column: auto; }
+  .side .coach { padding: 10px 12px; column-gap: 12px; }
+  .side .coach > .clerk { width: 64px; height: 80px; }
+  .side .settle .clerk { width: 56px; height: 70px; }
+  .stage { display: flex; flex-direction: column; gap: 12px; min-height: 0; padding: 6px; margin: -6px; }
+  .stage > * { flex: none; }
+  .stage .contract.board { gap: 8px; padding: 10px 12px; }
+  .stage .offer, .stage .offer.clause { min-height: 0; padding: 14px 14% 26px; }
+  .stage .offer .seal { width: 44px; height: 44px; }
+  .stage section.chamber { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  .stage .chamber-head { flex: none; padding: 8px 12px; }
+  .stage div.room { flex: 0 1 auto; min-height: 0; container-type: inline-size; grid-template-rows: minmax(0, 1fr); max-width: 980px; width: 100%; margin: 0 auto; }
+  .stage .card { min-height: 0; overflow: hidden; }
+  .stage .card .art { aspect-ratio: auto; flex: 0 1 auto; min-height: 48px; height: calc((100cqw - 30px) / 4 * 1.25); }
+  .stage .slot { min-height: 0; }
+  .stage .shop { gap: 10px; }
+  .stage .shopgrid { gap: 8px; }
+  main.solo { max-width: 760px; }
+}
+@media (min-width: 900px) and (min-height: 520px) and (max-height: 820px) {
+  .side .coach p { font-size: 18px; line-height: 1.3; }
+  .side .coach .ok { font-size: 15px; padding: 6px 16px; }
+  .side .coach > .clerk { width: 52px; height: 65px; }
+  .side .settle { padding: 8px 12px; } .side .settle p { font-size: 15px; } .side .settle .clerk { width: 44px; height: 55px; }
+  .side .stat .num { font-size: 17px; } .side .stat { gap: 2px; padding: 6px 10px; }
+  .side .contract { padding: 10px 12px; gap: 6px; }
+  .side details.rules { padding: 6px 12px; }
+  .stage .ware { padding: 8px; gap: 4px; } .stage .ware .ico { width: 38px; height: 38px; } .stage .ware .muted { font-size: 13px !important; line-height: 1.25; }
+  .stage .ware button { padding: 6px 10px; }
+  .stage .shop { padding: 10px 12px; gap: 8px; }
+  .stage .shop .relic .muted { display: none; } .stage .shop .relic { align-items: center; }
+  .stage .shop .boss { padding: 6px 12px; } .stage .shop .boss img { width: 44px; height: 55px; }
+  main.solo:has(.endform) { max-width: 1100px; }
+  main.solo .end { padding: 18px 20px; grid-template-columns: 1.1fr 1fr; align-items: center; column-gap: 28px; text-align: center; }
+  main.solo .end .endform { align-content: center; }
+}
 </style>
 
 <div id="scene" aria-hidden="true"></div>
@@ -640,7 +712,7 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.6.0';
+const VERSION = '1.7.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const webReports = () => !!(REPORT.url && REPORT.entry) && dbState !== 'on';
@@ -742,7 +814,9 @@ function newRec() {
     floorReached: 1, totalSlain: 0, gold: 0, strikes: 0, relics: [], floors: [], shops: [], actions: 0, note: '',
   };
 }
-function startRun() { tut = null; lastHit = null; s = E.newGame(undefined, { guided: true }); rec = newRec(); store.set('tutorial', true); noteSurvivalFloor(); }
+// 'guided' starts with only health, weapons and potions and unlocks the rest floor by floor; 'full' has everything from floor 1.
+const gameMode = () => store.get('mode', 'guided') === 'full' ? 'full' : 'guided';
+function startRun() { tut = null; lastHit = null; s = E.newGame(undefined, { guided: gameMode() === 'guided' }); rec = newRec(); rec.mode = gameMode(); store.set('tutorial', true); noteSurvivalFloor(); }
 function noteSurvivalFloor() { // a floor with no contract starts without a bid, so record it here
   if (!rec || s.phase !== 'room' || !s.contract || !s.contract.survival) return;
   const f = rec.floors[rec.floors.length - 1];
@@ -839,9 +913,9 @@ function duesWarning() {
 
 const survival = () => !!(tut || (s.contract && s.contract.survival));
 // The HUD and shop grow with the run: gold after floor 1, contracts (dues, strikes) on floor 2, relics after floor 2.
-const goldOpen = () => !tut && (s.floor > 0 || s.phase === 'shop');
-const contractsOpen = () => !tut && s.floor >= E.UNLOCK.contracts;
-const relicsOpen = () => !tut && (s.floor > E.UNLOCK.relics || (s.floor === E.UNLOCK.relics && s.phase === 'shop') || s.relics.length > 0);
+const goldOpen = () => !tut && (!s.guided || s.floor > 0 || s.phase === 'shop');
+const contractsOpen = () => !tut && (!s.guided || s.floor >= E.UNLOCK.contracts);
+const relicsOpen = () => !tut && (!s.guided || s.floor > E.UNLOCK.relics || (s.floor === E.UNLOCK.relics && s.phase === 'shop') || s.relics.length > 0);
 // ---------- the room: a framed table of four slots, dealt from the pile ----------
 let roomSlots = [null, null, null, null]; // card ids by slot, so cards keep their place while you pick
 function roomHTML(active, actions = '') {
@@ -985,7 +1059,7 @@ function peekHTML() {
   const n = s.draw[0];
   return `<p class="peek muted" style="margin:0">Lantern: the next card is <b style="color:var(--bone)">${E.rankLabel(n.v)}${n.suit} ${cardName(n)}</b>.</p>`;
 }
-const logHTML = () => tut ? '' : `<section><div class="label" style="margin-bottom:6px">Log</div><div class="log">${s.log.map(l => `<p>${esc(l)}</p>`).join('') || '<p class="muted">Your deeds will be recorded here.</p>'}</div></section>`;
+const logHTML = () => tut ? '' : `<details class="rules"><summary>Log</summary><div class="log">${s.log.map(l => `<p>${esc(l)}</p>`).join('') || '<p class="muted">Your deeds will be recorded here.</p>'}</div></details>`;
 function coachHTML() {
   if (tut && TUTORIAL[tut.step]) return `<aside class="coach">${clerk('neutral')}<span class="label">Training · ${tut.step + 1} of ${TUTORIAL.length}</span><p>${TUTORIAL[tut.step].text}</p><div class="tutnav">${TUTORIAL[tut.step].allow ? '' : '<button class="primary ok" data-tutnext>Next</button>'}<button class="link" data-skiptut>Skip training</button></div></aside>`;
   const h = currentHint();
@@ -996,9 +1070,9 @@ const rulesHTML = () => `<details class="rules"><summary>How to play</summary><o
   <li><b>Rooms:</b> each room shows 4 cards. Pick 3; the last one stays for the next room.</li>
   <li><b>Monsters</b> hurt you by their number. <b>Weapons</b> block that much damage, but after a kill they only work on smaller monsters. <b>Potions</b> heal (one per room).</li>
   <li><b>Running away:</b> before touching a room you can flee it, but not two rooms in a row.</li>
-  ${s.floor >= E.UNLOCK.contracts ? `<li><b>Contracts:</b> before each floor, promise how many monster points you'll kill. Make it: gold. Miss it: a strike. Three strikes ends the run.</li>
+  ${contractsOpen() ? `<li><b>Contracts:</b> before each floor, promise how many monster points you'll kill. Make it: gold. Miss it: a strike. Three strikes ends the run.</li>
   <li><b>Gold</b> buys relics between floors. Every 3 floors the guild charges dues; if you can't pay, that's a strike.</li>` : ''}
-  ${s.floor >= E.UNLOCK.clauses ? `<li><b>Wildcard:</b> one offer per floor pays ${E.WILDCARD_MULT}× as much, but adds one extra rule for that floor.</li>` : ''}
+  ${!s.guided || s.floor >= E.UNLOCK.clauses ? `<li><b>Wildcard:</b> one offer per floor pays ${E.WILDCARD_MULT}× as much, but adds one extra rule for that floor.</li>` : ''}
 </ol><button class="link" data-tutorial>Replay the training floor</button></details>`;
 function syncNote() {
   if (webReports()) return `<p class="muted sync">Playtest build: a summary of each run is sent to the designer when it ends.</p>`;
@@ -1024,13 +1098,13 @@ function endHTML() {
       <button data-fb>${rec.note ? 'Update note' : 'Save note'}</button><span id="fbstate" class="muted"></span>` : '';
   const key = 'end-' + (rec ? rec.id : s.floor);
   const mark = won ? stamp('paid', key) : /revokes your license/.test(s.lastResult || '') ? stamp('strike', key) : '';
-  return `<section class="end">${mark}${clerk(won ? 'pleased' : 'disapproving')}<h2>${won ? 'Ledger closed. You survived.' : 'Run over'}</h2>
+  return `<section class="end">${mark}<div class="endsum">${clerk(won ? 'pleased' : 'disapproving')}<h2>${won ? 'Ledger closed. You survived.' : 'Run over'}</h2>
       <p style="margin:0">${esc(s.lastResult || '')}</p>${whyHTML()}
       <p class="muted" style="margin:0">Reached floor <span class="num">${s.floor + 1}</span> · slew <span class="num">${s.totalSlain + (won ? 0 : s.slain)}</span> points · <span class="num">${s.gold}</span> gold</p>
-      ${fb}${webReports() && rec ? webFormHTML() : ''}
+      </div><div class="endform">${fb}${webReports() && rec ? webFormHTML() : ''}
       ${dbState !== 'on' && rec && !webReports() ? `<p class="muted" style="margin:0">Playtesting? Copy this report and send it to whoever shared the game.</p>
       <textarea id="report" rows="4" readonly>${esc(runReport())}</textarea><button data-copy>Copy run report</button><span id="copystate" class="muted"></span>` : ''}
-      <button class="primary" data-new>New run</button></section>`;
+      <button class="primary" data-new>New run</button></div></section>`;
 }
 function webFormHTML() {
   return `<label class="fb" for="pname">Your name (optional)</label>
@@ -1063,7 +1137,7 @@ function runReport(r = rec) {
   const floors = r.floors.map(f => f.survival ? `F${f.floor} Survival ${f.died ? 'died' : f.hpEnd != null ? 'survived' : ''}`.trim() : `F${f.floor} ${E.TIERS[f.tier]}${f.clause ? '+' + E.CLAUSES[f.clause].name : ''} ${f.slain ?? '?'}/${f.target}${f.met ? ' met' : f.met === false ? ' missed' : ''}${f.raises ? ' raised' : ''}${f.flees ? ` fled${f.flees}` : ''}`).join('; ');
   const bought = r.shops.flatMap(sh => sh.bought.filter(k => E.RELICS[k]).map(k => E.RELICS[k].name)).join(', ') || 'none';
   const skipped = [...new Set(r.shops.flatMap(sh => sh.offered.filter(k => !sh.bought.includes(k)).map(k => E.RELICS[k].name)))].join(', ') || 'none';
-  return `Guild Ledger v${VERSION} run report: ${out} on floor ${r.floorReached}, ${r.totalSlain} points, ${r.gold} gold.\nFloors: ${floors}\nRelics bought: ${bought}\nRelics passed on: ${skipped}`;
+  return `Guild Ledger v${VERSION} run report${r.mode === 'full' ? ' (full game)' : ''}: ${out} on floor ${r.floorReached}, ${r.totalSlain} points, ${r.gold} gold.\nFloors: ${floors}\nRelics bought: ${bought}\nRelics passed on: ${skipped}`;
 }
 function tutDoneHTML() {
   return `<section class="end">${clerk('pleased')}<h2>Training complete</h2>
@@ -1092,10 +1166,13 @@ function settleHTML() {
 function render() {
   if (!s) return;
   setScene();
-  const head = `<header><h1>${img('icons/emblem-guild.webp', 'emblem')}Guild Ledger</h1><span class="muted">${tut ? 'Training floor' : `Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span></header>`;
+  const mode = tut ? '' : `<div class="mode" role="group" aria-label="Game mode">${[['guided', 'Guided start'], ['full', 'Full game']].map(([k, label]) =>
+    `<button data-mode="${k}" aria-pressed="${gameMode() === k}" title="${k === 'full' ? 'Contracts, gold and relics from floor 1' : 'Starts with just health, weapons and potions, and adds the rest as you go'}">${label}</button>`).join('')}</div>`;
+  const head = `<header><h1>${img('icons/emblem-guild.webp', 'emblem')}Guild Ledger</h1>${mode}<span class="muted">${tut ? 'Training floor' : `Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span></header>`;
+  const cols = (side, stage) => `<div class="cols"><div class="side">${side}${syncNote()}<p class="muted version">v${VERSION}</p></div><div class="stage">${stage}</div></div>`;
   let body = '';
   if (s.phase === 'bid') {
-    body = `${coachHTML()}${goalHTML()}${statusHTML()}${bossHTML()}${duesWarning()}
+    body = cols(`${coachHTML()}${goalHTML()}${statusHTML()}${bossHTML()}${duesWarning()}${tut ? '' : rulesHTML()}${statsHTML()}`, `
       <section class="contract board"><div class="contract-row"><h2>${s.offers.length > 1 ? 'Choose this floor\'s contract' : 'Sign this floor\'s contract'}</h2>${E.canRedraw(s) ? '<button data-redraw>Redraw room (Fortune Teller)</button>' : ''}</div>
         <p class="muted" style="margin:0">${s.offers.length > 1 ? `Here's the first room. How many monster points can you kill across ${roomsOnFloor()} rooms? Higher targets pay more.` : `Here's the first room. Kill this many monster points across ${roomsOnFloor()} rooms to get paid.`}</p>
         <div class="offers">${s.offers.map((o, i) => {
@@ -1105,36 +1182,36 @@ function render() {
           ${o.clause ? `<span class="clause-row">${img(clauseSeal(o.clause), 'seal')}<span class="cl">${E.CLAUSES[o.clause].name}</span></span><span class="muted" style="font-size:13px">${E.CLAUSES[o.clause].text}</span>` : ''}</button>`;
         }).join('')}</div>
       </section>
-      ${roomHTML(false)}
-      ${relicsHTML(false)}${tut ? '' : rulesHTML()}${statsHTML()}`;
+      ${roomHTML(false)}${relicsHTML(false)}`);
   } else if (s.phase === 'room') {
     const fleeNote = s.boss && s.boss.key === 'fleeToll' ? ' (costs 4 HP)' : '';
     const fleeOk = E.canFlee(s) && (!tut || !!(TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.flee));
-    body = `${coachHTML()}${goalHTML()}${statusHTML()}${bossHTML()}${survival() ? '' : contractHTML()}${duesWarning()}
+    body = cols(`${coachHTML()}${goalHTML()}${statusHTML()}${bossHTML()}${survival() ? '' : contractHTML()}${duesWarning()}${peekHTML()}${tut ? '' : rulesHTML()}${statsHTML()}`, `
       ${roomHTML(true, `${E.canRaise(s) && !tut ? `<button data-raise>${img('icons/hud-raise.webp', 'bi')}Raise to ${E.TIERS[s.contract.tier + 1]}: slay ${E.TARGETS[s.floor][s.contract.tier + 1]}, pays ${E.payout(s, s.contract.tier + 1, s.contract.clause)}</button>` : ''}
-        <button data-flee ${fleeOk ? '' : 'disabled'} class="${tut && fleeOk ? 'lit' : ''}">${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room${fleeNote}</button>`)}
-      ${peekHTML()}${relicsHTML(false)}${tut ? '' : rulesHTML()}${statsHTML()}`;
+        <button data-flee ${fleeOk ? '' : 'disabled'} class="${tut && fleeOk ? 'lit' : ''}">${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room${fleeNote}</button>`)}${relicsHTML(false)}`);
   } else if (s.phase === 'shop') {
     const full = s.relics.length >= E.MAX_RELICS;
     const ware = (k, item) => `<div class="ware"><div class="whead">${img(iconOf(k), 'ico')}<b>${item.name}</b></div><span class="muted" style="font-size:14px">${item.text}</span>
       <button data-buy="${k}" ${s.shop.bought[k] || s.gold < item.cost || (E.RELICS[k] && full) ? 'disabled' : ''}>${s.shop.bought[k] ? 'Bought' : `Buy · <span class="num">${item.cost}</span>g`}</button></div>`;
-    body = `${coachHTML()}${statusHTML()}
-      ${settleHTML()}${duesWarning()}
+    body = cols(`${coachHTML()}${statusHTML()}
+      ${settleHTML()}${statsHTML()}`, `
       <section class="shop"><div class="contract-row"><h2>Guild hall</h2><span class="muted">Next: floor ${s.floor + 2}${E.BOSSES[s.floor + 1] ? ' · <span style="color:var(--blood)">boss</span>' : ''}</span></div>
         ${E.BOSSES[s.floor + 1] ? bossCard(E.BOSSES[s.floor + 1], 'Next floor') : ''}
         ${relicsOpen() ? `<div class="label">Relics ${full ? '(slots full: drop one to buy)' : ''}</div>
         <div class="shopgrid relicgrid">${s.shop.relics.map(k => ware(k, E.RELICS[k])).join('') || '<p class="muted">Sold out.</p>'}</div>` : ''}
         <div class="label">Services</div>
         <div class="shopgrid services">${Object.entries(E.SERVICES).map(([k, v]) => ware(k, v)).join('')}</div>
-        <div><button class="primary" data-leave>Descend to floor ${s.floor + 2}</button></div>
-      </section>
-      ${relicsOpen() ? `<div class="label">Your relics (${s.relics.length}/${E.MAX_RELICS})</div>${relicsHTML(true)}` : ''}${statsHTML()}`;
+        ${relicsOpen() ? `<div class="label">Your relics (${s.relics.length}/${E.MAX_RELICS})</div>${relicsHTML(true)}` : ''}
+        ${duesWarning()}<div><button class="primary" data-leave>Descend to floor ${s.floor + 2}</button></div>
+      </section>`);
   } else if (s.phase === 'tutdone') {
     body = tutDoneHTML();
   } else {
     body = endHTML() + logHTML() + statsHTML();
   }
-  app.innerHTML = head + body + syncNote() + `<p class="muted version">v${VERSION}</p>`;
+  const framed = body.startsWith('<div class="cols">');
+  app.className = framed ? 'play' : 'solo';
+  app.innerHTML = head + body + (framed ? '' : syncNote() + `<p class="muted version">v${VERSION}</p>`);
   dealIn();
   const focus = tut ? TUTORIAL[tut.step] && TUTORIAL[tut.step].focus : (currentHint() || {}).focus;
   if (focus && s.phase !== 'tutdone') app.querySelectorAll(focus).forEach(el => el.classList.add('tut-focus'));
@@ -1218,6 +1295,14 @@ app.addEventListener('click', async e => {
     readReportForm();
     if (rec && rec.status === 'in_progress' && rec.floors.length) { rec.status = 'abandoned'; save(); }
     sendReport(rec);
+    startRun(); acted = false;
+  }
+  else if (d.mode) {
+    if (d.mode === gameMode()) return;
+    const underway = rec && rec.status === 'in_progress' && (rec.floors.length > 1 || s.handled > 0 || s.roomsCleared > 0);
+    if (underway && !confirm(`Start a new run in ${d.mode === 'full' ? 'Full game' : 'Guided start'} mode? This run will end.`)) return;
+    store.set('mode', d.mode);
+    if (underway) { rec.status = 'abandoned'; save(); sendReport(rec); } // an untouched run isn't worth a report
     startRun(); acted = false;
   }
   else if ('tutorial' in d) { startTutorial(); acted = false; }
