@@ -15,5 +15,8 @@ A dungeon-solitaire roguelike. Each floor you sign a contract (Safe, Bold or Rec
 
 Rebuild after any change with `python3 src/build.py`.
 
+## Versions
+The game uses `MAJOR.MINOR.PATCH` (overhaul or redesign / update / bug fix). Bump `VERSION` in `src/ui.html` with each change and add an entry to `CHANGELOG.md`.
+
 ## Playtest reports
 At the end of each run (or when a player leaves mid-run), the game posts a short report, plus the run's data as JSON, to the Google Form in `src/config.json`. Nothing else is collected.
