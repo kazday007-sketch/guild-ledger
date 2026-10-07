@@ -123,6 +123,7 @@ details.rules ol { margin: 8px 0 4px; padding-left: 20px; display: grid; gap: 4p
 .card.lit { outline: 3px solid var(--verdigris); outline-offset: 2px; }
 .offer.lit { border-color: var(--verdigris); }
 .sync { font-size: 13px; text-align: center; margin: 4px 0 0; }
+.version { font-size: 11px; text-align: center; margin: 6px 0 0; opacity: .6; }
 .fb { font-weight: 500; }
 textarea, input#pname { width: 100%; max-width: 480px; font: 15px var(--body); color: var(--bone); background: var(--slab-2); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
 textarea:focus-visible, input#pname:focus-visible { outline: 2px solid var(--verdigris); }
@@ -254,7 +255,9 @@ div.room { background: #3a2a1d url(assets/ui/texture-wood.webp) 0 0 / 256px; pad
 
 <script>
 const E = window.Engine;
-const VERSION = 'v4';
+// Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
+// Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
+const VERSION = '1.0.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const webReports = () => !!(REPORT.url && REPORT.entry) && dbState !== 'on';
@@ -588,7 +591,7 @@ function runReport(r = rec) {
   const floors = r.floors.map(f => `F${f.floor} ${E.TIERS[f.tier]}${f.clause ? '+' + E.CLAUSES[f.clause].name : ''} ${f.slain ?? '?'}/${f.target}${f.met ? ' met' : f.met === false ? ' missed' : ''}${f.raises ? ' raised' : ''}${f.flees ? ` fled${f.flees}` : ''}`).join('; ');
   const bought = r.shops.flatMap(sh => sh.bought.filter(k => E.RELICS[k]).map(k => E.RELICS[k].name)).join(', ') || 'none';
   const skipped = [...new Set(r.shops.flatMap(sh => sh.offered.filter(k => !sh.bought.includes(k)).map(k => E.RELICS[k].name)))].join(', ') || 'none';
-  return `Guild Ledger ${VERSION} run report: ${out} on floor ${r.floorReached}, ${r.totalSlain} points, ${r.gold} gold.\nFloors: ${floors}\nRelics bought: ${bought}\nRelics passed on: ${skipped}`;
+  return `Guild Ledger v${VERSION} run report: ${out} on floor ${r.floorReached}, ${r.totalSlain} points, ${r.gold} gold.\nFloors: ${floors}\nRelics bought: ${bought}\nRelics passed on: ${skipped}`;
 }
 function tutDoneHTML() {
   return `<section class="end">${clerk('pleased')}<h2>Training complete</h2>
@@ -660,7 +663,7 @@ function render() {
   } else {
     body = endHTML() + logHTML() + statsHTML();
   }
-  app.innerHTML = head + body + syncNote();
+  app.innerHTML = head + body + syncNote() + `<p class="muted version">v${VERSION}</p>`;
 }
 
 // ---------- owner stats ----------
