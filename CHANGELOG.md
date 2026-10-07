@@ -8,6 +8,10 @@ Guild Ledger uses a three-part version number, `MAJOR.MINOR.PATCH`:
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.6.0 (2026-10-07)
+- Cards no longer show any warning text (weaker weapon, fists would kill you, too strong for your weapon, potion blocked). Each card shows just its name, its type and what each button does, such as "Fists: lose 5 health" or "Discard (no healing)".
+- The end screen has one button, New run. Your run report, with your name and note if you typed them, is sent automatically when you tap it, so there is no separate Send report button.
+
 ## 1.5.0 (2026-10-07)
 - Training now goes: a room, a room of big monsters you flee, then a last room. Fleeing doesn't count as a room, so training needs 2 rooms cleared, and the last room shows you can't flee twice in a row.
 - New training steps explain fleeing: you can flee at the start of any room, it doesn't count as a room, and you can't flee 2 rooms in a row.
