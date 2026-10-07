@@ -908,31 +908,13 @@ render();
 .lh { font-size: 13px; line-height: 1.3; color: var(--ash); margin: 0; }
 .lh b { color: var(--bone); font-weight: 600; }
 .lh.warn, .lh.warn b { color: var(--gold); }
-.card .lh { color: #5a5248; font-size: 12px; }
-.card .lh.warn { color: #9a3a2e; font-weight: 600; }
 `;
   document.head.appendChild(css);
 
   const E = window.Engine;
-  const R = v => E.rankLabel(v);
   const has = k => s.relics.includes(k);
   const fleeToll = () => s.boss && s.boss.key === 'fleeToll';
 
-  // Card warnings: shown only when a move would hurt more than it looks.
-  function monsterHint(c) {
-    const can = s.weapon && E.canUseWeapon(s, c);
-    if (s.weapon && !can) return `<p class="lh">Too strong for your weapon (hits ${R(s.weapon.limit)} or lower).</p>`;
-    if (!can && E.monsterDamage(s, c, false) >= s.hp) return `<p class="lh warn">Fists would kill you.</p>`;
-    return '';
-  }
-  function cardHint(c) {
-    if (c.kind === 'monster') return monsterHint(c);
-    if (c.kind === 'potion') {
-      if (E.potionHeal(s, c) === 0) return `<p class="lh warn">${s.potionUsed ? 'You already used a potion this room.' : 'Potions are blocked this floor.'}</p>`;
-      return '';
-    }
-    return '';
-  }
   function fleeReason() {
     if (E.canFlee(s)) return fleeToll() ? 'The Warden charges 4 health to flee.' : 'Flee to send this room to the bottom of the pile.';
     if (s.contract && s.contract.clause === 'sworn') return 'Your Wildcard (Sworn) forbids fleeing.';
@@ -949,11 +931,6 @@ render();
     app.querySelectorAll('.status .stat').forEach(el => { const k = Object.keys(tips).find(k => el.querySelector('.label').textContent.includes(k)); el.title = k ? tips[k] : ''; });
     if (inTraining()) return;
     if (s.phase === 'room') {
-      app.querySelectorAll('.room .card').forEach(el => {
-        const btn = el.querySelector('[data-id]'); if (!btn) return;
-        const c = s.room.find(x => x.id === +btn.dataset.id); if (!c) return;
-        const h = cardHint(c); if (h) el.querySelector('.acts').insertAdjacentHTML('beforebegin', h);
-      });
       const fb = app.querySelector('[data-flee]');
       if (fb) fb.title = fleeReason();
     }
