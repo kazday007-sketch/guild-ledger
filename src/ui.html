@@ -119,8 +119,7 @@ details.rules ol { margin: 8px 0 4px; padding-left: 20px; display: grid; gap: 4p
 .goal.done .label { color: var(--gold); }
 .why { text-align: left; max-width: 520px; margin: 0; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--slab-2); display: grid; gap: 6px; }
 .why p { margin: 0; }
-.card.lit { outline: 3px solid var(--verdigris); outline-offset: 2px; }
-.offer.lit { border-color: var(--verdigris); }
+.card.lit, .offer.lit { outline: 3px solid var(--gold); outline-offset: 2px; box-shadow: 0 0 0 7px color-mix(in srgb, var(--gold) 28%, transparent); animation: focuspulse 1.3s ease-in-out infinite; }
 .sync { font-size: 13px; text-align: center; margin: 4px 0 0; }
 .version { font-size: 11px; text-align: center; margin: 6px 0 0; opacity: .6; }
 .fb { font-weight: 500; }
@@ -190,7 +189,7 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 .offer, .offer.clause { position: relative; background: url(assets/ui/contract-parchment.webp) center / 100% 100% no-repeat; border: 0; border-radius: 0; color: var(--paper-ink); padding: 20px 15% 34px; min-height: 220px; justify-items: center; align-content: start; text-align: center; gap: 3px; filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)); transition: transform .15s; }
 .offer:hover:not(:disabled) { transform: translateY(-3px) rotate(-.6deg); }
 .offer:focus-visible { outline: 2px solid var(--verdigris); outline-offset: 3px; }
-.offer.lit { outline: 3px solid var(--verdigris); outline-offset: 2px; border-radius: 6px; }
+.offer.lit { border-radius: 6px; }
 .offer .seal { width: 56px; height: 56px; margin-bottom: 2px; filter: drop-shadow(0 2px 2px rgba(0,0,0,.35)); }
 .offer .tier { font: 400 20px var(--display); }
 .offer .muted { color: var(--paper-muted); }
@@ -238,7 +237,8 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 .tut-focus { position: relative; z-index: 2; outline: 3px solid var(--gold); outline-offset: 3px; border-radius: 8px; box-shadow: 0 0 0 7px color-mix(in srgb, var(--gold) 28%, transparent); animation: focuspulse 1.3s ease-in-out infinite; }
 .status .tut-focus { outline-offset: -3px; border-radius: 0; box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--gold) 14%, transparent); }
 @keyframes focuspulse { 50% { outline-color: color-mix(in srgb, var(--gold) 40%, transparent); } }
-@media (prefers-reduced-motion: reduce) { .tut-focus { animation: none; } }
+.pip.tut-focus { margin: 0 4px; border-radius: 50%; outline-offset: 2px; box-shadow: 0 0 10px 4px color-mix(in srgb, var(--gold) 55%, transparent); }
+@media (prefers-reduced-motion: reduce) { .tut-focus, .card.lit, .offer.lit { animation: none; } }
 .coach .tutnav { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
 /* The clerk's dialogue is the one thing a new player must read, so it is big and bright. */
 .coach { border: 2px solid var(--verdigris); box-shadow: 0 0 0 4px color-mix(in srgb, var(--verdigris) 20%, transparent), 0 6px 18px rgba(0,0,0,.35); padding: 16px 18px; row-gap: 10px; }
@@ -288,7 +288,7 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.4.0';
+const VERSION = '1.5.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const webReports = () => !!(REPORT.url && REPORT.entry) && dbState !== 'on';
@@ -364,17 +364,19 @@ let seenHints = store.get('hints', {});
 // Steps with `allow` wait for that one move. Steps without it are a tour of the screen with a Next button.
 // `focus` highlights the part of the screen the step talks about.
 const TUTORIAL = [
-  { focus: '.stat.hp', text: 'This is your <b>health</b>. If it reaches 0, you lose. Your only goal: <b>stay alive</b>.' },
+  { focus: '.stat.hp', text: 'This is your <b>health</b>. If it reaches 0, you lose. Your only goal is to <b>stay alive</b>.' },
   { focus: '.stat.weapon', text: 'This is your <b>weapon</b>. A weapon blocks damage from monsters. You don\'t have one yet.' },
-  { focus: '.chamber', text: 'This is a <b>room</b>. It\'s dealt from the pile: 4 cards. You pick 3 of them, and the last one stays for the next room.' },
-  { focus: '.goal', text: 'These circles count the <b>rooms</b> you get through. Training has 3.' },
+  { focus: '.chamber', text: 'This is a <b>room</b>. Each room is dealt 4 cards from the pile. You pick 3 of them, and the last one stays for the next room.' },
+  { focus: '.goal .pip.room', text: 'These circles count the <b>rooms</b> you get through. Get through 2 rooms to finish training.' },
   { allow: { v: 7, mode: null }, text: 'Let\'s play. Pick up the <b>Short Sword</b>.' },
-  { allow: { v: 9, mode: 'weapon' }, focus: '.stat.weapon', text: 'Now you have a weapon. The <b>Owlbear</b> hits for 9, your sword blocks 7, so you only lose <b>2</b>. Fight it with your sword.' },
-  { allow: { v: 5, mode: 'weapon' }, focus: '.stat.weapon', text: 'Your weapon now says <b>hits ≤ 9</b>: after a kill, it only works on monsters that size or smaller. Hit the <b>Ghost (5)</b>.' },
-  { allow: { v: 3, mode: 'weapon' }, text: 'New room! The <b>Cave Bat</b> stayed from the last room. Hit it with your sword.' },
-  { allow: { v: 10, mode: 'bare' }, focus: '.stat.hp', text: 'The <b>Bone Golem (10)</b> is too big for your sword now. With fists you lose the full <b>10</b> health.' },
-  { allow: { v: 6, mode: null }, focus: '.stat.hp', text: 'Ouch! Drink the <b>Tonic</b> to get health back.' },
-  { allow: { flee: true }, focus: '[data-flee]', text: 'Uh oh. This room is <b>all monsters</b>, and they\'re too big for your sword. Tap <b>Flee room</b> to run away. You can\'t flee two rooms in a row.' },
+  { allow: { v: 9, mode: 'weapon' }, focus: '.stat.weapon', text: 'Every card has a number. A monster\'s number is how much <b>health it takes</b>. The <b>Owlbear</b> is a 9, so it hits for 9. Your sword is a 7, so it blocks 7. You only lose <b>2</b>. Fight it with your sword.' },
+  { allow: { v: 5, mode: 'weapon' }, focus: '.stat.weapon', text: 'Each fight wears your sword down. Now it can only fight monsters up to <b>9</b>, the size of the last one it beat. The <b>Ghost</b> is a 5, so your sword still works. Fight it.' },
+  { allow: { flee: true }, focus: '[data-flee]', text: 'New room! These monsters are all <b>too big</b> for your sword. Fighting them would cost most of your health. Tap <b>Flee room</b> to run away.' },
+  { focus: '.goal .pip.room', text: 'You got away! The monsters went to the bottom of the pile. Fleeing <b>doesn\'t count</b> as a room, so the circles didn\'t change.' },
+  { focus: '.chamber', text: 'You can flee at the start of <b>any room</b>. The only rule is you <b>can\'t flee 2 rooms in a row</b>, so you have to face this one.' },
+  { allow: { v: 3, mode: 'weapon' }, focus: '.stat.weapon', text: 'The <b>Cave Bat</b> is a 3. That\'s under 5, so your sword can fight it. Hit it with your sword.' },
+  { allow: { v: 10, mode: 'bare' }, focus: '.stat.hp', text: 'The <b>Bone Golem</b> is a 10. That\'s too big for your sword now, so you fight with your fists and lose the full <b>10</b> health.' },
+  { allow: { v: 6, mode: null }, focus: '.stat.hp', text: 'Ouch! The <b>Tonic</b> is a 6, so it gives back 6 health. Drink it.' },
 ];
 let tut = null; // { step } while the tutorial runs
 
@@ -455,21 +457,21 @@ function currentHint() {
   const multi = s.offers && s.offers.length > 1;
   const shopNow = s.phase === 'shop';
   const list = [
-    ['survive', s.phase === 'room' && survival() && s.floor === 0, 'Just like training: <b>stay alive</b> for 4 rooms. Pick 3 cards in each room.', '.goal'],
-    ['gold', shopNow && s.floor === 0, '<b>New: gold!</b> The guild paid you 6 gold for surviving. Your gold shows up here.', '.stat.gold'],
+    ['survive', s.phase === 'room' && survival() && s.floor === 0, 'Just like training, <b>stay alive</b> for 4 rooms. Pick 3 cards in each room.', '.goal'],
+    ['gold', shopNow && s.floor === 0, '<b>New! Gold.</b> The guild paid you 6 gold for surviving. Your gold shows up here.', '.stat.gold'],
     ['shop', shopNow && s.floor === 0, 'This is the <b>shop</b>. Tap <b>Buy</b> to spend gold. A <b>Bandage</b> heals 6 health before the next floor.', '.shop .services'],
     ['leave', shopNow && s.floor === 0, 'Done shopping? Tap <b>Descend</b> to go down to the next floor.', '[data-leave]'],
-    ['contracts', s.phase === 'bid' && !multi, '<b>New: contracts.</b> Promise to kill this many monster points on this floor. Make it: you get gold. Miss it: you get a strike.', '.offers'],
+    ['contracts', s.phase === 'bid' && !multi, '<b>New! Contracts.</b> Promise to kill this many monster points on this floor. Make it and you get gold. Miss it and you get a strike.', '.offers'],
     ['strikes', s.phase === 'bid' && contractsOpen(), 'These are your <b>strikes</b>. Miss a contract and you get one. Three strikes ends your run.', '.stat.strikes'],
-    ['met', s.phase === 'room' && s.contract && !survival() && s.slain >= s.contract.target, '<b>Contract met!</b> Extra points only pay a little more gold, so from here on, <b>protect your health</b>: take the smallest hits and drink potions.', '.contract'],
-    ['relics', shopNow && relicsOpen() && s.shop.relics.length > 0, '<b>New: relics!</b> Each one gives you a power for the rest of the run. You can carry 4.', '.shop .relicgrid'],
-    ['dues', shopNow && contractsOpen() && s.floor % 3 === 1, '<b>Guild dues:</b> after the next floor, the guild collects this fee. Keep enough gold, or it\'s a strike.', '.stat.dues'],
-    ['tiers', s.phase === 'bid' && multi && !s.boss, '<b>New: Bold and Reckless contracts.</b> A bigger target pays more gold, but a miss is a strike. When in doubt, Safe is fine.', '.offers'],
-    ['raise', s.phase === 'room' && E.canRaise(s), '<b>New: raise.</b> If a floor is going well, you can raise your contract one step between rooms, for more gold. Once per floor.', '[data-raise]'],
+    ['met', s.phase === 'room' && s.contract && !survival() && s.slain >= s.contract.target, '<b>Contract met!</b> Extra points only pay a little more gold, so from here on, <b>protect your health</b>. Take the smallest hits and drink potions.', '.contract'],
+    ['relics', shopNow && relicsOpen() && s.shop.relics.length > 0, '<b>New! Relics.</b> Each one gives you a power for the rest of the run. You can carry 4.', '.shop .relicgrid'],
+    ['dues', shopNow && contractsOpen() && s.floor % 3 === 1, '<b>Guild dues.</b> After the next floor, the guild collects this fee. Keep enough gold, or it\'s a strike.', '.stat.dues'],
+    ['tiers', s.phase === 'bid' && multi && !s.boss, '<b>New! Bold and Reckless contracts.</b> A bigger target pays more gold, but a miss is a strike. When in doubt, Safe is fine.', '.offers'],
+    ['raise', s.phase === 'room' && E.canRaise(s), '<b>New! Raise.</b> If a floor is going well, you can raise your contract one step between rooms, for more gold. Once per floor.', '[data-raise]'],
     ['bossroom', s.phase === 'room' && survival() && s.boss, `<b>Boss floor!</b> ${s.boss ? esc(s.boss.name) : ''} has a special rule. ${s.boss ? esc(s.boss.rule) : ''}`, '.boss'],
     ['boss', s.phase === 'bid' && s.boss, '<b>Boss floor.</b> The boss adds one special rule for this floor. Read it before you sign.', '.boss'],
-    ['clause', s.phase === 'bid' && s.offers.some(o => o.clause), `<b>New: the Wildcard.</b> One offer now pays ${E.WILDCARD_MULT}× as much, more than the next contract up. The catch: it adds one extra rule for this floor.`, '.offer.clause'],
-    ['limit', s.phase === 'room' && s.weapon && s.weapon.limit != null, 'Your weapon has dulled: it only hits monsters up to the number shown under Weapon. Bigger ones need fists, or a new weapon.', '.stat.weapon'],
+    ['clause', s.phase === 'bid' && s.offers.some(o => o.clause), `<b>New! The Wildcard.</b> One offer now pays ${E.WILDCARD_MULT}× as much, more than the next contract up. The catch is that it adds one extra rule for this floor.`, '.offer.clause'],
+    ['limit', s.phase === 'room' && s.weapon && s.weapon.limit != null, 'Your weapon has dulled. It only hits monsters up to the number shown under Weapon. Bigger ones need fists, or a new weapon.', '.stat.weapon'],
   ];
   const h = list.find(([k, cond]) => cond && !seenHints[k]);
   return h ? { key: h[0], text: h[2], focus: h[3] } : null;
@@ -612,7 +614,7 @@ function relicsHTML(withDrop) {
   const empty = withDrop ? Array.from({ length: E.MAX_RELICS - s.relics.length }, () => `<div class="relic empty">${img('icons/hud-relic-slot.webp', 'ico')}<span class="muted">Empty slot</span></div>`).join('') : '';
   return `<div class="relics">${s.relics.map(k => `<div class="relic">${img(iconOf(k), 'ico')}<div class="rbody"><div class="row"><b>${E.RELICS[k].name}</b>${withDrop ? `<button class="link" data-drop="${k}">Drop</button>` : ''}</div><span class="muted" style="font-size:14px">${E.RELICS[k].text}</span></div></div>`).join('')}${empty}</div>`;
 }
-const roomsOnFloor = () => s.tutorial ? 3 : E.ROOMS_PER_FLOOR;
+const roomsOnFloor = () => s.tutorial ? E.TUTORIAL_ROOMS : E.ROOMS_PER_FLOOR;
 function contractHTML() {
   const c = s.contract;
   if (survival()) return `<section class="contract paper"><div class="contract-row"><h2>${tut ? 'Training floor' : 'Survive this floor'}</h2>
@@ -712,7 +714,7 @@ function tutDoneHTML() {
     <ul class="recap">
       <li>Pick 3 of the 4 cards in each room.</li>
       <li>Use weapons on big monsters first, then smaller ones.</li>
-      <li>Low on health? Drink a potion, or run away from a room before touching it.</li>
+      <li>Low on health? Drink a potion, or flee a room before you pick a card. You can't flee 2 rooms in a row.</li>
     </ul>
     <button class="primary" data-new>Start your first run</button></section>`;
 }
