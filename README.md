@@ -10,6 +10,8 @@ A dungeon-solitaire roguelike. Each floor you sign a contract (Safe, Bold or Rec
 - `src/ui.html`: the game screen, tutorial and hints.
 - `src/config.json`: the Google Form that receives run reports.
 - `src/sim.js`: balance simulator (`node src/sim.js curve|relics|pairs [runs]`).
+- `assets/`: card art, portraits, icons, seals, stamps, textures, backgrounds and effects as web-sized WebP.
+- `src/import_art.py`: rebuilds `assets/` from the art folder (`python3 src/import_art.py /path/to/art`). It cuts icons and seals out of their slate squares and never crops card art.
 
 Rebuild after any change with `python3 src/build.py`.
 
