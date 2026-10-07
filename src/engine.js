@@ -20,10 +20,11 @@
     8: { name: 'The Lich Auditor', rule: 'Only Reckless contracts are accepted.', key: 'recklessOnly' },
   };
   // Guided runs unlock systems gradually (floor indices, 0-based). Floor 1 has no contract at all: you only
-  // have to survive it, and the guild pays SURVIVAL_PAY. Contracts (Safe only) start on floor 2, Bold, Reckless
+  // have to survive it, and the guild pays SURVIVAL_PAY (no interest). The shop after floor 1 sells services
+  // only; relics appear from the shop after floor 2. Contracts (Safe only) start on floor 2, Bold, Reckless
   // and raises on floor 3, and clauses on floor 4 (the start of act 2).
-  const UNLOCK = { contracts: 1, tiers: 2, raise: 2, clauses: 3 };
-  const SURVIVAL_PAY = 5;
+  const UNLOCK = { contracts: 1, relics: 1, tiers: 2, raise: 2, clauses: 3 };
+  const SURVIVAL_PAY = 6;
   const locked = (s, k) => s.guided && s.floor < UNLOCK[k];
   // Clauses: one contract offer per floor carries one. It pays x1.5 and bends a rule for that floor.
   const CLAUSES = {
@@ -278,7 +279,7 @@
       else { s.strikes++; msg = `Contract missed: ${s.slain}/${c.target}. Strike ${s.strikes} of 3.`; }
       if (has(s, 'loanshark')) { s.gold = Math.max(0, s.gold - 8); msg += ' The loan shark takes 8 gold.'; }
     }
-    const interest = Math.min(has(s, 'tithe') ? 6 : 3, Math.floor(s.gold / 5));
+    const interest = c.survival ? 0 : Math.min(has(s, 'tithe') ? 6 : 3, Math.floor(s.gold / 5));
     s.gold += interest;
     if (interest) msg += ` Interest +${interest}.`;
     if (s.floor % 3 === 2) {
@@ -291,7 +292,7 @@
     if (s.floor === FLOORS - 1) { s.phase = 'won'; return; }
     s.phase = 'shop';
     const pool = Object.keys(RELICS).filter(k => !has(s, k));
-    s.shop = { relics: shuffle(pool, s.r).slice(0, 3), bought: {} };
+    s.shop = { relics: locked(s, 'relics') ? [] : shuffle(pool, s.r).slice(0, 3), bought: {} };
   }
   const SERVICES = {
     bandage: { name: 'Bandage', text: 'Heal 6 HP.', cost: 3 },
