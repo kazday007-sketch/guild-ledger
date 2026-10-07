@@ -1,6 +1,7 @@
 // Guild Ledger: game rules. Pure logic, no DOM. Works in the browser (window.Engine) and Node (require).
 (function (root) {
   const MAX_HP = 20;
+  const TUTORIAL_ROOMS = 2; // the fled room in between doesn't count
   const ROOMS_PER_FLOOR = 4;
   const FLOORS = 9; // 3 acts x 3 floors, a boss rule on floors 3, 6, 9
   const MAX_RELICS = 4;
@@ -26,7 +27,10 @@
   const UNLOCK = { contracts: 3, relics: 1, tiers: 4, raise: 4, clauses: 6 };
   const SURVIVAL_PAY = 6;
   const locked = (s, k) => s.guided && s.floor < UNLOCK[k];
-  // Clauses: one contract offer per floor carries one. It pays x1.5 and bends a rule for that floor.
+  // Clauses (shown to players as the "Wildcard" contract): one offer per floor carries one. It pays
+  // WILDCARD_MULT times its tier and bends a rule for that floor. 2.5 makes a Wildcard pay more than the
+  // next tier up, while the simulator's guided win rate stays within about 1 point (tuned with sim.js).
+  const WILDCARD_MULT = 2.5;
   const CLAUSES = {
     sworn: { name: 'Sworn', text: 'You cannot flee this floor.' },
     abstain: { name: 'Abstinent', text: 'Potions do not heal this floor.' },
@@ -198,7 +202,7 @@
   function payout(s, tier, cl) {
     const mult = tier === 2 && has(s, 'ledger') ? 6 : TIER_MULT[tier];
     const base = (3 + act(s)) * mult;
-    return cl ? Math.ceil(base * 1.5) : base;
+    return cl ? Math.ceil(base * WILDCARD_MULT) : base;
   }
   function makeContract(s, tier, cl) {
     return { tier, clause: cl || null, target: TARGETS[s.floor][tier], pay: payout(s, tier, cl) };
@@ -207,7 +211,7 @@
     const o = s.offers[i];
     if (s.phase !== 'bid' || !o) return false;
     s.contract = makeContract(s, o.tier, o.clause);
-    log(s, `Signed a ${TIERS[o.tier]}${o.clause ? ' ' + CLAUSES[o.clause].name : ''} contract: slay ${s.contract.target} for ${s.contract.pay} gold.`);
+    log(s, `Signed a ${TIERS[o.tier]}${o.clause ? ` Wildcard (${CLAUSES[o.clause].name})` : ''} contract: slay ${s.contract.target} for ${s.contract.pay} gold.`);
     s.phase = 'room';
     return true;
   }
@@ -241,7 +245,6 @@
     s.draw.push(...s.room); s.room = s.draw.splice(0, 4); s.fledStreak++; newRoom(s);
     if (s.boss && s.boss.key === 'fleeToll') { s.hp -= 4; log(s, 'Fled past the Warden: -4 HP.'); }
     else log(s, 'Fled the room. Its cards go to the bottom of the pile.');
-    if (s.tutorial) { s.phase = 'tutdone'; s.lastResult = `You got away with ${s.hp} health left.`; }
     return true;
   }
   function handle(s, id, mode) {
@@ -258,7 +261,7 @@
     if (s.hp <= 0) { s.hp = 0; s.phase = 'lost'; s.lastResult = 'You fell in the dungeon.'; return true; }
     if (s.handled === 3) {
       s.roomsCleared++; s.fledStreak = 0; newRoom(s);
-      if (s.roomsCleared >= (s.tutorial ? 3 : ROOMS_PER_FLOOR)) endFloor(s);
+      if (s.roomsCleared >= (s.tutorial ? TUTORIAL_ROOMS : ROOMS_PER_FLOOR)) endFloor(s);
       else s.room.push(...s.draw.splice(0, 4 - s.room.length));
     }
     return true;
@@ -326,20 +329,20 @@
   }
   function leaveShop(s) { if (s.phase !== 'shop') return; s.floor++; startFloor(s); }
 
-  // A three-room training floor with a stacked deck, used by the tutorial. It ends when you flee the third room.
+  // A training floor with a stacked deck, used by the tutorial: clear a room, flee a room of big monsters, then clear one more.
   function newTutorial() {
     const s = newGame(1);
     const c = (kind, v, suit) => card(kind, v, suit);
-    // Room 1 leaves the Cave Bat behind, room 2 leaves the Rats, and room 3 is all monsters: you flee it.
-    const room1 = [c('monster', 5, '♠'), c('weapon', 7, '♦'), c('monster', 3, '♣'), c('monster', 9, '♣')];
-    const next = [c('monster', 10, '♠'), c('potion', 6, '♥'), c('monster', 2, '♠'), c('monster', 14, '♣'), c('monster', 13, '♠'), c('monster', 11, '♣')];
+    // Room 1 leaves the Goblin King behind, room 2 is all big monsters and you flee it, and room 3 ends training.
+    const room1 = [c('monster', 5, '♠'), c('weapon', 7, '♦'), c('monster', 13, '♣'), c('monster', 9, '♣')];
+    const next = [c('monster', 14, '♠'), c('monster', 12, '♣'), c('monster', 11, '♠'), c('monster', 3, '♣'), c('monster', 10, '♠'), c('potion', 6, '♥'), c('monster', 2, '♠')];
     s.tutorial = true; s.room = room1; s.draw = next.concat(s.draw); s.log = [];
     survivalFloor(s, 0);
     return s;
   }
 
   const api = {
-    MAX_HP, ROOMS_PER_FLOOR, FLOORS, UNLOCK, SURVIVAL_PAY, MAX_RELICS, TIERS, TARGETS, DUES, BOSSES, RELICS, SERVICES, CLAUSES,
+    MAX_HP, ROOMS_PER_FLOOR, TUTORIAL_ROOMS, FLOORS, UNLOCK, SURVIVAL_PAY, MAX_RELICS, TIERS, TARGETS, DUES, BOSSES, RELICS, SERVICES, CLAUSES, WILDCARD_MULT,
     newGame, newTutorial, bid, flee, canFlee, handle, buy, dropRelic, leaveShop, allowedTiers, payout,
     canRaise, raise, canRedraw, redraw,
     canUseWeapon, monsterDamage, contractPoints, potionHeal, resolveCard, rankLabel, act,
