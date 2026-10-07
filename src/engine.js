@@ -19,6 +19,10 @@
     5: { name: 'The Plague Hag', rule: 'Potions heal half (rounded down).', key: 'halfPotion' },
     8: { name: 'The Lich Auditor', rule: 'Only Reckless contracts are accepted.', key: 'recklessOnly' },
   };
+  // Guided runs unlock systems gradually (floor indices, 0-based): floor 1 offers only Safe and no raise,
+  // Bold, Reckless and raises open on floor 2, and clauses on floor 4 (the start of act 2).
+  const UNLOCK = { tiers: 1, raise: 1, clauses: 3 };
+  const locked = (s, k) => s.guided && s.floor < UNLOCK[k];
   // Clauses: one contract offer per floor carries one. It pays x1.5 and bends a rule for that floor.
   const CLAUSES = {
     sworn: { name: 'Sworn', text: 'You cannot flee this floor.' },
@@ -141,13 +145,14 @@
     return out;
   }
 
-  function newGame(seed) {
+  function newGame(seed, opts) {
     const r = rng(seed == null ? (Math.random() * 2 ** 32) >>> 0 : seed);
     const s = {
       r, deck: startingDeck(), draw: [], room: [], handled: 0, potionUsed: false, fledStreak: 0, roomKills: 0,
       hp: MAX_HP, maxHp: MAX_HP, weapon: null, floor: 0, roomsCleared: 0, slain: 0, totalSlain: 0,
       gold: 0, strikes: 0, relics: [], contract: null, offers: [], raises: 0, fortuneUsed: false,
       phase: 'bid', log: [], sealUsed: false, boss: null, shop: null, lastResult: null,
+      guided: !!(opts && opts.guided),
     };
     startFloor(s);
     return s;
@@ -174,10 +179,11 @@
     const keys = Object.keys(CLAUSES);
     const ck = keys[Math.floor(s.r() * keys.length)];
     s.offers = tiers.map(t => ({ tier: t, clause: null }));
-    s.offers.push({ tier: clauseTier, clause: ck });
+    if (!locked(s, 'clauses')) s.offers.push({ tier: clauseTier, clause: ck });
     s.phase = 'bid';
   }
   function allowedTiers(s) {
+    if (locked(s, 'tiers')) return [0];
     return s.boss && s.boss.key === 'recklessOnly' ? [2] : [0, 1, 2];
   }
   function payout(s, tier, cl) {
@@ -206,7 +212,7 @@
   }
   // Raise: between rooms, move your contract up one tier. Its clause stays.
   function canRaise(s) {
-    return s.phase === 'room' && s.handled === 0 && s.roomsCleared > 0 && s.contract.tier < 2 &&
+    return s.phase === 'room' && !locked(s, 'raise') && s.handled === 0 && s.roomsCleared > 0 && s.contract.tier < 2 &&
       s.raises < (has(s, 'loaded') ? 2 : 1);
   }
   function raise(s) {
@@ -320,7 +326,7 @@
   }
 
   const api = {
-    MAX_HP, ROOMS_PER_FLOOR, FLOORS, MAX_RELICS, TIERS, TARGETS, DUES, BOSSES, RELICS, SERVICES, CLAUSES,
+    MAX_HP, ROOMS_PER_FLOOR, FLOORS, UNLOCK, MAX_RELICS, TIERS, TARGETS, DUES, BOSSES, RELICS, SERVICES, CLAUSES,
     newGame, newTutorial, bid, flee, canFlee, handle, buy, dropRelic, leaveShop, allowedTiers, payout,
     canRaise, raise, canRedraw, redraw,
     canUseWeapon, monsterDamage, contractPoints, potionHeal, resolveCard, rankLabel, act,
