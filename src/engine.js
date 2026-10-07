@@ -19,11 +19,11 @@
     5: { name: 'The Plague Hag', rule: 'Potions heal half (rounded down).', key: 'halfPotion' },
     8: { name: 'The Lich Auditor', rule: 'Only Reckless contracts are accepted.', key: 'recklessOnly' },
   };
-  // Guided runs unlock systems gradually (floor indices, 0-based). Floor 1 has no contract at all: you only
-  // have to survive it, and the guild pays SURVIVAL_PAY (no interest). The shop after floor 1 sells services
-  // only; relics appear from the shop after floor 2. Contracts (Safe only) start on floor 2, Bold, Reckless
-  // and raises on floor 3, and clauses on floor 4 (the start of act 2).
-  const UNLOCK = { contracts: 1, relics: 1, tiers: 2, raise: 2, clauses: 3 };
+  // Guided runs unlock systems gradually (floor indices, 0-based). Act 1 (floors 1-3) has no contracts, strikes
+  // or dues: you only have to survive, and the guild pays SURVIVAL_PAY per floor (no interest). The shop after
+  // floor 1 sells services only; relics appear from the shop after floor 2. Contracts (Safe only) start on
+  // floor 4, Bold, Reckless and raises on floor 5, and clauses on floor 7 (the start of act 3).
+  const UNLOCK = { contracts: 3, relics: 1, tiers: 4, raise: 4, clauses: 6 };
   const SURVIVAL_PAY = 6;
   const locked = (s, k) => s.guided && s.floor < UNLOCK[k];
   // Clauses: one contract offer per floor carries one. It pays x1.5 and bends a rule for that floor.
@@ -282,7 +282,7 @@
     const interest = c.survival ? 0 : Math.min(has(s, 'tithe') ? 6 : 3, Math.floor(s.gold / 5));
     s.gold += interest;
     if (interest) msg += ` Interest +${interest}.`;
-    if (s.floor % 3 === 2) {
+    if (s.floor % 3 === 2 && !locked(s, 'contracts')) { // no dues before contracts begin
       const due = DUES[act(s)];
       if (s.gold >= due) { s.gold -= due; msg += ` Paid ${due} gold in guild dues.`; }
       else { s.strikes++; s.gold = 0; msg += ` Couldn't pay ${due} gold in dues: strike ${s.strikes} of 3, and the guild takes what you have.`; }
