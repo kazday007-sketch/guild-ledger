@@ -8,6 +8,11 @@ Guild Ledger uses a three-part version number, `MAJOR.MINOR.PATCH`:
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.4.0 (2026-10-07)
+- The contract with an extra rule (from floor 7) is now called the **Wildcard**. Its offer is labelled "Wildcard", and the clerk's tip, the signed contract and the How to play list all use the name.
+- The Wildcard pays 2.5× its tier instead of 1.5×, so it always beats the next contract up: on floors 7-9 a Safe Wildcard pays 13 (Bold pays 10), a Bold Wildcard 25 (Reckless pays 20) and a Reckless Wildcard 50.
+- Balance: in the simulator, guided win rates move by about a point or less between 1.5× and 3×, whether the bot takes every Wildcard it can or skips Bare Oath.
+
 ## 1.3.0 (2026-10-07)
 - Training has a third room made up only of monsters, and teaches you to flee it. Training ends when you get away.
 - Cleaner screen: removed the floor 1 card reminder, the hints on/off switch, the draw-pile counter, the log, the "No relics yet" line and the survival-floor room panel. The room circles now sit in the goal line, and the shop no longer repeats the floor result.
