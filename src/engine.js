@@ -19,9 +19,11 @@
     5: { name: 'The Plague Hag', rule: 'Potions heal half (rounded down).', key: 'halfPotion' },
     8: { name: 'The Lich Auditor', rule: 'Only Reckless contracts are accepted.', key: 'recklessOnly' },
   };
-  // Guided runs unlock systems gradually (floor indices, 0-based): floor 1 offers only Safe and no raise,
-  // Bold, Reckless and raises open on floor 2, and clauses on floor 4 (the start of act 2).
-  const UNLOCK = { tiers: 1, raise: 1, clauses: 3 };
+  // Guided runs unlock systems gradually (floor indices, 0-based). Floor 1 has no contract at all: you only
+  // have to survive it, and the guild pays SURVIVAL_PAY. Contracts (Safe only) start on floor 2, Bold, Reckless
+  // and raises on floor 3, and clauses on floor 4 (the start of act 2).
+  const UNLOCK = { contracts: 1, tiers: 2, raise: 2, clauses: 3 };
+  const SURVIVAL_PAY = 5;
   const locked = (s, k) => s.guided && s.floor < UNLOCK[k];
   // Clauses: one contract offer per floor carries one. It pays x1.5 and bends a rule for that floor.
   const CLAUSES = {
@@ -181,6 +183,12 @@
     s.offers = tiers.map(t => ({ tier: t, clause: null }));
     if (!locked(s, 'clauses')) s.offers.push({ tier: clauseTier, clause: ck });
     s.phase = 'bid';
+    if (locked(s, 'contracts')) survivalFloor(s);
+  }
+  // A floor with no contract: no points to hit, no strike to fear. Just get through the rooms.
+  function survivalFloor(s, pay = SURVIVAL_PAY) {
+    s.contract = { tier: 0, clause: null, target: 0, pay, survival: true };
+    s.offers = []; s.phase = 'room';
   }
   function allowedTiers(s) {
     if (locked(s, 'tiers')) return [0];
@@ -192,7 +200,6 @@
     return cl ? Math.ceil(base * 1.5) : base;
   }
   function makeContract(s, tier, cl) {
-    if (s.tutorial) return { tier, clause: null, target: 12, pay: 0 };
     return { tier, clause: cl || null, target: TARGETS[s.floor][tier], pay: payout(s, tier, cl) };
   }
   function bid(s, i) {
@@ -243,7 +250,7 @@
     const out = resolveCard(s, c, mode);
     s.room.splice(i, 1); s.handled++;
     const name = rankLabel(c.v) + c.suit;
-    if (c.kind === 'monster') log(s, `${name}: took ${out.dmg} damage` + (s.hp > 0 ? `, +${out.points} points${out.heal ? `, healed ${out.heal}` : ''}${out.gold ? `, +${out.gold} gold` : ''}.` : '.'));
+    if (c.kind === 'monster') log(s, `${name}: took ${out.dmg} damage` + (s.hp > 0 ? `${s.contract.survival ? '' : `, +${out.points} points`}${out.heal ? `, healed ${out.heal}` : ''}${out.gold ? `, +${out.gold} gold` : ''}.` : '.'));
     else if (c.kind === 'weapon') log(s, `Equipped a ${s.weapon.v}♦ weapon.`);
     else log(s, (out.heal ? `${name}: healed ${out.heal}` : `${name}: no healing`) + (out.points ? `, +${out.points} points.` : '.'));
     if (s.hp <= 0) { s.hp = 0; s.phase = 'lost'; s.lastResult = 'You fell in the dungeon.'; return true; }
@@ -256,9 +263,12 @@
   }
   function endFloor(s) {
     const c = s.contract; s.totalSlain += s.slain;
-    if (s.tutorial) { s.phase = 'tutdone'; s.lastResult = `Contract met: ${s.slain}/${c.target}.`; return; }
+    if (s.tutorial) { s.phase = 'tutdone'; s.lastResult = `You made it through with ${s.hp} health left.`; return; }
     let msg;
-    if (s.slain >= c.target) {
+    if (c.survival) {
+      s.gold += c.pay;
+      msg = `Floor survived. The guild pays you ${c.pay} gold.`;
+    } else if (s.slain >= c.target) {
       const over = Math.floor((s.slain - c.target) / (has(s, 'taxman') ? 2 : 5));
       s.gold += c.pay + over;
       msg = `Contract met: ${s.slain}/${c.target}. +${c.pay} gold` + (over ? `, +${over} overkill.` : '.');
@@ -321,12 +331,12 @@
     const room1 = [c('monster', 5, '♠'), c('weapon', 7, '♦'), c('potion', 4, '♥'), c('monster', 9, '♣')];
     const next = [c('monster', 10, '♠'), c('monster', 3, '♣'), c('potion', 6, '♥')];
     s.tutorial = true; s.room = room1; s.draw = next.concat(s.draw); s.log = [];
-    s.offers = [{ tier: 0, clause: null }];
+    survivalFloor(s, 0);
     return s;
   }
 
   const api = {
-    MAX_HP, ROOMS_PER_FLOOR, FLOORS, UNLOCK, MAX_RELICS, TIERS, TARGETS, DUES, BOSSES, RELICS, SERVICES, CLAUSES,
+    MAX_HP, ROOMS_PER_FLOOR, FLOORS, UNLOCK, SURVIVAL_PAY, MAX_RELICS, TIERS, TARGETS, DUES, BOSSES, RELICS, SERVICES, CLAUSES,
     newGame, newTutorial, bid, flee, canFlee, handle, buy, dropRelic, leaveShop, allowedTiers, payout,
     canRaise, raise, canRedraw, redraw,
     canUseWeapon, monsterDamage, contractPoints, potionHeal, resolveCard, rankLabel, act,
