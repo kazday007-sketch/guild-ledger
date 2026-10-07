@@ -462,7 +462,7 @@ textarea:focus-visible, input#pname:focus-visible { outline: 2px solid var(--ver
 const E = window.Engine;
 const VERSION = 'v3';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
-const REPORT = {"url": "", "entry": ""};
+const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const webReports = () => !!(REPORT.url && REPORT.entry) && dbState !== 'on';
 const app = document.getElementById('app');
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
