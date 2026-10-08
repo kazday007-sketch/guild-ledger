@@ -415,6 +415,47 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
   main.solo > :not(details) { grid-column: 1 / -1; } main.solo > details { padding: 6px 10px; }
   main.solo > details[open] { grid-column: 1 / -1; }
 }
+/* Phones: the room takes all the height that's left. When there's room for it, the cards go 2 by 2 and grow. */
+@media not ((min-width: 900px) and (min-height: 520px)) {
+  .stage section.chamber:not(.preview) { flex: 1 1 0; container: chamber / size; }
+  .stage .chamber:not(.preview) div.room { flex: 1 1 0; }
+  @container chamber (min-height: 400px) and (max-aspect-ratio: 1) {
+    .stage div.room { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .stage .card { grid-template-rows: minmax(0, 1fr) auto auto; padding: 5px 5px 6px; gap: 4px; }
+    .stage .card .art { height: auto; }
+    .card .rank { font-size: 17px; padding: 3px 5px; } .card .rank small { font-size: 14px; }
+    .card .face { font-size: 15px; } .card .kind { font-size: 10px; }
+    .card .acts button { padding: 8px 4px; font-size: 14px; }
+    .stage .slot b { font-size: 28px; } .stage .slot small { font-size: 13px; }
+  }
+}
+/* Phones held sideways: status and talk on the left, the table on the right. */
+@media (max-height: 519px) and (orientation: landscape) {
+  body { padding: 6px 10px; }
+  main.play { height: calc(100dvh - 12px); gap: 6px; }
+  main.play .cols { display: grid; grid-template-columns: minmax(230px, 36%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 10px; }
+  main.play .side { overflow-y: auto; min-height: 0; gap: 6px; }
+  main.play .stage { overflow-y: auto; min-height: 0; gap: 6px; }
+  .side .status { flex-wrap: wrap; gap: 0; } .side .status .stat:first-child { flex-basis: 100%; }
+  .side .status .stat { padding: 4px 6px; }
+  .coach p { font-size: 14px; } .coach { padding: 6px 8px; }
+  .offer, .offer.clause { padding: 6px 8% 10px; }
+  .side .status .stat { flex: 1 1 auto; } .side .status .pip { width: 11px; height: 11px; }
+  .contract.board > p { display: none; } .offer .seal { width: 22px; height: 22px; }
+  .offer, .offer.clause { padding: 5px 8% 8px; } .offer .tier { font-size: 13px; }
+  .shop .boss span:not(.label) { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+  main.solo .end { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; padding: 10px 12px; gap: 6px 16px; }
+  main.solo .end h2 { font-size: 20px; } main.solo .endform { gap: 5px; } main.solo .endsum { gap: 6px; }
+  main.solo .end .stamp { width: 76px; }
+  .shop > div:has(> [data-leave]) { position: sticky; bottom: -8px; padding: 6px 0 2px; background: linear-gradient(transparent, var(--slab) 30%); }
+  main.solo .end .endform label { font-size: 13px; } main.solo .end textarea { height: 38px; } main.solo .end input { padding: 5px 8px; }
+  main.solo .end [data-new] { padding: 6px 18px; } main.solo .why { padding: 5px 8px; font-size: 13px; }
+  main.solo > details { padding: 4px 10px; } main.solo { gap: 6px; }
+}
+@media (max-height: 400px) and (orientation: landscape) {
+  main.solo .endform > p.muted { display: none; } main.solo .end { gap: 4px 14px; padding-block: 6px; } main.solo .endsum .muted { font-size: 13px; }
+  .titlecard { gap: 6px; } .titlecard .logo h1 { font-size: 32px; } .titlecard .logo .emblem { width: 44px; height: 44px; }
+}
 @media (max-width: 899px) and (max-height: 800px), (max-height: 519px) {
   .coach > .clerk { display: none; } .coach { grid-template-columns: 1fr; } .coach p { font-size: 15px; }
   .shop .services .ware .muted { display: none; }
@@ -839,7 +880,7 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.13.0';
+const VERSION = '1.14.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
