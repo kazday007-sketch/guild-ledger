@@ -8,6 +8,9 @@ Guild Ledger uses a three-part version number, `MAJOR.MINOR.PATCH`:
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.13.0 (2026-10-08)
+- Card buttons show only what happens to your health: "Fists: lose 9 health" instead of "Fists: take 9 · +9", and "Drink: heal 6" with no extra points. Contract points still count as before; they're tracked in the contract box.
+
 ## 1.12.0 (2026-10-08)
 - The game now fits on a phone screen without scrolling (tested at 360x740, 375x667, 390x844 and 412x915). The header is just the emblem and a **More** button; More opens the rules, Top scores, game mode, stats and version in a panel over the game, and tapping outside closes it.
 - On phones the status bar is one row of icons, cards sit four across with smaller art, and the buttons use short labels ("Fists −5", "Weapon −2", "Drink +6", "Equip"). The clerk, goal, contracts, shop and end screen are all more compact.

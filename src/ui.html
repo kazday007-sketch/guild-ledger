@@ -487,7 +487,7 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.12.0';
+const VERSION = '1.13.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -771,15 +771,13 @@ const dual = (long, short) => `<span class="lg">${long}</span><span class="sm">$
 function fightLabel(c, weapon) {
   const d = E.monsterDamage(s, c, weapon), w = weapon ? 'Weapon' : 'Fists';
   if (d >= s.hp) return dual(`${w}: lose ${d} (fatal)`, `${w} −${d} ☠`);
-  if (survival()) return dual(`${w}: lose ${d} health`, `${w} −${d}`);
-  const pts = E.contractPoints({ ...s, hp: s.hp - d }, c, !weapon);
-  return dual(`${w}: take ${d} · +${pts}`, `${w} −${d} +${pts}`);
+  return dual(`${w}: lose ${d} health`, `${w} −${d}`);
 }
 function potionPreview(c) {
   const h = E.potionHeal(s, c);
   if (!h) return dual('Discard (no healing)', 'Discard');
-  const heal = Math.min(h, s.maxHp - s.hp), extra = s.relics.includes('alchemist') && h > heal ? ` · +${h - heal}` : '';
-  return dual(`Drink: heal ${heal}${extra}`, `Drink +${heal}${extra}`);
+  const heal = Math.min(h, s.maxHp - s.hp);
+  return dual(`Drink: heal ${heal}`, `Drink +${heal}`);
 }
 function allowed(c, mode) {
   if (!tut) return true;
