@@ -288,6 +288,44 @@ ol.lbrows .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 ol.lbrows li.me .who { color: var(--gold); font-weight: 700; }
 ol.lbrows .muted { font-size: 13px; text-align: right; }
 .end + details.lb { width: 100%; max-width: 560px; box-sizing: border-box; margin: 12px auto 0; align-self: center; }
+/* ---------- title screen (shown once per visit, before training) ---------- */
+#scene.title-art { background-position: 30% center; }
+#scene.title-art::after { background: linear-gradient(90deg, rgba(10,12,16,.82), rgba(10,12,16,.55) 42%, rgba(10,12,16,.15) 75%); }
+main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc(100svh - 56px); align-content: center; }
+.titlecard { display: grid; gap: 18px; justify-items: start; max-width: 440px; }
+.titlecard .logo { display: grid; justify-items: start; gap: 6px; }
+.titlecard .logo .emblem { width: 96px; height: 96px; filter: drop-shadow(0 4px 8px rgba(0,0,0,.7)); }
+.titlecard .logo h1 { font-size: 58px; line-height: .95; text-shadow: 0 3px 10px rgba(0,0,0,.8); }
+.titlecard .tagline { margin: 0; font-size: 18px; color: var(--bone); text-shadow: 0 2px 6px rgba(0,0,0,.8); max-width: 34ch; }
+.titlecard .play { font-size: 22px; padding: 14px 56px; font-family: var(--display); font-weight: 400; letter-spacing: .04em; }
+.titlecard .mode.big { width: 100%; }
+.titlecard .mode.big button { flex: 1; display: grid; gap: 2px; padding: 10px 12px; text-align: left; }
+.titlecard .mode.big b { font-size: 16px; } .titlecard .mode.big small { font-size: 13px; color: var(--ash); font-weight: 500; }
+.titlecard .mode.big button[aria-pressed="true"] small { color: var(--bone); }
+.titlecard .modenote { margin: -6px 0 0; font-size: 14px; }
+.titlecard details.lb { width: 100%; }
+.titlecard .lbbody { max-height: 34vh; max-height: 34svh; overflow-y: auto; }
+.titlecard .version, .titlecard .sync { text-align: left; margin: 0; }
+@media (max-width: 620px), (max-height: 520px) {
+  #scene.title-art { background-position: 62% center; }
+  #scene.title-art::after { background: linear-gradient(180deg, rgba(10,12,16,.35), rgba(10,12,16,.75) 40%, rgba(10,12,16,.92)); }
+  main.title { min-height: calc(100vh - 32px); min-height: calc(100svh - 32px); align-content: end; }
+  body:has(main.title) { padding-bottom: 16px; }
+  .titlecard { justify-items: stretch; gap: 14px; max-width: none; }
+  .titlecard .logo { justify-items: center; text-align: center; }
+  .titlecard .logo .emblem { width: 72px; height: 72px; }
+  .titlecard .logo h1 { font-size: 46px; }
+  .titlecard .tagline { text-align: center; margin: 0 auto; font-size: 17px; }
+  .titlecard .modenote, .titlecard .version, .titlecard .sync { text-align: center; }
+}
+@media (max-height: 520px) and (min-width: 621px) {
+  main.title { align-content: center; } .titlecard { max-width: 440px; gap: 10px; }
+  .titlecard .logo { grid-template-columns: auto 1fr; align-items: center; justify-items: start; text-align: left; }
+  .titlecard .logo .emblem { width: 56px; height: 56px; } .titlecard .logo h1 { font-size: 38px; }
+  .titlecard .tagline, .titlecard .modenote, .titlecard .version, .titlecard .sync { text-align: left; margin: 0; }
+  .titlecard .tagline br, .titlecard .sync { display: none; } body:has(main.title) { padding-block: 10px; }
+  .titlecard .play { padding: 10px 40px; }
+}
 /* game mode switch in the header */
 .mode { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--slab); }
 .mode button { border: 0; border-radius: 0; padding: 6px 12px; font-size: 14px; background: none; color: var(--ash); }
@@ -720,7 +758,7 @@ ol.lbrows .muted { font-size: 13px; text-align: right; }
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.10.0';
+const VERSION = '1.11.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
@@ -1238,8 +1276,30 @@ function settleHTML() {
   return `<section class="settle ${mark ? 'stamped' : ''}">${mark}${clerk(mood)}<div class="say"><span class="label">The clerk's ledger</span><p class="result">${esc(r)}</p></div></section>`;
 }
 
+// ---------- title screen ----------
+// Every visit opens here. Play goes into the training floor, as the game always has; the mode picked here is used after training.
+let titleOn = true;
+function renderTitle() {
+  shownScene = 'title';
+  const sc = document.getElementById('scene');
+  sc.style.backgroundImage = `url(${ART}backgrounds/title.webp)`; sc.className = 'title-art';
+  const modes = `<div class="mode big" role="group" aria-label="Game mode">${[['guided', 'Guided start', 'Learn as you go'], ['full', 'Full game', 'Everything at once']].map(([k, label, sub]) =>
+    `<button data-mode="${k}" aria-pressed="${gameMode() === k}"><b>${label}</b><small>${sub}</small></button>`).join('')}</div>`;
+  app.className = 'title';
+  app.innerHTML = `<section class="titlecard">
+    <div class="logo">${img('icons/emblem-guild.webp', 'emblem')}<h1>Guild Ledger</h1></div>
+    <p class="tagline">Sign a contract, clear the dungeon, get paid. Don't let the ledger bury you.</p>
+    ${modes}
+    <button class="primary play" data-play>Play</button>
+    <p class="muted modenote">Every visit starts with a short training floor. You can skip it.</p>
+    ${boardHTML()}
+    ${syncNote()}<p class="muted version">v${VERSION}</p>
+  </section>`;
+}
 function render() {
+  if (titleOn) { renderTitle(); return; }
   if (!s) return;
+  if (shownScene === 'title') document.getElementById('scene').className = '';
   setScene();
   const mode = tut ? '' : `<div class="mode" role="group" aria-label="Game mode">${[['guided', 'Guided start'], ['full', 'Full game']].map(([k, label]) =>
     `<button data-mode="${k}" aria-pressed="${gameMode() === k}" title="${k === 'full' ? 'Contracts, gold and relics from floor 1' : 'Starts with just health, weapons and potions, and adds the rest as you go'}">${label}</button>`).join('')}</div>`;
@@ -1337,6 +1397,13 @@ async function loadStats() {
 let busy = false; // true while a card's leave animation plays
 app.addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b || b.disabled || busy) return;
+  if (titleOn) {
+    const d = b.dataset;
+    if (d.mode) { store.set('mode', d.mode); boardMode = null; render(); }
+    else if (d.board) { boardMode = d.board; paintBoards(); }
+    else if ('play' in d) { titleOn = false; s = E.newTutorial(); tut = { step: 0 }; render(); }
+    return;
+  }
   const d = b.dataset, prev = s.phase;
   let acted = true, effect = null;
   const cardEl = b.closest('.card');
@@ -1422,9 +1489,8 @@ app.addEventListener('click', async e => {
   if (effect) effect();
 });
 
-// Every visit opens on the training floor in Guided start. Players can skip training or switch to Full game from there.
+// Every visit opens on the title screen in Guided start. Play goes into the training floor, which players can skip.
 store.set('mode', 'guided');
-s = E.newTutorial(); tut = { step: 0 };
 render();
 </script>
 <script>

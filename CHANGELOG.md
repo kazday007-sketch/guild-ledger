@@ -8,6 +8,9 @@ Guild Ledger uses a three-part version number, `MAJOR.MINOR.PATCH`:
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.11.0 (2026-10-08)
+- New title screen before the game starts, on the notice-board art. It has the Guild Ledger logo, the **Guided start** / **Full game** switch, a **Play** button and **Top scores**. Play goes into the training floor as before (you can still skip it), and the mode picked here is the one your first run uses. It fits on laptop, desktop and phone screens, upright or sideways, without scrolling.
+
 ## 1.10.0 (2026-10-08)
 - When the clerk has something new to say (a training step, a tip, or the result of a floor), the page scrolls up to show it if it's out of view. This mostly matters on phones.
 
