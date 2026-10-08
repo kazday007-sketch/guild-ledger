@@ -288,6 +288,44 @@ ol.lbrows .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 ol.lbrows li.me .who { color: var(--gold); font-weight: 700; }
 ol.lbrows .muted { font-size: 13px; text-align: right; }
 .end + details.lb { width: 100%; max-width: 560px; box-sizing: border-box; margin: 12px auto 0; align-self: center; }
+/* ---------- title screen (shown once per visit, before training) ---------- */
+#scene.title-art { background-position: 30% center; }
+#scene.title-art::after { background: linear-gradient(90deg, rgba(10,12,16,.82), rgba(10,12,16,.55) 42%, rgba(10,12,16,.15) 75%); }
+main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc(100svh - 56px); align-content: center; }
+.titlecard { display: grid; gap: 18px; justify-items: start; max-width: 440px; }
+.titlecard .logo { display: grid; justify-items: start; gap: 6px; }
+.titlecard .logo .emblem { width: 96px; height: 96px; filter: drop-shadow(0 4px 8px rgba(0,0,0,.7)); }
+.titlecard .logo h1 { font-size: 58px; line-height: .95; text-shadow: 0 3px 10px rgba(0,0,0,.8); }
+.titlecard .tagline { margin: 0; font-size: 18px; color: var(--bone); text-shadow: 0 2px 6px rgba(0,0,0,.8); max-width: 34ch; }
+.titlecard .play { font-size: 22px; padding: 14px 56px; font-family: var(--display); font-weight: 400; letter-spacing: .04em; }
+.titlecard .mode.big { width: 100%; }
+.titlecard .mode.big button { flex: 1; display: grid; gap: 2px; padding: 10px 12px; text-align: left; }
+.titlecard .mode.big b { font-size: 16px; } .titlecard .mode.big small { font-size: 13px; color: var(--ash); font-weight: 500; }
+.titlecard .mode.big button[aria-pressed="true"] small { color: var(--bone); }
+.titlecard .modenote { margin: -6px 0 0; font-size: 14px; }
+.titlecard details.lb { width: 100%; }
+.titlecard .lbbody { max-height: 34vh; max-height: 34svh; overflow-y: auto; }
+.titlecard .version, .titlecard .sync { text-align: left; margin: 0; }
+@media (max-width: 620px), (max-height: 520px) {
+  #scene.title-art { background-position: 62% center; }
+  #scene.title-art::after { background: linear-gradient(180deg, rgba(10,12,16,.35), rgba(10,12,16,.75) 40%, rgba(10,12,16,.92)); }
+  main.title { min-height: calc(100vh - 32px); min-height: calc(100svh - 32px); align-content: end; }
+  body:has(main.title) { padding-bottom: 16px; }
+  .titlecard { justify-items: stretch; gap: 14px; max-width: none; }
+  .titlecard .logo { justify-items: center; text-align: center; }
+  .titlecard .logo .emblem { width: 72px; height: 72px; }
+  .titlecard .logo h1 { font-size: 46px; }
+  .titlecard .tagline { text-align: center; margin: 0 auto; font-size: 17px; }
+  .titlecard .modenote, .titlecard .version, .titlecard .sync { text-align: center; }
+}
+@media (max-height: 520px) and (min-width: 621px) {
+  main.title { align-content: center; } .titlecard { max-width: 440px; gap: 10px; }
+  .titlecard .logo { grid-template-columns: auto 1fr; align-items: center; justify-items: start; text-align: left; }
+  .titlecard .logo .emblem { width: 56px; height: 56px; } .titlecard .logo h1 { font-size: 38px; }
+  .titlecard .tagline, .titlecard .modenote, .titlecard .version, .titlecard .sync { text-align: left; margin: 0; }
+  .titlecard .tagline br, .titlecard .sync { display: none; } body:has(main.title) { padding-block: 10px; }
+  .titlecard .play { padding: 10px 40px; }
+}
 /* game mode switch in the header */
 .mode { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--slab); }
 .mode button { border: 0; border-radius: 0; padding: 6px 12px; font-size: 14px; background: none; color: var(--ash); }
@@ -295,12 +333,93 @@ ol.lbrows .muted { font-size: 13px; text-align: right; }
 .mode button[aria-pressed="true"] { background: color-mix(in srgb, var(--gold) 22%, var(--slab-2)); color: var(--bone); }
 .cols, .side, .stage { display: grid; gap: 14px; min-width: 0; }
 .side .version { margin: 0; }
-/* Narrow screens: one column. The table comes right after the status, and the rules and footer go last. */
+.sm, .more, .mode-row { display: none; }
+.extras { display: grid; gap: 10px; }
+/* Phones and other narrow screens: one column that fits the screen. Status and talk on top, the table below with
+   the cards shrinking to the height that's left, and How to play / Top scores behind the More button. */
 @media not ((min-width: 900px) and (min-height: 520px)) {
-  .cols { display: flex; flex-direction: column; }
-  .side { display: contents; }
-  .stage { order: 1; }
-  .side > details, .side > .sync, .side > .version { order: 2; }
+  body { padding: 8px 10px; }
+  main.play { height: calc(100dvh - 16px); grid-template-rows: auto minmax(0, 1fr); gap: 8px; }
+  main:is(.play, .solo) header { flex-wrap: nowrap; gap: 8px; }
+  main:is(.play, .solo) header h1 { font-size: 0; gap: 0; } main:is(.play, .solo) h1 .emblem { width: 30px; height: 30px; }
+  main.solo header .mode button { padding: 4px 8px; font-size: 12px; } main.solo header .where { font-size: 12px; margin-left: auto; }
+  main.solo { gap: 8px; } main.solo .end .endform label { font-size: 14px; }
+  main.play header .mode { display: none; }
+  main.more-open .mode-row { display: grid; gap: 6px; } .mode-row .mode { justify-self: start; }
+  main.play .more { display: inline-block; padding: 4px 10px; font-size: 13px; }
+  main.play header .where { font-size: 12px; margin-left: auto; white-space: nowrap; }
+  .cols { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+  .side { display: flex; flex-direction: column; gap: 8px; flex: none; }
+  .side > * { flex: none; }
+  .extras { display: none; }
+  main.more-open .extras { display: grid; position: fixed; z-index: 20; top: 52px; left: 10px; right: 10px; max-height: calc(100dvh - 70px); overflow-y: auto; padding: 12px; background: var(--stone); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.7); }
+  .stage { display: flex; flex-direction: column; gap: 8px; flex: 1 1 auto; min-height: 0; }
+  .stage > * { flex: none; }
+  .stage section.chamber { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; padding: 6px; gap: 6px; border-radius: 10px; }
+  .stage .chamber-head { flex: none; padding: 6px 8px; gap: 8px; }
+  .chamber .pile { display: none; }
+  .chamber-title { min-width: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; } .chamber-title h2 { font-size: 17px; } .chamber-title > span:not(.pips) { display: none; }
+  .chamber-title .pips { height: auto; }
+  .side:has(.contract.paper) .goal { display: none; }
+  .chamber.preview .card .art { display: none; } .chamber.preview .card { padding: 6px 3px; }
+  .chamber-actions button { padding: 6px 10px; font-size: 13px; }
+  .stage div.room { flex: 0 1 auto; min-height: 0; container-type: inline-size; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); gap: 5px; padding: 0; }
+  .stage .card { min-height: 0; overflow: hidden; padding: 3px 3px 4px; gap: 3px; border-width: 2px; border-radius: 8px; }
+  .stage .card .art { aspect-ratio: auto; flex: 0 1 auto; min-height: 0; height: calc((100cqw - 15px) / 4 * 1.25); border-radius: 5px; }
+  .card .rank { font-size: 13px; min-width: 0; padding: 2px 3px; top: 3px; left: 3px; } .card .rank small { font-size: 11px; }
+  .card .face { font-size: 12px; } .card .kind { font-size: 8px; letter-spacing: .06em; }
+  .card .acts { gap: 3px; } .card .acts button { padding: 5px 2px; font-size: 12px; text-align: center; }
+  .lg { display: none; } .sm { display: inline; }
+  .stage .slot { min-height: 0; } .slot b { font-size: 20px; } .slot small { font-size: 10px; }
+  .status, .status.n2, .status.n3 { display: flex; }
+  .status .stat, .status .stat:first-child { flex: 1 1 0; grid-column: auto; padding: 5px 7px; gap: 2px; }
+  .status .stat:first-child { flex-grow: 1.4; }
+  .stat .label { font-size: 0; gap: 0; } .stat .label img { width: 18px; height: 18px; }
+  .status .stat { grid-template-columns: auto 1fr; align-items: center; column-gap: 5px; }
+  .status .stat .hpbar { grid-column: 1 / -1; }
+  .stat .num { font-size: 15px; } .stat .num .muted { font-size: 11px !important; }
+  .coach { padding: 8px 10px; column-gap: 10px; gap: 4px; } .coach > .clerk { width: 44px; height: 55px; }
+  .coach p { font-size: 16px; line-height: 1.3; } .coach .ok { padding: 5px 14px; font-size: 14px; } .coach .label { font-size: 11px; }
+  .goal { padding: 6px 10px; font-size: 14px; gap: 6px; }
+  .contract { padding: 8px 10px; gap: 4px; } .contract.paper h2 { font-size: 16px; } .seals img { width: 28px; height: 28px; }
+  .contract.paper .stamp { width: 90px; top: -10px; } .contract.paper .stamp b { font-size: 14px; }
+  .boss { padding: 6px 10px; } .boss img { width: 40px; height: 50px; }
+  .stage .relics { display: flex; gap: 6px; } .stage .relic { flex: 1 1 0; padding: 4px 6px; gap: 5px; min-width: 0; }
+  .stage .relic .ico { width: 24px; height: 24px; } .stage .relic b { font-size: 12px; } .stage .relic .rbody > .muted { display: none; }
+  .stage .relic.empty .muted { font-size: 11px; }
+  .contract.board { padding: 8px; gap: 6px; } .contract.board h2 { font-size: 16px; } .contract.board > p { font-size: 12px; }
+  .offers { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+  .offer, .offer.clause { min-height: 0; padding: 10px 9% 16px; font-size: 12px; gap: 1px; }
+  .offer .seal { width: 28px; height: 28px; } .offer .tier { font-size: 14px; } .offer .num { font-size: 13px; }
+  .offer .clause-row { margin-top: 2px; gap: 3px; } .offer .clause-row .seal { width: 18px; height: 18px; } .offer .cl { font-size: 11px; }
+  .offer .clause-row + .muted { display: none; } .offer .wild { font-size: 9px; }
+  .shop { padding: 8px; gap: 6px; } .shop h2 { font-size: 17px; } .shopgrid, .shopgrid.services { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
+  .shop .boss { padding: 4px 8px; } .shop .boss img { width: 30px; height: 38px; } .shop .boss b { font-size: 15px; }
+  .stage .shop .relic .ico { display: none; } .stage .shop .relic .row { display: grid; gap: 0; } .stage .shop .relic .link { font-size: 11px; justify-self: start; }
+  .ware .muted { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .ware { padding: 6px; gap: 3px; } .ware .whead { gap: 5px; } .ware .ico { width: 26px; height: 26px; } .ware b { font-size: 13px; }
+  .ware .muted { font-size: 11px !important; line-height: 1.2; } .ware button { padding: 4px 6px; font-size: 12px; }
+  .settle { padding: 6px 10px; gap: 8px; } .settle .clerk { width: 32px; height: 40px; } .settle .say .label { display: none; } .settle p { font-size: 13.5px; line-height: 1.3; }
+  .settle.stamped p { padding-top: 0; padding-right: 70px; } .settle .stamp { width: 76px; top: 2px; right: 6px; } .settle .stamp b { font-size: 12px; }
+  .shop .label { font-size: 10.5px; margin: 0; } .shop .contract-row h2 { font-size: 16px; }
+  .shop .boss .who { gap: 0; } .shop .boss .who .label { display: none; } .shop .boss span:not(.label) { font-size: 12.5px; line-height: 1.25; }
+  .shop .warn { font-size: 12px; padding: 4px 8px; } .shop [data-leave] { padding: 7px 16px; }
+  .shop { gap: 4px; } .stage .shop .relic { padding: 3px 6px; } .shop .relicgrid { margin-bottom: 2px; }
+  .warn { padding: 6px 10px; font-size: 13px; }
+  main.solo .end { padding: 14px 10px; gap: 8px; } main.solo .endsum, main.solo .endform { gap: 8px; }
+  main.solo .end .clerk { display: none; } main.solo .end h2 { font-size: 24px; } main.solo .end textarea { height: 48px; }
+  main.solo .end .stamp { width: 90px; top: 4px; }
+  main.solo .why { font-size: 14px; padding: 8px 10px; }
+  .goal { flex-wrap: nowrap; align-items: center; } .goal .label { display: none; }
+  main.solo { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  main.solo > :not(details) { grid-column: 1 / -1; } main.solo > details { padding: 6px 10px; }
+  main.solo > details[open] { grid-column: 1 / -1; }
+}
+@media (max-width: 899px) and (max-height: 800px), (max-height: 519px) {
+  .coach > .clerk { display: none; } .coach { grid-template-columns: 1fr; } .coach p { font-size: 15px; }
+  .shop .services .ware .muted { display: none; }
+  .ware .whead b { font-size: 12px; line-height: 1.15; }
+  main.solo .why p:last-child { display: none; }
 }
 
 /* Landscape screens: everything fits without scrolling. Status and talk on the left, the table on the right,
@@ -720,7 +839,7 @@ ol.lbrows .muted { font-size: 13px; text-align: right; }
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.10.0';
+const VERSION = '1.12.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
@@ -941,7 +1060,7 @@ function roomHTML(active, actions = '') {
     const c = id != null && s.room.find(x => x.id === id);
     return c ? cardHTML(c, active) : '<div class="slot"><b>✓</b><small>Picked</small></div>';
   }).join('');
-  return `<section class="chamber" aria-label="Room ${s.roomsCleared + 1}">
+  return `<section class="chamber ${active ? '' : 'preview'}" aria-label="Room ${s.roomsCleared + 1}">
     <div class="chamber-head"><div class="pile" aria-hidden="true">${img('cards/back.webp')}${img('cards/back.webp')}${img('cards/back.webp')}</div>
       <div class="chamber-title"><h2>Room ${s.roomsCleared + 1} <span class="muted">of ${roomsOnFloor()}</span></h2><span>${say}</span>
         ${active ? `<span class="pips" title="Cards picked">${[0, 1, 2].map(i => `<span class="pip pick ${i < s.handled ? 'on' : ''}"></span>`).join('')}</span>` : ''}</div>
@@ -999,18 +1118,20 @@ function cardName(c) {
   if (c.kind === 'weapon') return weaponNames[c.v] || 'Blade';
   return { large: 'Elixir', medium: 'Tonic', small: 'Salve' }[potionSize(c.v)];
 }
+// Button text comes in two lengths: the full wording, and a short one for the narrow cards on phones.
+const dual = (long, short) => `<span class="lg">${long}</span><span class="sm">${short}</span>`;
 function fightLabel(c, weapon) {
-  const d = E.monsterDamage(s, c, weapon);
-  if (d >= s.hp) return `${weapon ? 'Weapon' : 'Fists'}: lose ${d} (fatal)`;
-  if (survival()) return `${weapon ? 'Weapon' : 'Fists'}: lose ${d} health`;
+  const d = E.monsterDamage(s, c, weapon), w = weapon ? 'Weapon' : 'Fists';
+  if (d >= s.hp) return dual(`${w}: lose ${d} (fatal)`, `${w} −${d} ☠`);
+  if (survival()) return dual(`${w}: lose ${d} health`, `${w} −${d}`);
   const pts = E.contractPoints({ ...s, hp: s.hp - d }, c, !weapon);
-  return `${weapon ? 'Weapon' : 'Fists'}: take ${d} · +${pts}`;
+  return dual(`${w}: take ${d} · +${pts}`, `${w} −${d} +${pts}`);
 }
 function potionPreview(c) {
   const h = E.potionHeal(s, c);
-  if (!h) return 'Discard (no healing)';
-  const heal = Math.min(h, s.maxHp - s.hp);
-  return `Drink: heal ${heal}` + (s.relics.includes('alchemist') && h > heal ? ` · +${h - heal}` : '');
+  if (!h) return dual('Discard (no healing)', 'Discard');
+  const heal = Math.min(h, s.maxHp - s.hp), extra = s.relics.includes('alchemist') && h > heal ? ` · +${h - heal}` : '';
+  return dual(`Drink: heal ${heal}${extra}`, `Drink +${heal}${extra}`);
 }
 function allowed(c, mode) {
   if (!tut) return true;
@@ -1024,7 +1145,7 @@ function cardHTML(c, active) {
     if (E.canUseWeapon(s, c)) acts += btn('weapon', fightLabel(c, true));
     acts += btn('bare', fightLabel(c, false));
   } else if (c.kind === 'weapon') {
-    acts = btn(null, `Equip${s.relics.includes('grindstone') ? ` as ${c.v + 1}♦` : ''}${s.weapon ? ` (drops ${s.weapon.v}♦)` : ''}`);
+    acts = btn(null, dual(`Equip${s.relics.includes('grindstone') ? ` as ${c.v + 1}♦` : ''}${s.weapon ? ` (drops ${s.weapon.v}♦)` : ''}`, 'Equip'));
   } else acts = btn(null, potionPreview(c));
   const lit = tut && TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.v === c.v && s.phase === 'room';
   return `<article class="card ${c.kind} ${c.v >= 15 ? 'elite' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''}" data-card="${c.id}">
@@ -1238,16 +1359,42 @@ function settleHTML() {
   return `<section class="settle ${mark ? 'stamped' : ''}">${mark}${clerk(mood)}<div class="say"><span class="label">The clerk's ledger</span><p class="result">${esc(r)}</p></div></section>`;
 }
 
+// ---------- title screen ----------
+// Every visit opens here. Play goes into the training floor, as the game always has; the mode picked here is used after training.
+let titleOn = true;
+function renderTitle() {
+  shownScene = 'title';
+  const sc = document.getElementById('scene');
+  sc.style.backgroundImage = `url(${ART}backgrounds/title.webp)`; sc.className = 'title-art';
+  const modes = `<div class="mode big" role="group" aria-label="Game mode">${[['guided', 'Guided start', 'Learn as you go'], ['full', 'Full game', 'Everything at once']].map(([k, label, sub]) =>
+    `<button data-mode="${k}" aria-pressed="${gameMode() === k}"><b>${label}</b><small>${sub}</small></button>`).join('')}</div>`;
+  app.className = 'title';
+  app.innerHTML = `<section class="titlecard">
+    <div class="logo">${img('icons/emblem-guild.webp', 'emblem')}<h1>Guild Ledger</h1></div>
+    <p class="tagline">Sign a contract, clear the dungeon, get paid. Don't let the ledger bury you.</p>
+    ${modes}
+    <button class="primary play" data-play>Play</button>
+    <p class="muted modenote">Every visit starts with a short training floor. You can skip it.</p>
+    ${boardHTML()}
+    ${syncNote()}<p class="muted version">v${VERSION}</p>
+  </section>`;
+}
+let moreOpen = false; // phones: the How to play / Top scores panel
+const narrow = () => !(window.matchMedia && matchMedia('(min-width: 900px) and (min-height: 520px)').matches);
 function render() {
+  if (titleOn) { renderTitle(); return; }
   if (!s) return;
+  if (shownScene === 'title') document.getElementById('scene').className = '';
   setScene();
   const mode = tut ? '' : `<div class="mode" role="group" aria-label="Game mode">${[['guided', 'Guided start'], ['full', 'Full game']].map(([k, label]) =>
     `<button data-mode="${k}" aria-pressed="${gameMode() === k}" title="${k === 'full' ? 'Contracts, gold and relics from floor 1' : 'Starts with just health, weapons and potions, and adds the rest as you go'}">${label}</button>`).join('')}</div>`;
-  const head = `<header><h1>${img('icons/emblem-guild.webp', 'emblem')}Guild Ledger</h1>${mode}<span class="muted">${tut ? 'Training floor' : `Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span></header>`;
-  const cols = (side, stage) => `<div class="cols"><div class="side">${side}${syncNote()}<p class="muted version">v${VERSION}</p></div><div class="stage">${stage}</div></div>`;
+  const more = tut ? '' : `<button class="more" data-more aria-expanded="${moreOpen}" title="How to play and top scores">${moreOpen ? 'Close' : 'More'}</button>`;
+  const head = `<header><h1>${img('icons/emblem-guild.webp', 'emblem')}Guild Ledger</h1>${mode}${more}<span class="muted where">${tut ? 'Training floor' : `Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span></header>`;
+  // extras (rules, scores, footer) sit under the side column on wide screens and behind the More button on phones
+  const cols = (side, stage, extras = '') => `<div class="cols"><div class="side">${side}<div class="extras">${mode ? `<div class="mode-row"><span class="label">Game mode</span>${mode}</div>` : ''}${extras}${syncNote()}<p class="muted version">v${VERSION}</p></div></div><div class="stage">${stage}</div></div>`;
   let body = '';
   if (s.phase === 'bid') {
-    body = cols(`${coachHTML()}${goalHTML()}${statusHTML()}${bossHTML()}${duesWarning()}${tut ? '' : rulesHTML()}${boardHTML()}${statsHTML()}`, `
+    body = cols(`${coachHTML()}${goalHTML()}${statusHTML()}${bossHTML()}${duesWarning()}`, `
       <section class="contract board"><div class="contract-row"><h2>${s.offers.length > 1 ? 'Choose this floor\'s contract' : 'Sign this floor\'s contract'}</h2>${E.canRedraw(s) ? '<button data-redraw>Redraw room (Fortune Teller)</button>' : ''}</div>
         <p class="muted" style="margin:0">${s.offers.length > 1 ? `Here's the first room. How many monster points can you kill across ${roomsOnFloor()} rooms? Higher targets pay more.` : `Here's the first room. Kill this many monster points across ${roomsOnFloor()} rooms to get paid.`}</p>
         <div class="offers">${s.offers.map((o, i) => {
@@ -1257,19 +1404,19 @@ function render() {
           ${o.clause ? `<span class="clause-row">${img(clauseSeal(o.clause), 'seal')}<span class="cl">${E.CLAUSES[o.clause].name}</span></span><span class="muted" style="font-size:13px">${E.CLAUSES[o.clause].text}</span>` : ''}</button>`;
         }).join('')}</div>
       </section>
-      ${roomHTML(false)}${relicsHTML(false)}`);
+      ${roomHTML(false)}${relicsHTML(false)}`, `${tut ? '' : rulesHTML()}${boardHTML()}${statsHTML()}`);
   } else if (s.phase === 'room') {
     const fleeNote = s.boss && s.boss.key === 'fleeToll' ? ' (costs 4 HP)' : '';
     const fleeOk = E.canFlee(s) && (!tut || !!(TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.flee));
-    body = cols(`${coachHTML()}${goalHTML()}${statusHTML()}${bossHTML()}${survival() ? '' : contractHTML()}${duesWarning()}${peekHTML()}${tut ? '' : rulesHTML()}${boardHTML()}${statsHTML()}`, `
+    body = cols(`${coachHTML()}${goalHTML()}${statusHTML()}${bossHTML()}${survival() ? '' : contractHTML()}${duesWarning()}${peekHTML()}`, `
       ${roomHTML(true, `${E.canRaise(s) && !tut ? `<button data-raise>${img('icons/hud-raise.webp', 'bi')}Raise to ${E.TIERS[s.contract.tier + 1]}: slay ${E.TARGETS[s.floor][s.contract.tier + 1]}, pays ${E.payout(s, s.contract.tier + 1, s.contract.clause)}</button>` : ''}
-        <button data-flee ${fleeOk ? '' : 'disabled'} class="${tut && fleeOk ? 'lit' : ''}">${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room${fleeNote}</button>`)}${relicsHTML(false)}`);
+        <button data-flee ${fleeOk ? '' : 'disabled'} class="${tut && fleeOk ? 'lit' : ''}">${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room${fleeNote}</button>`)}${relicsHTML(false)}`, `${tut ? '' : rulesHTML()}${boardHTML()}${statsHTML()}`);
   } else if (s.phase === 'shop') {
     const full = s.relics.length >= E.MAX_RELICS;
     const ware = (k, item) => `<div class="ware"><div class="whead">${img(iconOf(k), 'ico')}<b>${item.name}</b></div><span class="muted" style="font-size:14px">${item.text}</span>
       <button data-buy="${k}" ${s.shop.bought[k] || s.gold < item.cost || (E.RELICS[k] && full) ? 'disabled' : ''}>${s.shop.bought[k] ? 'Bought' : `Buy · <span class="num">${item.cost}</span>g`}</button></div>`;
     body = cols(`${coachHTML()}${statusHTML()}
-      ${settleHTML()}${statsHTML()}`, `
+      ${settleHTML()}`, `
       <section class="shop"><div class="contract-row"><h2>Guild hall</h2><span class="muted">Next: floor ${s.floor + 2}${E.BOSSES[s.floor + 1] ? ' · <span style="color:var(--blood)">boss</span>' : ''}</span></div>
         ${E.BOSSES[s.floor + 1] ? bossCard(E.BOSSES[s.floor + 1], 'Next floor') : ''}
         ${relicsOpen() ? `<div class="label">Relics ${full ? '(slots full: drop one to buy)' : ''}</div>
@@ -1278,14 +1425,14 @@ function render() {
         <div class="shopgrid services">${Object.entries(E.SERVICES).map(([k, v]) => ware(k, v)).join('')}</div>
         ${relicsOpen() ? `<div class="label">Your relics (${s.relics.length}/${E.MAX_RELICS})</div>${relicsHTML(true)}` : ''}
         ${duesWarning()}<div><button class="primary" data-leave>Descend to floor ${s.floor + 2}</button></div>
-      </section>`);
+      </section>`, `${rulesHTML()}${boardHTML()}${statsHTML()}`);
   } else if (s.phase === 'tutdone') {
     body = tutDoneHTML();
   } else {
-    body = endHTML() + boardHTML(true) + logHTML() + statsHTML();
+    body = endHTML() + boardHTML(!narrow() && innerHeight > 820) + logHTML() + statsHTML();
   }
   const framed = body.startsWith('<div class="cols">');
-  app.className = framed ? 'play' : 'solo';
+  app.className = (framed ? 'play' : 'solo') + (moreOpen && framed ? ' more-open' : '');
   app.innerHTML = head + body + (framed ? '' : syncNote() + `<p class="muted version">v${VERSION}</p>`);
   dealIn();
   if ((s.phase === 'won' || s.phase === 'lost') && boardState !== 'off' && boardState !== 'loading' && Date.now() - boardAt > 60000) { boardMode = null; loadBoard(); } // fresh scores on the end screen
@@ -1337,7 +1484,16 @@ async function loadStats() {
 let busy = false; // true while a card's leave animation plays
 app.addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b || b.disabled || busy) return;
+  if (titleOn) {
+    const d = b.dataset;
+    if (d.mode) { store.set('mode', d.mode); boardMode = null; render(); }
+    else if (d.board) { boardMode = d.board; paintBoards(); }
+    else if ('play' in d) { titleOn = false; s = E.newTutorial(); tut = { step: 0 }; render(); }
+    return;
+  }
   const d = b.dataset, prev = s.phase;
+  if ('more' in d) { moreOpen = !moreOpen; render(); return; }
+  if (moreOpen && !e.target.closest('.extras')) moreOpen = false;
   let acted = true, effect = null;
   const cardEl = b.closest('.card');
   if (d.bid !== undefined) {
@@ -1422,9 +1578,8 @@ app.addEventListener('click', async e => {
   if (effect) effect();
 });
 
-// Every visit opens on the training floor in Guided start. Players can skip training or switch to Full game from there.
+// Every visit opens on the title screen in Guided start. Play goes into the training floor, which players can skip.
 store.set('mode', 'guided');
-s = E.newTutorial(); tut = { step: 0 };
 render();
 </script>
 <script>
