@@ -368,7 +368,7 @@ ol.lbrows .muted { font-size: 13px; text-align: right; }
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.8.0';
+const VERSION = '1.9.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -1058,7 +1058,9 @@ app.addEventListener('click', async e => {
   if (effect) effect();
 });
 
-if (store.get('tutorial', false)) startRun(); else { s = E.newTutorial(); tut = { step: 0 }; }
+// Every visit opens on the training floor in Guided start. Players can skip training or switch to Full game from there.
+store.set('mode', 'guided');
+s = E.newTutorial(); tut = { step: 0 };
 render();
 </script>
 <script>
