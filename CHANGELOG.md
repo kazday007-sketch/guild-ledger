@@ -8,6 +8,12 @@ Guild Ledger uses a three-part version number, `MAJOR.MINOR.PATCH`:
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.12.0 (2026-10-08)
+- The game now fits on a phone screen without scrolling (tested at 360x740, 375x667, 390x844 and 412x915). The header is just the emblem and a **More** button; More opens the rules, Top scores, game mode, stats and version in a panel over the game, and tapping outside closes it.
+- On phones the status bar is one row of icons, cards sit four across with smaller art, and the buttons use short labels ("Fists −5", "Weapon −2", "Drink +6", "Equip"). The clerk, goal, contracts, shop and end screen are all more compact.
+- On very small phones, the busiest shop (a hint, a boss notice, four relics and a dues warning at once) can still scroll a little.
+- Laptop: the end screen fits 1280x720 again (Top scores starts closed on short screens).
+
 ## 1.11.0 (2026-10-08)
 - New title screen before the game starts, on the notice-board art. It has the Guild Ledger logo, the **Guided start** / **Full game** switch, a **Play** button and **Top scores**. Play goes into the training floor as before (you can still skip it), and the mode picked here is the one your first run uses. It fits on laptop, desktop and phone screens, upright or sideways, without scrolling.
 
