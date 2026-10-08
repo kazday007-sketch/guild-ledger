@@ -8,6 +8,10 @@ Guild Ledger uses a three-part version number, `MAJOR.MINOR.PATCH`:
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.14.0 (2026-10-08)
+- Phones held sideways get their own layout: health, the clerk and the contract on the left, and the room on the right with the cards filling the height. Title, training, bids, rooms and the end screen fit without scrolling (tested at 667x375 to 915x412). The guild hall shop scrolls inside the right column, with the Descend button always in view.
+- Bigger cards on upright phones: the room fills the rest of the screen, and when there's space the cards go 2 by 2 with much larger art. Smaller phones keep 4 across.
+
 ## 1.13.0 (2026-10-08)
 - Card buttons show only what happens to your health: "Fists: lose 9 health" instead of "Fists: take 9 · +9", and "Drink: heal 6" with no extra points. Contract points still count as before; they're tracked in the contract box.
 
