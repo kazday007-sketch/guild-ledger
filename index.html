@@ -720,7 +720,7 @@ ol.lbrows .muted { font-size: 13px; text-align: right; }
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.9.0';
+const VERSION = '1.10.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
@@ -1291,6 +1291,18 @@ function render() {
   if ((s.phase === 'won' || s.phase === 'lost') && boardState !== 'off' && boardState !== 'loading' && Date.now() - boardAt > 60000) { boardMode = null; loadBoard(); } // fresh scores on the end screen
   const focus = tut ? TUTORIAL[tut.step] && TUTORIAL[tut.step].focus : (currentHint() || {}).focus;
   if (focus && s.phase !== 'tutdone') app.querySelectorAll(focus).forEach(el => el.classList.add('tut-focus'));
+  showClerk();
+}
+// When the clerk says something new and it's out of view (mostly on phones), scroll up to it.
+let lastClerkLine = null;
+function showClerk() {
+  const el = app.querySelector('.coach, .settle');
+  const line = el ? el.textContent : null;
+  if (!el || line === lastClerkLine) { lastClerkLine = line; return; }
+  lastClerkLine = line;
+  const r = el.getBoundingClientRect(), side = el.closest('.side');
+  const hidden = r.top < 0 || r.bottom > innerHeight || (side && el.offsetTop - side.offsetTop < side.scrollTop);
+  if (hidden) el.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
 }
 
 // ---------- owner stats ----------
