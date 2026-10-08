@@ -8,6 +8,9 @@ Guild Ledger uses a three-part version number, `MAJOR.MINOR.PATCH`:
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.9.0 (2026-10-08)
+- The game always opens on the training floor in Guided start, even for returning players. Skip training goes straight to a run, and you can still switch to Full game from the top bar.
+
 ## 1.8.0 (2026-10-08)
 - New **Top scores** leaderboard, with separate boards for Guided start and Full game. It sits under How to play during a run and opens on the end screen. It shows each named player's best run (top 10 by points, gold breaks ties), and runs without a name show as Anonymous. Scores come from the run reports in the Google Sheet, through a published Leaderboard tab, and can take about 5 minutes to appear. Runs from before 1.7.0 (no game mode) and impossible scores are left out. The published link is `leaderboard_csv` in `src/config.json`; without one the board is hidden.
 - The name box on the end screen now says the name is shown on the public leaderboard.
