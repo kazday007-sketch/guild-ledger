@@ -8,6 +8,12 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.27.0 (2026-10-09)
+A shorter, current Top scores board.
+
+- **Top scores** shows the top 5 for Guided start and the top 5 for Full game (was top 10).
+- Only runs from version 1.20.0 onwards count, so scores from older builds with different scoring drop off the board.
+
 ## 1.26.0 (2026-10-09)
 Step back and forward through training.
 
