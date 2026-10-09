@@ -54,10 +54,11 @@ for f in each('cards/potions-4x5/*.png'):
 save(Image.open(os.path.join(src, 'cards/card-back.png')).convert('RGBA'), 'cards/back.webp', (200, 280))
 
 # Icons (relics, services, emblem, HUD) and wax seals, cut out of their slate squares.
-# Shown small, so 128px is plenty for 2x screens.
+# Shown small, so 128px is plenty for 2x screens; relics and services are 256px for the shop.
 for f in each('icons/*.png') + each('icons/hud/*.png'):
     if f.endswith('emblem-goat.png'): continue  # already transparent, saved below
-    save(cut_out(f), f'icons/{strip(f, "")}.webp', (128, 128))
+    big = os.path.basename(f).startswith(('relic-', 'service-'))  # shown large on the shop's notices
+    save(cut_out(f), f'icons/{strip(f, "")}.webp', (256, 256) if big else (128, 128))
 for f in each('ui/seal-*.png'):
     save(cut_out(f), f'ui/{strip(f, "")}.webp', (128, 128))
 # Effects are already transparent.
