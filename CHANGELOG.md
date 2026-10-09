@@ -8,6 +8,16 @@ Guild Ledger uses a three-part version number, `MAJOR.MINOR.PATCH`:
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.19.1 (2026-10-09)
+Contracts and cards sized to the screen, with no scrolling.
+- **Contracts and cards are as big as the table allows, at their own shape.** The table and the contract board take all the height that's left, and each card or contract gets the largest size that fits both the width and the height, keeping its proportions. So nothing stretches (like the tall, thin cards in the old row of 4) and nothing makes the page scroll, whatever else is on screen (a boss, a long clerk line, relics, the dues reminder).
+- On a laptop the contracts were stuck at 170px wide. They now grow with the board (about 210 to 230px on common laptop sizes), and the text and seals grow with them.
+- Sideways phones: cards and contracts keep a readable width even on boss floors, and the clerk, contract and side gaps are tighter so the side column doesn't scroll.
+- Upright phones: the clerk's portrait is hidden, the boss panel is slimmer, and the signed contract fits on one line (name, bar, points, pay), so the 2 by 2 cards get more height. With three offers, the third sits centered under the other two.
+- Laptop windows between 821 and 1000px tall put How to play and Top scores behind More, and show the end screen side by side, so the side column and the end screen don't scroll.
+- Short laptop windows (under 660px): the act map's crest and gaps shrink so Start stays in view. Under 580px, the shop sign, the status labels and the boss rule step aside (the icons and hold tips still say what they are).
+- Checked at 16 screen sizes, from 360x640 to 1920x1080, sideways phones and 900x520 laptop windows included. On the very smallest phone (375x553), a boss floor with a long clerk line still scrolls the table a little rather than hiding buttons.
+
 ## 1.19.0 (2026-10-09)
 Every place in the dungeon looks like its own place (batch 3 art).
 - **Each act has its own table.** The cards sit on crypt flagstones framed in bone and skulls in act 1, damp sewer brick in copper pipes in act 2, and a banker's green felt in gold filigree in act 3. Boss floors get scorched stone bound in chains and wax seals, the training floor straw-strewn planks lashed with rope, and the contract board a cork notice board in dark oak.
