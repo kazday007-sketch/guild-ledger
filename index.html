@@ -317,45 +317,49 @@ ol.lbrows li.me .who { color: var(--gold); font-weight: 700; }
 ol.lbrows .muted { font-size: 13px; text-align: right; }
 .end + details.lb { width: 100%; max-width: 560px; box-sizing: border-box; margin: 12px auto 0; align-self: center; }
 /* ---------- title screen (shown once per visit, before training) ---------- */
+/* One column, everything centred under the logo and the same width as it. Wide screens keep the column in the dark
+   left part of the painting, centred within that part; upright phones centre it on the screen. */
 #scene.title-art { background-position: 30% center; }
 #scene.title-art::after { background: linear-gradient(90deg, rgba(10,12,16,.82), rgba(10,12,16,.55) 42%, rgba(10,12,16,.15) 75%); }
-main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc(100svh - 56px); align-content: center; }
-.titlecard { display: grid; gap: 18px; justify-items: start; max-width: 440px; }
-.titlecard .logo { display: grid; justify-items: start; gap: 6px; }
-.titlecard .logo .emblem { width: 96px; height: 96px; filter: drop-shadow(0 4px 8px rgba(0,0,0,.7)); }
-.titlecard .logo h1 { margin: 0; line-height: 0; } .titlecard .logoart { width: 380px; height: auto; filter: drop-shadow(0 4px 10px rgba(0,0,0,.75)); }
+main.title { max-width: none; min-height: calc(100vh - 56px); min-height: calc(100svh - 56px); grid-template-columns: minmax(0, 46%) 1fr; align-items: center; }
+.titlecard { --w: clamp(320px, 30vw, 440px); width: var(--w); max-width: 100%; justify-self: center; display: grid; gap: 16px; justify-items: stretch; text-align: center; }
+.titlecard .logo { display: grid; justify-items: center; }
+.titlecard .logo h1 { margin: 0; line-height: 0; width: 100%; } .titlecard .logoart { width: 100%; height: auto; filter: drop-shadow(0 4px 10px rgba(0,0,0,.75)); }
 main .titlecard .logo::after { display: none; } /* the logo has its own lettering */
-.titlecard .logo h1 { font-size: 58px; line-height: .95; text-shadow: 0 3px 10px rgba(0,0,0,.8); }
-.titlecard .tagline { margin: 0; font-size: 18px; color: var(--bone); text-shadow: 0 2px 6px rgba(0,0,0,.8); max-width: 34ch; }
-.titlecard .play { font-size: 22px; padding: 14px 56px; font-family: var(--display); font-weight: 400; letter-spacing: .04em; }
-.titlecard .mode.big { width: 100%; }
-.titlecard .mode.big button { flex: 1; display: grid; gap: 2px; padding: 10px 12px; text-align: left; }
-.titlecard .mode.big b { font-size: 16px; } .titlecard .mode.big small { font-size: 13px; color: var(--ash); font-weight: 500; }
-.titlecard .mode.big button[aria-pressed="true"] small { color: var(--bone); }
-.titlecard .modenote { margin: -6px 0 0; font-size: 14px; }
-.titlecard details.lb { width: 100%; }
+.titlecard .tagline { margin: -4px 0 2px; font-size: clamp(16px, 1.25vw, 19px); line-height: 1.4; color: var(--bone); text-shadow: 0 2px 6px rgba(0,0,0,.8); text-wrap: balance; }
+.titlecard .mode.big { display: flex; width: 100%; }
+.titlecard .mode.big button { flex: 1; padding: 11px 8px; text-align: center; font-size: clamp(16px, 1.2vw, 18px); }
+.titlecard .mode.big b { font-weight: 700; }
+.titlecard .play { width: 100%; font-size: clamp(24px, 2vw, 30px); padding: 12px; font-family: var(--display); font-weight: 400; letter-spacing: .05em; }
+.titlecard details.lb { width: 100%; box-sizing: border-box; text-align: left; }
+.titlecard details.lb > summary { justify-content: center; font-size: 17px; }
 .titlecard .lbbody { max-height: 34vh; max-height: 34svh; overflow-y: auto; }
-.titlecard .version, .titlecard .sync { text-align: left; margin: 0; }
-@media (max-width: 620px), (max-height: 520px) {
+.titlecard .sync, .titlecard .version { margin: 0; font-size: 13px; text-align: center; }
+.titlecard .sync + .version { margin-top: -12px; }
+@media (max-width: 620px) {
   #scene.title-art { background-position: 22% center; } /* the logo has the goat; keep the painted goat from sitting behind it */
   #scene.title-art::after { background: linear-gradient(180deg, rgba(10,12,16,.35), rgba(10,12,16,.75) 40%, rgba(10,12,16,.92)); }
-  main.title { min-height: calc(100vh - 32px); min-height: calc(100svh - 32px); align-content: end; }
-  body:has(main.title) { padding-bottom: 16px; }
-  .titlecard { justify-items: stretch; gap: 14px; max-width: none; }
-  .titlecard .logo { justify-items: center; text-align: center; }
-  .titlecard .logo .emblem { width: 72px; height: 72px; } .titlecard .logoart { width: min(300px, 78vw); }
-  .titlecard .logo h1 { font-size: 46px; }
-  .titlecard .tagline { text-align: center; margin: 0 auto; font-size: 17px; }
-  .titlecard .modenote, .titlecard .version, .titlecard .sync { text-align: center; }
+  main.title { grid-template-columns: minmax(0, 1fr); min-height: calc(100vh - 32px); min-height: calc(100svh - 32px); }
+  .titlecard { --w: min(400px, 100%); gap: 14px; }
+  .titlecard .logo h1 { width: 86%; }
+  .titlecard .tagline { font-size: 17px; }
+  .titlecard .mode.big button { font-size: 17px; padding-block: 12px; }
+  .titlecard .play { font-size: 28px; }
 }
 @media (max-height: 520px) and (min-width: 621px) {
-  main.title { align-content: center; } .titlecard { max-width: 480px; gap: 10px; } .titlecard .tagline { font-size: 16px; max-width: 48ch; } /* Alegreya runs a little wider: keep the tagline to two lines */
-  .titlecard .logo { grid-template-columns: auto 1fr; align-items: center; justify-items: start; text-align: left; }
-  .titlecard .logo .emblem { width: 56px; height: 56px; } .titlecard .logo h1 { font-size: 38px; } .titlecard .logoart { width: 230px; }
-  .titlecard .tagline, .titlecard .modenote, .titlecard .version, .titlecard .sync { text-align: left; margin: 0; }
-  .titlecard .tagline br, .titlecard .sync { display: none; } body:has(main.title) { padding-block: 10px; }
-  .titlecard .play { padding: 10px 40px; }
-  .titlecard .logo h1 { white-space: nowrap; } main .titlecard .logo::after { display: none; } /* one line, so it all fits sideways */
+  /* sideways phones: the same column, smaller, in the left part of the painting */
+  body:has(main.title) { padding-block: 10px; }
+  main.title { min-height: calc(100vh - 20px); min-height: calc(100svh - 20px); grid-template-columns: minmax(0, 50%) 1fr; }
+  .titlecard { --w: min(340px, 100%); gap: 9px; }
+  .titlecard .logo h1 { width: 62%; }
+  .titlecard .tagline { font-size: 15px; line-height: 1.3; margin: -2px 0 0; }
+  .titlecard .mode.big button { font-size: 15px; padding-block: 8px; }
+  .titlecard .play { font-size: 22px; padding: 7px; }
+  .titlecard details.lb > summary { font-size: 15px; }
+  .titlecard .sync { display: none; } .titlecard .version { font-size: 12px; }
+}
+@media (max-height: 400px) and (min-width: 621px) {
+  .titlecard .logo h1 { width: 54%; } .titlecard { gap: 7px; }
 }
 /* game mode switch in the header */
 .mode { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--slab); }
@@ -543,7 +547,6 @@ main .titlecard .logo::after { display: none; } /* the logo has its own letterin
   .actmap h2 { font-size: 20px; } .actmap .acthead .label { font-size: 11px; }
   .side .contract.paper .progress { height: 9px; } .side .status .stat:first-child .hpbar { height: 9px; }
   main.solo .end { gap: 4px 14px; padding-block: 6px; } main.solo .endsum .muted { font-size: 13px; }
-  .titlecard { gap: 6px; } .titlecard .logo h1 { font-size: 32px; } .titlecard .logo .emblem { width: 44px; height: 44px; } .titlecard .logoart { width: 190px; }
 }
 @media (max-width: 899px) and (max-height: 800px), (max-height: 519px) {
   .coach > .clerk { display: none; } .coach { grid-template-columns: 1fr; } .coach p { font-size: 15px; }
@@ -640,7 +643,6 @@ button.primary:not(.link):not(.offer):active:not(:disabled) { border-image-sourc
 .mode button + button { border-left: 1px solid transparent; }
 .mode button:not(.link), .mode button:not(.link):hover:not(:disabled) { color: var(--bone); border-image: url(assets/ui/btn-toggle-off.webp) 22 60 fill / 8px 16px stretch; }
 .mode button[aria-pressed="true"]:not(.link), .mode button[aria-pressed="true"]:not(.link):hover { background: none; color: #2a1d05; border-image: url(assets/ui/btn-primary.webp) 34 44 fill / 10px 13px stretch; }
-.titlecard .mode.big button small { color: #d8cdb4; } .titlecard .mode.big button[aria-pressed="true"] small { color: #4a3510; }
 .skull { display: inline-block; width: 1.15em; height: 1.15em; vertical-align: -.25em; margin: 0 .3em 0 0; background: url(assets/ui/icon-skull.webp) center / contain no-repeat; }
 .sm .skull { margin: 0 0 0 .2em; }
 
@@ -655,8 +657,7 @@ summary { list-style: none; display: flex; align-items: center; gap: 8px; }
 summary::-webkit-details-marker { display: none; }
 summary::before { content: ''; flex: none; width: 10px; height: 14px; background: url(assets/ui/icon-chevron.webp) center / contain no-repeat; transition: transform .15s; }
 details[open] > summary::before { transform: rotate(90deg); }
-.end h2::after, .titlecard .logo::after { content: ''; display: block; width: 220px; height: 36px; margin: 4px auto 0; background: url(assets/ui/divider.webp) center / contain no-repeat; }
-.titlecard .logo::after { width: 260px; margin: 2px 0 0; }
+.end h2::after { content: ''; display: block; width: 220px; height: 36px; margin: 4px auto 0; background: url(assets/ui/divider.webp) center / contain no-repeat; }
 
 /* bars: an empty brass casing, with the full painted bar shown up to the fill width */
 .hpbar, .progress, .contract.paper .progress { height: 14px; border-radius: 0; overflow: hidden; box-shadow: none; container-type: inline-size; background: url(assets/ui/bar-frame.webp) center / 100% 100% no-repeat; }
@@ -786,7 +787,8 @@ main.solo.map { max-width: 980px; }
 .shop .settle { border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; }
 .shelf { display: grid; gap: 6px; padding: 8px 10px 16px; border-radius: 8px; background: rgba(12,9,6,.28); box-shadow: inset 0 -12px 0 #4a3322, inset 0 -14px 0 rgba(0,0,0,.5), inset 0 -16px 10px rgba(0,0,0,.3); }
 .shelf > .label { color: #e8d9b5; text-shadow: 0 1px 2px #000; }
-.shop .ware { background: url(assets/ui/panel-parchment.webp) center / 100% 100% no-repeat; border: 0; border-image: none; color: var(--paper-ink); padding: 20px 14px 14px; gap: 6px; filter: drop-shadow(0 4px 5px rgba(0,0,0,.55)); }
+.shop .ware { background: none; border: 0; border-image: url(assets/ui/ware-parchment.webp) 46 fill / 20px stretch; /* 9-slice: the torn edges keep their shape at any size */ color: var(--paper-ink); padding: 20px 14px 14px; gap: 6px; filter: drop-shadow(0 4px 5px rgba(0,0,0,.55)); }
+.shop .ware::before { content: ''; position: absolute; z-index: 1; top: -5px; left: 50%; width: 18px; height: 23px; margin-left: -9px; background: url(assets/ui/ware-pin.webp) center / contain no-repeat; filter: drop-shadow(0 2px 1px rgba(0,0,0,.45)); pointer-events: none; }
 .shop .ware:nth-child(2) { transform: rotate(.8deg); } .shop .ware:nth-child(3) { transform: rotate(-.7deg); }
 .shop .ware b { color: var(--paper-ink); }
 .shop .ware .desc { color: var(--paper-muted); font-size: 14px; line-height: 1.3; }
@@ -908,7 +910,7 @@ main.solo:has(> .end) > details.lb { margin: 0; max-width: none; }
 }
 @media (max-height: 400px) and (orientation: landscape) {
   .side .coach .label { display: none; } .side .boss span:not(.label) { display: none; } /* hold the boss for its rule */
-  .side .coach p { font-size: 13px; line-height: 1.22; } .side .coach { padding: 5px 8px; } main.solo:has(> .end) > .version { display: none; }
+  .side .coach p { font-size: 13px; line-height: 1.22; } .side .coach { padding: 8px 12px 9px; } main.solo:has(> .end) > .version { display: none; }
 }
 .deathflash { position: fixed; inset: 0; z-index: 45; pointer-events: none; background: radial-gradient(ellipse, rgba(200,30,40,.15), rgba(140,10,18,.75)); }
 
@@ -994,11 +996,11 @@ main.play .stage .chamber:not(.preview) div.room > *, main.play .stage .offers >
   flex: none; box-sizing: border-box; width: var(--w); height: min(var(--ch), calc((var(--w) - var(--px)) * var(--ar) + var(--x))); min-height: 0; margin: 0;
 }
 main.play .stage .chamber:not(.preview) .card .art { flex: 1 1 0; height: auto; min-height: 0; aspect-ratio: auto; }
-main.play .stage .offers > .offer { grid-column: auto; justify-self: auto; justify-content: center; align-content: center; padding: calc(var(--w) * .07) calc(var(--w) * .09) calc(var(--w) * .1); gap: 1px; border: 0; font-size: clamp(11px, calc(var(--w) * .085), 17px); }
-main.play .stage .offer .seal { width: calc(var(--w) * .22); height: calc(var(--w) * .22); max-width: 52px; max-height: 52px; }
-main.play .stage .offer .tier { font-size: clamp(13px, calc(var(--w) * .115), 22px); }
-main.play .stage .offer .num { font-size: clamp(12px, calc(var(--w) * .095), 19px); }
-main.play .stage .offer .cl { font-size: clamp(10px, calc(var(--w) * .07), 15px); margin-top: 2px; }
+main.play .stage .offers > .offer { grid-column: auto; justify-self: auto; justify-content: center; align-content: center; padding: calc(var(--w) * .07) calc(var(--w) * .09) calc(var(--w) * .1); gap: 1px; border: 0; font-size: clamp(11px, calc(var(--w) * .085), 24px); }
+main.play .stage .offer .seal { width: calc(var(--w) * .22); height: calc(var(--w) * .22); max-width: 76px; max-height: 76px; }
+main.play .stage .offer .tier { font-size: clamp(13px, calc(var(--w) * .115), 32px); }
+main.play .stage .offer .num { font-size: clamp(12px, calc(var(--w) * .095), 27px); }
+main.play .stage .offer .cl { font-size: clamp(10px, calc(var(--w) * .07), 20px); margin-top: 2px; }
 @media not ((min-width: 900px) and (min-height: 520px)) {
   main.play .stage .chamber:not(.preview) div.room { --gap: 6px; --x: 96px; --px: 14px; }
   main.play .stage .offers { --gap: 6px; }
@@ -1011,7 +1013,7 @@ main.play .stage .offer .cl { font-size: clamp(10px, calc(var(--w) * .07), 15px)
   main.play .side .contract.paper:has(.progress) > :not(:has(.pts)):not(.progress) { grid-column: 1 / -1; } /* the points sit beside their bar */
   main.play .side .contract.paper .contract-row { flex-wrap: nowrap; white-space: nowrap; } main.play .side .contract.paper h2 { font-size: 14px; }
   main.play .side .contract.paper .contract-row > span, main.play .side .contract.paper .pts { font-size: 13px; }
-  main.play .side .coach p { font-size: 13px; line-height: 1.22; } main.play .side .coach { padding: 5px 8px; } main.play .side { gap: 4px; }
+  main.play .side .coach p { font-size: 13px; line-height: 1.22; } main.play .side .coach { padding: 8px 12px 9px; } main.play .side { gap: 4px; }
 }
 @media (max-width: 899px) and (orientation: portrait) {
   main.play .stage .chamber:not(.preview) div.room { --cols: 2; --rows: 2; --gap: 8px; --x: 80px; --minw: 130px; }
@@ -1029,6 +1031,51 @@ main.play .stage .offer .cl { font-size: clamp(10px, calc(var(--w) * .07), 15px)
   /* the very shortest screens: the table keeps the height a 2 by 2 needs, and the stage scrolls a little instead */
   main.play .stage section.chamber:not(.preview), main.play .stage .contract.board { min-height: 250px; }
 }
+
+/* ---------- 1.22.0: simpler screens that fill the window ----------
+   Screens without the side column (map, training done, the end of a run) sit in the middle of the window under the
+   header instead of hugging the top. The contract board deals its offers 2 by 2 when that makes them bigger, and the
+   shop's notices grow to fill the board. */
+main.solo { min-height: calc(100vh - 56px); min-height: calc(100svh - 56px); box-sizing: border-box; padding-top: 58px; align-content: center; }
+main.solo > header { position: absolute; top: 0; left: 0; right: 0; }
+@media not ((min-width: 900px) and (min-height: 520px)) { main.solo { padding-top: 50px; min-height: calc(100vh - 32px); min-height: calc(100svh - 32px); } }
+main.play .stage .contract.board { container: board / size; }
+@container board (max-aspect-ratio: 3 / 2) and (min-width: 520px) {
+  main.play .stage .offers:has(> :nth-child(3)) { --cols: 2; --rows: 2; --maxw: 330px; grid-auto-flow: row; grid-template-columns: repeat(2, auto); }
+  main.play .stage .offers:has(> :nth-child(3)) > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+/* small notices: the pin goes to the corner, clear of the name */
+.shop .ware::before { left: auto; right: 14%; margin: 0; top: -7px; width: 14px; height: 18px; }
+@media (min-width: 900px) and (min-height: 760px) {
+  main.play .stage .shop { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+  main.play .stage .shop > .shelf { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+  main.play .stage .shop .shopgrid { flex: 1 1 0; min-height: 0; align-items: stretch; }
+  main.play .stage .shop > .shelf > .label { align-self: flex-start; }
+  main.play .stage .shop .ware { align-content: center; }
+}
+@media (min-width: 900px) and (min-height: 760px) {
+  .shop .ware::before { left: 50%; right: auto; margin-left: -10px; top: -6px; width: 20px; height: 26px; }
+  main.play .stage .shop .ware { gap: 14px; padding: 24px 20px 18px; }
+  main.play .stage .shop .ware .ico { width: 64px; height: 64px; } main.play .stage .shop .ware b { font-size: 21px; }
+  main.play .stage .shop .ware button { font-size: 16px; padding: 7px 16px; }
+}
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.end input::placeholder, .end textarea::placeholder { color: #a39a88; opacity: 1; }
+.end .endform input, .end .endform textarea { width: 100%; max-width: 420px; box-sizing: border-box; justify-self: center; font: 500 15px var(--body); }
+.end .label.ending { display: none; } /* the headline and the art say it */
+.end.won .stamp { right: auto; left: 18px; }
+@media (min-width: 900px) and (min-height: 700px) {
+  main.solo .end { padding: 32px 36px; } main.solo .end .endform { gap: 12px; width: 100%; max-width: 440px; justify-self: center; }
+  main.solo .end h2, .end.dead h2, main.solo .end.dead h2 { font-size: 38px; } .end .epitaph { font-size: 20px; } main.solo .end .tally { font-size: 17px; }
+  .endart { width: 170px; height: 150px; }
+  main.solo .end .endform input, main.solo .end .endform textarea { font-size: 17px; padding: 10px 12px; }
+  main.solo .end [data-new] { font-size: 21px; padding: 10px 48px; }
+}
+.end.trained .recap { margin: 0; padding-left: 1.2em; text-align: left; display: grid; gap: 6px; }
+.end.trained [data-new] { justify-self: center; }
+.end.trained .trainline { margin: 0; }
+@media (max-height: 519px) and (orientation: landscape) { .end.trained .recap { font-size: 14px; gap: 3px; line-height: 1.25; } main.solo .end.trained { padding-block: 14px; } }
+@media (min-width: 900px) and (min-height: 700px) { .end.trained .recap { font-size: 18px; gap: 10px; } .end.trained .clerk { width: 110px; height: auto; } }
 </style>
 
 <div id="scene" aria-hidden="true"></div>
@@ -1393,7 +1440,7 @@ main.play .stage .offer .cl { font-size: clamp(10px, calc(var(--w) * .07), 15px)
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.21.0';
+const VERSION = '1.22.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
@@ -1794,7 +1841,7 @@ const rulesHTML = () => `<details class="rules"><summary>How to play</summary><o
   ${!s.guided || s.floor >= E.UNLOCK.clauses ? `<li><b>Wildcard:</b> one offer per floor pays ${E.WILDCARD_MULT}× as much, but adds one extra rule for that floor.</li>` : ''}
 </ol><button class="link" data-tutorial>Replay the training floor</button></details>`;
 function syncNote() {
-  if (webReports()) return `<p class="muted sync">Playtest build: a summary of each run is sent to the designer when it ends.</p>`;
+  if (webReports()) return `<p class="muted sync">Playtest build: run summaries are sent to the designer.</p>`;
   if (dbState === 'on') return `<p class="muted sync">This run is saved to the guild's playtest log.</p>`;
   if (dbState === 'readonly') return `<p class="muted sync">Runs aren't saved automatically on this link. Use "Copy run report" at the end of a run and send it to whoever shared the game.</p>`;
   return '';
@@ -1866,8 +1913,8 @@ function epitaph() {
 }
 function endHTML() {
   const won = s.phase === 'won';
-  const fb = dbState === 'on' && rec ? `<label class="fb" for="fb">Anything confusing, boring or great?</label>
-      <textarea id="fb" rows="2" maxlength="600">${esc(rec.note || '')}</textarea>
+  const fb = dbState === 'on' && rec ? `<label class="fb sr" for="fb">Anything confusing, boring or great?</label>
+      <textarea id="fb" rows="2" maxlength="600" placeholder="Anything confusing or great?">${esc(rec.note || '')}</textarea>
       <button data-fb>${rec.note ? 'Update note' : 'Save note'}</button><span id="fbstate" class="muted"></span>` : '';
   const key = 'end-' + (rec ? rec.id : s.floor);
   const medal = won ? 'gold' : s.floor >= 6 ? 'silver' : s.floor >= 3 ? 'bronze' : 'copper'; // how far you got: act 1, 2, 3 or the end
@@ -1888,10 +1935,10 @@ function endHTML() {
       <button class="primary" data-new>New run</button></div></section>`;
 }
 function webFormHTML() {
-  return `<label class="fb" for="pname">Name for Top scores (optional)</label>
-      <input id="pname" maxlength="40" value="${esc(store.get('name', ''))}">
-      <label class="fb" for="wnote">Anything confusing, boring or great?</label>
-      <textarea id="wnote" rows="2" maxlength="600">${esc(rec.note || '')}</textarea>
+  return `<label class="fb sr" for="pname">Name for Top scores (optional)</label>
+      <input id="pname" maxlength="40" placeholder="Your name for Top scores (optional)" value="${esc(store.get('name', ''))}">
+      <label class="fb sr" for="wnote">Anything confusing, boring or great?</label>
+      <textarea id="wnote" rows="2" maxlength="600" placeholder="Anything confusing or great?">${esc(rec.note || '')}</textarea>
       <p class="muted" style="margin:0;font-size:13px">Your run report is sent when you tap New run.</p>`;
 }
 // Picks up the end screen's name and note, so the report sent on New run carries them.
@@ -1921,14 +1968,15 @@ function runReport(r = rec) {
   return `Scapegrace v${VERSION} run report${r.mode === 'full' ? ' (full game)' : ''}: ${out} on floor ${r.floorReached}, ${r.totalSlain} points, ${r.gold} gold.\nFloors: ${floors}\nRelics bought: ${bought}\nRelics passed on: ${skipped}`;
 }
 function tutDoneHTML() {
-  return `<section class="end">${clerk('pleased')}<h2>Training complete</h2>
-    <p style="margin:0">${esc(s.lastResult)} Monsters hurt, weapons protect, potions heal. You're ready.</p>
-    <ul class="recap">
+  // laid out like the end of a run: the goat and the result on one side, the three things to remember and the button on the other
+  return `<section class="end trained"><div class="endsum">${clerk('pleased')}<h2>Training complete</h2>
+    <p class="trainline">${esc(s.lastResult)} You're ready.</p></div>
+    <div class="endform"><ul class="recap">
       <li>Pick 3 of the 4 cards in each room.</li>
       <li>Use weapons on big monsters first, then smaller ones.</li>
       <li>Low on health? Drink a potion, or flee a room before you pick a card. You can't flee 2 rooms in a row.</li>
     </ul>
-    <button class="primary" data-new>Start your first run</button></section>`;
+    <button class="primary" data-new>Start your first run</button></div></section>`;
 }
 // ---------- leaderboard (top scores from the Sheet's published Leaderboard tab) ----------
 // The tab has one row per reported run: mode, name, points, floor, outcome, gold, version, date.
