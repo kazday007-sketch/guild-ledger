@@ -8,6 +8,12 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.22.1 (2026-10-09)
+The shop shows its wares off.
+
+- Relic and service icons in the shop are much bigger and sharper (drawn from 256px art instead of 128px), with a soft lamp glow behind them. They tilt up a little when you point at or focus one.
+- On computers each notice leads with a large icon in its middle and the name under it. On upright phones the icon sits on top of the name. On laptops and sideways phones it stands beside the name, as tall as the notice.
+
 ## 1.22.0 (2026-10-09)
 A cleaner title screen, and every screen sized to fit the window.
 
