@@ -15,6 +15,7 @@ New lettering with a dungeon feel, still easy to read.
 - **All other text** (tips, buttons, contracts, the shop, the log) uses Alegreya, an old-book serif made for long reading, in place of the modern sans-serif.
 - **Numbers on cards, stamps and plates** use Cinzel, carved Roman capitals with clean upright figures. Every number in the game uses upright figures, so health, points and gold read at a glance.
 - The epitaph line on the death screen is in Alegreya italic.
+- Sideways phones: the title tagline gets a slightly wider column so it stays on two lines and the title screen still fits without scrolling.
 - The fonts now ship with the game (in `assets/fonts`, under the SIL Open Font License) instead of loading from Google Fonts, so they show up even when Google is blocked or slow.
 
 ## 1.20.0 (2026-10-09)
