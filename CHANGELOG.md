@@ -8,6 +8,13 @@ Guild Ledger uses a three-part version number, `MAJOR.MINOR.PATCH`:
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.17.0 (2026-10-09)
+Act map and pause menu.
+- **Act map.** Shows the three floors of the current act side by side, like Balatro's blind select: the two regular floors and the boss floor, with the boss's portrait, name and rule. Each floor shows what it asks of you (survive 4 rooms, or the Safe/Bold/Reckless contract targets and whether a Wildcard can turn up), and whether it's done (stamped PAID or STRIKE), in progress, up next or ahead. The guild dues for the act are shown underneath. On phones held upright the floors stack top to bottom.
+- The map opens by itself when you leave the shop, with an **Enter floor N** button. It also opens from the pause menu, with a Back button.
+- **Pause menu.** A pause button in the top right corner (or Esc) opens a short menu: Resume, Act map and Main menu. The Main menu link moved here from How to play. In training the menu has Resume and Main menu.
+- Regular floors use a contract seal or room candle as their medallion until map art exists; see `art/map-art.md` in the project files.
+
 ## 1.16.0 (2026-10-09)
 Painted UI, so the whole screen matches the card art.
 - Cards have painted frames (iron corners for monsters, steel for weapons, red glass for potions, gold filigree for elites) and their number is set in inked numerals on an enamel plate in the card's colour.
