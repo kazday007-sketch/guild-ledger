@@ -56,14 +56,18 @@ save(Image.open(os.path.join(src, 'cards/card-back.png')).convert('RGBA'), 'card
 # Icons (relics, services, emblem, HUD) and wax seals, cut out of their slate squares.
 # Shown small, so 128px is plenty for 2x screens.
 for f in each('icons/*.png') + each('icons/hud/*.png'):
+    if f.endswith('emblem-goat.png'): continue  # already transparent, saved below
     save(cut_out(f), f'icons/{strip(f, "")}.webp', (128, 128))
 for f in each('ui/seal-*.png'):
     save(cut_out(f), f'ui/{strip(f, "")}.webp', (128, 128))
 # Effects are already transparent.
 for f in each('effects/*.png'):
     save(Image.open(f).convert('RGBA'), f'fx/{strip(f, "fx-")}.webp', (192, 192))
-emblem = cut_out(os.path.join(src, 'icons/emblem-guild.png'))
+emblem = Image.open(os.path.join(src, 'icons/emblem-goat.png')).convert('RGBA')  # the goat crest (1.20.0), already cut out
 emblem.resize((64, 64), Image.LANCZOS).save(os.path.join(out, 'icons', 'favicon.png'))
+save(emblem.copy(), 'icons/emblem-goat.webp', (128, 128))
+# Scapegrace logo (1.20.0): the goat over the name, already cut out. Shown up to 380px wide on the title screen.
+save(Image.open(os.path.join(src, 'logo/logo-scapegrace.png')).convert('RGBA'), 'ui/logo.webp', (760, 760), 88)
 
 # Stamps keep their transparency; the word (PAID, STRIKE, RAISED) is set in code.
 for f in each('ui/stamp-*.png'):
@@ -77,7 +81,7 @@ for f in each('ui/textures/*.png'):
 for f in each('characters/*.png'):
     save(Image.open(f).convert('RGB'), f'portraits/{strip(f, "")}.webp', (240, 300))
 for f in each('backgrounds/*.jpg'):
-    save(Image.open(f).convert('RGB'), f'backgrounds/{strip(f, "bg-")}.webp', None, 72)
+    save(Image.open(f).convert('RGB'), f'backgrounds/{strip(f, "bg-")}.webp', None, 86)
 
 n = sum(len(fs) for _, _, fs in os.walk(out))
 kb = sum(os.path.getsize(os.path.join(d, x)) for d, _, fs in os.walk(out) for x in fs) // 1024
@@ -102,13 +106,15 @@ for f in each('cards/frames/*.png'):
 # Batch 3 art (2026-10-09): a table and frame for each place, atmosphere layers, crests, endings, medals,
 # map medallions and shop pieces. Already cut out; new effects, portraits and backgrounds use the loops above.
 for f in each('ui/tables/table-*.png'):
-    save(Image.open(f).convert('RGB'), f'ui/{strip(f, "")}.webp', (512, 512), 72)
+    save(Image.open(f).convert('RGB'), f'ui/{strip(f, "")}.webp', None, 90)  # native size, never upscaled
 for f in each('ui/tables/frame-*.png'):
     save(Image.open(f).convert('RGBA'), f'ui/{strip(f, "")}.webp', (360, 360), 85)
 for f in each('ui/ambient/ambient-*.png'):
-    save(Image.open(f).convert('RGBA'), f'ui/{strip(f, "")}.webp', (1024, 576), 70)
-for f in each('ui/crests/crest-*.png') + each('ui/map/*.png'):
+    save(Image.open(f).convert('RGBA'), f'ui/{strip(f, "")}.webp', (1024, 576), 85)
+for f in each('ui/crests/crest-*.png'):
     save(Image.open(f).convert('RGBA'), f'ui/{strip(f, "")}.webp', (160, 160), 85)
+for f in each('ui/map/*.png'):  # map medallions show up to 120px, so keep enough for sharp screens
+    save(Image.open(f).convert('RGBA'), f'ui/{strip(f, "")}.webp', (240, 240), 88)
 save(Image.open(os.path.join(src, 'ui/crests/ribbon.png')).convert('RGBA'), 'ui/ribbon.webp', (420, 110), 85)
 for f in each('ui/end/*.png'):
     save(Image.open(f).convert('RGBA'), f'ui/{strip(f, "")}.webp', (240, 240), 85)

@@ -1,7 +1,17 @@
-<title>Guild Ledger</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Alegreya+Sans:wght@400;500;700&family=Spline+Sans+Mono:wght@500;700&display=swap">
+<title>Scapegrace</title>
+<link rel="preload" href="assets/fonts/grenze-gotisch-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/alegreya-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/cinzel-700.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+/* Fonts are self-hosted in assets/fonts (SIL Open Font License, see OFL-*.txt).
+   Grenze Gotisch: headings and titles. Alegreya: body text. Cinzel: numbers on cards, stamps and plates.
+   Each single-weight face claims the whole weight range so the browser never fakes a bold. */
+@font-face { font-family: "Grenze Gotisch"; src: url(assets/fonts/grenze-gotisch-600.woff2) format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Cinzel"; src: url(assets/fonts/cinzel-700.woff2) format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Alegreya"; src: url(assets/fonts/alegreya-400.woff2) format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Alegreya"; src: url(assets/fonts/alegreya-500.woff2) format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Alegreya"; src: url(assets/fonts/alegreya-700.woff2) format("woff2"); font-weight: 600 900; font-display: swap; }
+@font-face { font-family: "Alegreya"; src: url(assets/fonts/alegreya-400-italic.woff2) format("woff2"); font-weight: 100 900; font-style: italic; font-display: swap; }
 /* Layout: a single-column dungeon table. Status ledger on top, the room of four cards in the middle, contract and log below. Deliberately dark, single theme. */
 :root {
   color-scheme: dark;
@@ -16,17 +26,19 @@
   --steel: #7aa6d8;      /* weapons */
   --ink: #1d1a17;        /* text on bone */
   --gold: #e0b450;
-  --display: "IM Fell English SC", "Iowan Old Style", Georgia, serif;
-  --body: "Alegreya Sans", "Segoe UI", system-ui, sans-serif;
-  --mono: "Spline Sans Mono", ui-monospace, Menlo, monospace;
+  --display: "Grenze Gotisch", "Iowan Old Style", Georgia, serif;
+  --body: "Alegreya", "Iowan Old Style", Georgia, serif;
+  --mono: "Cinzel", "Iowan Old Style", Georgia, serif;  /* numbers: carved capitals with crisp lining figures */
 }
 * { box-sizing: border-box; }
+/* Alegreya and Grenze default to old-style figures; lining figures keep every number in the game upright and crisp (the font shorthand would otherwise reset this). */
+* { font-variant-numeric: lining-nums !important; }
 html, body { background: var(--stone); color: var(--bone); }
 body { font: 16px/1.45 var(--body); margin: 0; padding-inline: 16px; padding-block: 16px 40px; }
 main { max-width: 760px; margin: 0 auto; display: grid; gap: 14px; }
 h1 { font: 400 30px/1 var(--display); margin: 0; letter-spacing: .02em; }
 h2 { font: 400 20px/1.1 var(--display); margin: 0; letter-spacing: .03em; text-wrap: balance; }
-.mono, .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.mono, .num { font-family: var(--mono); font-variant-numeric: lining-nums tabular-nums !important; }
 .muted { color: var(--ash); }
 .label { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--ash); }
 header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
@@ -310,6 +322,8 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
 .titlecard { display: grid; gap: 18px; justify-items: start; max-width: 440px; }
 .titlecard .logo { display: grid; justify-items: start; gap: 6px; }
 .titlecard .logo .emblem { width: 96px; height: 96px; filter: drop-shadow(0 4px 8px rgba(0,0,0,.7)); }
+.titlecard .logo h1 { margin: 0; line-height: 0; } .titlecard .logoart { width: 380px; height: auto; filter: drop-shadow(0 4px 10px rgba(0,0,0,.75)); }
+main .titlecard .logo::after { display: none; } /* the logo has its own lettering */
 .titlecard .logo h1 { font-size: 58px; line-height: .95; text-shadow: 0 3px 10px rgba(0,0,0,.8); }
 .titlecard .tagline { margin: 0; font-size: 18px; color: var(--bone); text-shadow: 0 2px 6px rgba(0,0,0,.8); max-width: 34ch; }
 .titlecard .play { font-size: 22px; padding: 14px 56px; font-family: var(--display); font-weight: 400; letter-spacing: .04em; }
@@ -322,21 +336,21 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
 .titlecard .lbbody { max-height: 34vh; max-height: 34svh; overflow-y: auto; }
 .titlecard .version, .titlecard .sync { text-align: left; margin: 0; }
 @media (max-width: 620px), (max-height: 520px) {
-  #scene.title-art { background-position: 62% center; }
+  #scene.title-art { background-position: 22% center; } /* the logo has the goat; keep the painted goat from sitting behind it */
   #scene.title-art::after { background: linear-gradient(180deg, rgba(10,12,16,.35), rgba(10,12,16,.75) 40%, rgba(10,12,16,.92)); }
   main.title { min-height: calc(100vh - 32px); min-height: calc(100svh - 32px); align-content: end; }
   body:has(main.title) { padding-bottom: 16px; }
   .titlecard { justify-items: stretch; gap: 14px; max-width: none; }
   .titlecard .logo { justify-items: center; text-align: center; }
-  .titlecard .logo .emblem { width: 72px; height: 72px; }
+  .titlecard .logo .emblem { width: 72px; height: 72px; } .titlecard .logoart { width: min(300px, 78vw); }
   .titlecard .logo h1 { font-size: 46px; }
   .titlecard .tagline { text-align: center; margin: 0 auto; font-size: 17px; }
   .titlecard .modenote, .titlecard .version, .titlecard .sync { text-align: center; }
 }
 @media (max-height: 520px) and (min-width: 621px) {
-  main.title { align-content: center; } .titlecard { max-width: 440px; gap: 10px; }
+  main.title { align-content: center; } .titlecard { max-width: 480px; gap: 10px; } .titlecard .tagline { font-size: 16px; max-width: 48ch; } /* Alegreya runs a little wider: keep the tagline to two lines */
   .titlecard .logo { grid-template-columns: auto 1fr; align-items: center; justify-items: start; text-align: left; }
-  .titlecard .logo .emblem { width: 56px; height: 56px; } .titlecard .logo h1 { font-size: 38px; }
+  .titlecard .logo .emblem { width: 56px; height: 56px; } .titlecard .logo h1 { font-size: 38px; } .titlecard .logoart { width: 230px; }
   .titlecard .tagline, .titlecard .modenote, .titlecard .version, .titlecard .sync { text-align: left; margin: 0; }
   .titlecard .tagline br, .titlecard .sync { display: none; } body:has(main.title) { padding-block: 10px; }
   .titlecard .play { padding: 10px 40px; }
@@ -528,7 +542,7 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
   .actmap h2 { font-size: 20px; } .actmap .acthead .label { font-size: 11px; }
   .side .contract.paper .progress { height: 9px; } .side .status .stat:first-child .hpbar { height: 9px; }
   main.solo .end { gap: 4px 14px; padding-block: 6px; } main.solo .endsum .muted { font-size: 13px; }
-  .titlecard { gap: 6px; } .titlecard .logo h1 { font-size: 32px; } .titlecard .logo .emblem { width: 44px; height: 44px; }
+  .titlecard { gap: 6px; } .titlecard .logo h1 { font-size: 32px; } .titlecard .logo .emblem { width: 44px; height: 44px; } .titlecard .logoart { width: 190px; }
 }
 @media (max-width: 899px) and (max-height: 800px), (max-height: 519px) {
   .coach > .clerk { display: none; } .coach { grid-template-columns: 1fr; } .coach p { font-size: 15px; }
@@ -858,7 +872,7 @@ main.solo:has(> .end) > details.lb { margin: 0; max-width: none; }
 .end.dead { border: 2px solid #5c1d22; border-image: none; border-radius: 14px; background: radial-gradient(ellipse at 50% 0, rgba(130,24,30,.38), rgba(16,9,11,.94) 70%); box-shadow: 0 0 0 1px rgba(0,0,0,.6), 0 0 46px rgba(170,32,40,.32), inset 0 0 60px rgba(0,0,0,.6); }
 .end .label.ending { color: #d9a0a3; letter-spacing: .2em; }
 .end.dead h2 { color: #ef6a71; font-size: 38px; text-shadow: 0 0 18px rgba(208,84,91,.55), 0 2px 0 #000; }
-.end .epitaph { margin: 0; max-width: 34ch; font: italic 400 21px/1.3 var(--display); color: var(--bone); text-wrap: balance; }
+.end .epitaph { margin: 0; max-width: 34ch; font: italic 400 21px/1.3 var(--body); color: var(--bone); text-wrap: balance; }
 .end .epitaph::before { content: '“'; } .end .epitaph::after { content: '”'; }
 .end .tally { margin: 0; font-size: 15px; }
 .killer { position: relative; width: 138px; aspect-ratio: 4 / 5; transform: rotate(-5deg); animation: killerin .7s cubic-bezier(.2,1.3,.4,1) both; }
@@ -905,8 +919,8 @@ main.solo:has(> .end) > details.lb { margin: 0; max-width: none; }
 @keyframes drift { from { transform: translate(-2%, 0); } to { transform: translate(2%, -1%); } }
 @keyframes flicker { 0%, 100% { opacity: .7; } 40% { opacity: .58; } 70% { opacity: .66; } }
 @media (prefers-reduced-motion: reduce) { #ambient.on, #ambient.candle.on { animation: none; } }
-main[data-place] section.chamber, main[data-place] .contract.board { --frame: 34px; border: 14px solid transparent; border-radius: 0; padding: 12px; background: var(--surface) 0 0 / 360px; border-image: var(--edge) 22% / var(--frame) / 8px stretch; box-shadow: inset 0 0 50px rgba(0,0,0,.6), 0 4px 18px rgba(0,0,0,.45); background-clip: padding-box; }
-main[data-place] .contract.board { background: var(--surface) 0 0 / 360px; }
+main[data-place] section.chamber, main[data-place] .contract.board { --frame: 34px; border: 14px solid transparent; border-radius: 0; padding: 12px; background: var(--surface) 0 0 / auto; border-image: var(--edge) 22% / var(--frame) / 8px stretch; box-shadow: inset 0 0 50px rgba(0,0,0,.6), 0 4px 18px rgba(0,0,0,.45); background-clip: padding-box; }
+main[data-place] .contract.board { background: var(--surface) 0 0 / auto; } /* tiles show at their painted size: stretching them blurred the detail */
 main[data-place] .chamber-head { background: rgba(12,9,6,.66); }
 main[data-place=crypt] { --surface: #3d4148 url(assets/ui/table-crypt.webp); --edge: url(assets/ui/frame-crypt.webp); }
 main[data-place=sewers] { --surface: #24302a url(assets/ui/table-sewers.webp); --edge: url(assets/ui/frame-sewers.webp); }
@@ -918,7 +932,7 @@ main[data-place=boss] section.chamber, main[data-place=contracts] .contract.boar
 main[data-place=vault] section.chamber { --frame: 30px; }
 main[data-place=contracts] .contract.board > .contract-row h2 { display: inline-block; padding: 4px 14px; background: rgba(12,9,6,.66); border-radius: 6px; }
 @media not ((min-width: 900px) and (min-height: 520px)) {
-  main[data-place] section.chamber, main[data-place] .contract.board { --frame: 20px; border-width: 8px; padding: 6px; border-image-outset: 4px; background-size: 240px; }
+  main[data-place] section.chamber, main[data-place] .contract.board { --frame: 20px; border-width: 8px; padding: 6px; border-image-outset: 4px; }
   main[data-place=vault] section.chamber { --frame: 18px; }
 }
 /* the place's crest: in the header, the room's title and over the act map */
@@ -1027,7 +1041,7 @@ main.play .stage .offer .cl { font-size: clamp(10px, calc(var(--w) * .07), 15px)
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.19.1';
+const VERSION = '1.21.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -1057,7 +1071,9 @@ const iconOf = k => E.RELICS[k] ? `icons/relic-${k === 'keenedge' ? 'keen-edge' 
 const tierSeal = t => `ui/seal-tier-${['safe', 'bold', 'reckless'][t]}.webp`;
 const clauseSeal = k => `ui/seal-clause-${({ sworn: 'sworn', abstain: 'abstinent', steel: 'steel-oath', bare: 'bare-oath' })[k]}.webp`;
 const bossArt = { fleeToll: 'boss-warden', halfPotion: 'boss-plague-hag', recklessOnly: 'boss-lich-auditor' };
-const clerk = (mood, cls = 'clerk') => img(`portraits/clerk-${mood}.webp`, cls, 'The guild clerk');
+// The goat (it replaced the guild clerk in 1.20.0; the CSS class is still .clerk). It has lived in the dungeon
+// for years, finds it all rather easy, and talks you through it.
+const clerk = (mood, cls = 'clerk') => img(`portraits/goat-${mood}.webp`, cls, 'The goat');
 // A stamp slams down once; later renders of the same stamp sit still.
 const stamped = new Set();
 const stamp = (kind, key) => {
@@ -1127,7 +1143,7 @@ let seenHints = store.get('hints', {});
 // Steps with `allow` wait for that one move. Steps without it are a tour of the screen with a Next button.
 // `focus` highlights the part of the screen the step talks about.
 const TUTORIAL = [
-  { focus: '.stat.hp', text: 'This is your <b>health</b>. If it reaches 0, you lose. Your only goal is to <b>stay alive</b>.' },
+  { focus: '.stat.hp', text: 'I\'m the goat. I live down here, and I\'ll show you around. This is your <b>health</b>. If it reaches 0, you lose. Your only goal is to <b>stay alive</b>.' },
   { focus: '.stat.weapon', text: 'This is your <b>weapon</b>. A weapon blocks damage from monsters. You don\'t have one yet.' },
   { focus: '.chamber', text: 'This is a <b>room</b>. Each room is dealt 4 cards from the pile. You pick 3 of them, and the last one stays for the next room.' },
   { focus: '.chamber-title h2', text: 'This counts the <b>rooms</b> you get through. Get through 2 rooms to finish training.' },
@@ -1139,7 +1155,7 @@ const TUTORIAL = [
   { focus: '.chamber', text: 'You can flee at the start of <b>any room</b>. The only rule is you <b>can\'t flee 2 rooms in a row</b>, so you have to face this one.' },
   { allow: { v: 3, mode: 'weapon' }, focus: '.stat.weapon', text: 'The <b>Cave Bat</b> is a 3. That\'s under 5, so your sword can fight it. Hit it with your sword.' },
   { allow: { v: 10, mode: 'bare' }, focus: '.stat.hp', text: 'The <b>Bone Golem</b> is a 10. That\'s too big for your sword now, so you fight with your fists and lose the full <b>10</b> health.' },
-  { allow: { v: 6, mode: null }, focus: '.stat.hp', text: 'Ouch! The <b>Tonic</b> is a 6, so it gives back 6 health. Drink it.' },
+  { allow: { v: 6, mode: null }, focus: '.stat.hp', text: 'Ouch. I\'d have dodged that. The <b>Tonic</b> is a 6, so it gives back 6 health. Drink it.' },
 ];
 let tut = null; // { step } while the tutorial runs
 
@@ -1224,17 +1240,17 @@ function currentHint() {
   const multi = s.offers && s.offers.length > 1;
   const shopNow = s.phase === 'shop';
   const list = [
-    ['survive', s.phase === 'room' && survival() && s.floor === 0, 'Just like training, <b>stay alive</b> for 4 rooms. Pick 3 cards in each room.', null],
-    ['gold', shopNow && s.floor === 0, '<b>New! Gold.</b> The guild paid you 6 gold for surviving. Spend it here: a <b>Bandage</b> heals 6 health. Then tap <b>Leave shop</b>.', '.stat.gold, .shop .services'],
+    ['survive', s.phase === 'room' && survival() && s.floor === 0, 'Same as training: <b>stay alive</b> for 4 rooms. I do it in my sleep. Pick 3 cards in each room.', null],
+    ['gold', shopNow && s.floor === 0, '<b>New! Gold.</b> The guild paid you 6 gold for surviving. Don\'t let it go to your head. Spend it here: a <b>Bandage</b> heals 6 health. Then tap <b>Leave shop</b>.', '.stat.gold, .shop .services'],
     ['contracts', s.phase === 'bid' && !multi, '<b>New! Contracts.</b> Promise to kill this many monster points on this floor. Make it and you get gold. Miss it and you get a <b>strike</b>. Three strikes ends your run.', '.offers'],
     ['strikes', s.phase === 'bid' && contractsOpen(), 'These are your <b>strikes</b>. Miss a contract and you get one. Three strikes ends your run.', '.stat.guild'],
-    ['met', s.phase === 'room' && s.contract && !survival() && s.slain >= s.contract.target, '<b>Contract met!</b> Extra points only pay a little more gold, so from here on, <b>protect your health</b>. Take the smallest hits and drink potions.', '.contract'],
+    ['met', s.phase === 'room' && s.contract && !survival() && s.slain >= s.contract.target, '<b>Contract met!</b> Not bad. Extra points only pay a little more gold, so from here on, <b>protect your health</b>. Take the smallest hits and drink potions.', '.contract'],
     ['relics', shopNow && relicsOpen() && s.shop.relics.length > 0, '<b>New! Relics.</b> Each one gives you a power for the rest of the run. You can carry 4. Hover or hold one to read it.', '.shop .relicgrid'],
     ['dues', shopNow && contractsOpen() && s.floor % 3 === 1, '<b>Guild dues.</b> After the next floor, the guild collects this fee. Keep enough gold, or it\'s a strike.', '.stat.guild'],
     ['tiers', s.phase === 'bid' && multi && !s.boss, '<b>New! Bold and Reckless contracts.</b> A bigger target pays more gold, but a miss is a strike. When in doubt, Safe is fine.', '.offers'],
     ['raise', s.phase === 'room' && E.canRaise(s), '<b>New! Raise.</b> If a floor is going well, you can raise your contract one step between rooms, for more gold. Once per floor.', '[data-raise]'],
     ['bossroom', s.phase === 'room' && survival() && s.boss, `<b>Boss floor!</b> ${s.boss ? esc(s.boss.name) : ''} has a special rule. ${s.boss ? esc(s.boss.rule) : ''}`, '.boss'],
-    ['boss', s.phase === 'bid' && s.boss, '<b>Boss floor.</b> The boss adds one special rule for this floor. Read it before you sign.', '.boss'],
+    ['boss', s.phase === 'bid' && s.boss, '<b>Boss floor.</b> The boss adds one special rule for this floor. Read it before you sign. I never do, but I\'m a goat.', '.boss'],
     ['clause', s.phase === 'bid' && s.offers.some(o => o.clause), `<b>New! The Wildcard.</b> One offer now pays ${E.WILDCARD_MULT}× as much, more than the next contract up. The catch is that it adds one extra rule for this floor.`, '.offer.clause'],
     ['limit', s.phase === 'room' && s.weapon && s.weapon.limit != null, 'Your weapon has dulled. It only hits monsters up to the number shown under Weapon. Bigger ones need fists, or a new weapon.', '.stat.weapon'],
   ];
@@ -1405,7 +1421,7 @@ function coachHTML() {
   const h = currentHint(), g = goal();
   shownHint = h ? h.key : null;
   const low = s.phase === 'room' && s.hp <= Math.max(5, s.maxHp / 4); // the clerk worries when you're nearly dead
-  if (h) return `<aside class="coach hint">${clerk(low ? 'worried' : 'neutral')}<span class="label">The clerk says</span><p>${h.text}</p>${g ? `<p class="sub"><b>Goal:</b> ${g.text}</p>` : ''}</aside>`;
+  if (h) return `<aside class="coach hint">${clerk(low ? 'worried' : 'neutral')}<span class="label">The goat says</span><p>${h.text}</p>${g ? `<p class="sub"><b>Goal:</b> ${g.text}</p>` : ''}</aside>`;
   return g ? `<aside class="coach goalonly ${g.done ? 'done' : ''}">${clerk(g.done ? 'impressed' : low ? 'worried' : 'neutral')}<span class="label">${g.done ? 'Contract met' : 'Goal'}</span><p>${g.text}</p></aside>` : '';
 }
 // A tip stays up until your next move, then it's done. No "Got it" tap.
@@ -1468,7 +1484,7 @@ const DEATH_LINES = {
 const DEATH_ANY = [
   'The {m} did not read the contract.',
   'Filed under "lunch" by the {m}.',
-  'The clerk has already rented out your bunk.',
+  'The goat has already eaten your bunk.',
   'Last words: "I can take a {v}." You could not take a {v}.',
   'The {m} sends its regards, and your boots.',
   'Cause of death: {m}. Cause of the {m}: unclear.',
@@ -1477,7 +1493,7 @@ const DEATH_FISTS = ['Punched the {m}. The {m} punched back harder.', 'Brought f
 const DEATH_WEAPON = ['Your weapon did its best. Its best was not enough.', 'You hit the {m} with everything you had. The {m} had more.'];
 const REVOKED = {
   dues: ['Couldn\'t cover the guild dues. The guild accepts gold or resignation, and picked for you.', 'Dues unpaid. Your license is now a very official coaster.'],
-  contract: ['Three missed contracts. The clerk tore up your license and seemed to enjoy it.', 'Third strike. Your license has been filed under "Former".'],
+  contract: ['Three missed contracts. The guild tore up your license, and the goat ate the pieces.', 'Third strike. Your license has been filed under "Former".'],
   any: ['Struck out. The guild thanks you for your service and asks for the helmet back.', 'License revoked. The monsters send their thanks.'],
 };
 const theName = n => n === 'Rats' ? 'rats' : 'the ' + n;
@@ -1489,7 +1505,7 @@ function epitaph() {
     return { kind: 'revoked', title: 'License revoked', line: pickLine([...REVOKED[dues ? 'dues' : 'contract'], ...REVOKED.any], seed) };
   }
   const h = lastHit;
-  if (!h) return { kind: 'dead', title: 'You fell', line: pickLine(['The clerk has already rented out your bunk.'], seed) };
+  if (!h) return { kind: 'dead', title: 'You fell', line: pickLine(['The goat has already eaten your bunk.'], seed) };
   const pool = [...(DEATH_LINES[h.name] || []), ...(DEATH_LINES[h.name] || []), ...DEATH_ANY, ...(h.mode === 'bare' ? DEATH_FISTS : DEATH_WEAPON)];
   if (s.boss) pool.push(`${s.boss.name} watched the whole thing and took notes.`);
   if (s.floor === 0) pool.push('Floor 1. The guild had barely learned your name. It has now stopped trying.');
@@ -1505,7 +1521,7 @@ function endHTML() {
   const medal = won ? 'gold' : s.floor >= 6 ? 'silver' : s.floor >= 3 ? 'bronze' : 'copper'; // how far you got: act 1, 2, 3 or the end
   const tally = `<p class="muted tally">${img(`ui/medal-${medal}.webp`, 'medal', `${medal[0].toUpperCase() + medal.slice(1)} medal`)}Floor <span class="num">${s.floor + 1}</span> · <span class="num">${runPoints()}</span> points · <span class="num">${s.gold}</span> gold</p>`;
   let top;
-  if (won) top = `${stamp('paid', key)}<div class="endsum">${img('ui/end-victory.webp', 'endart', 'The ledger, closed')}<h2>Ledger closed. You survived.</h2><p style="margin:0">${esc(s.lastResult || '')}</p>${tally}</div>`;
+  if (won) top = `${stamp('paid', key)}<div class="endsum">${img('ui/end-victory.webp', 'endart', 'The ledger, closed')}<h2>You made it out. The goat is mildly impressed.</h2><p style="margin:0">${esc(s.lastResult || '')}</p>${tally}</div>`;
   else {
     const ep = epitaph();
     const pic = ep.kind === 'dead'
@@ -1550,7 +1566,7 @@ function runReport(r = rec) {
   const floors = r.floors.map(f => f.survival ? `F${f.floor} Survival ${f.died ? 'died' : f.hpEnd != null ? 'survived' : ''}`.trim() : `F${f.floor} ${E.TIERS[f.tier]}${f.clause ? '+' + E.CLAUSES[f.clause].name : ''} ${f.slain ?? '?'}/${f.target}${f.met ? ' met' : f.met === false ? ' missed' : ''}${f.raises ? ' raised' : ''}${f.flees ? ` fled${f.flees}` : ''}`).join('; ');
   const bought = r.shops.flatMap(sh => sh.bought.filter(k => E.RELICS[k]).map(k => E.RELICS[k].name)).join(', ') || 'none';
   const skipped = [...new Set(r.shops.flatMap(sh => sh.offered.filter(k => !sh.bought.includes(k)).map(k => E.RELICS[k].name)))].join(', ') || 'none';
-  return `Guild Ledger v${VERSION} run report${r.mode === 'full' ? ' (full game)' : ''}: ${out} on floor ${r.floorReached}, ${r.totalSlain} points, ${r.gold} gold.\nFloors: ${floors}\nRelics bought: ${bought}\nRelics passed on: ${skipped}`;
+  return `Scapegrace v${VERSION} run report${r.mode === 'full' ? ' (full game)' : ''}: ${out} on floor ${r.floorReached}, ${r.totalSlain} points, ${r.gold} gold.\nFloors: ${floors}\nRelics bought: ${bought}\nRelics passed on: ${skipped}`;
 }
 function tutDoneHTML() {
   return `<section class="end">${clerk('pleased')}<h2>Training complete</h2>
@@ -1637,7 +1653,7 @@ function settleHTML() {
   const strike = /strike \d of 3/i.test(r), met = r.startsWith('Contract met');
   const mood = strike ? 'stamping' : met || /pays you/.test(r) ? 'counting' : 'neutral';
   const mark = strike ? stamp('strike', 'floor-' + s.floor) : met ? stamp('paid', 'floor-' + s.floor) : '';
-  return `<section class="settle ${mark ? 'stamped' : ''}">${mark}${clerk(mood)}<div class="say"><span class="label">The clerk's ledger</span><p class="result">${esc(r)}</p></div></section>`;
+  return `<section class="settle ${mark ? 'stamped' : ''}">${mark}${clerk(mood)}<div class="say"><span class="label">The goat's tally</span><p class="result">${esc(r)}</p></div></section>`;
 }
 
 // ---------- pause menu and act map ----------
@@ -1679,7 +1695,7 @@ function floorHTML(f) {
 // Training is one short floor before act 1, so its map shows it first and the act's floors after it.
 function trainingHTML() {
   return `<article class="floor next training"><div class="token">${clerk('neutral', '')}</div><span class="label">Before act 1</span><h3>Training floor</h3>
-    <p class="task"${tipAttr('Training floor', `Get through ${E.TUTORIAL_ROOMS} rooms while the clerk shows you how.`)}>Get through <b>${E.TUTORIAL_ROOMS}</b> rooms</p><span class="state">${mapView === 'pause' ? `In progress · room ${s.roomsCleared + 1} of ${E.TUTORIAL_ROOMS}` : 'You are here'}</span></article>`;
+    <p class="task"${tipAttr('Training floor', `Get through ${E.TUTORIAL_ROOMS} rooms while the goat shows you how.`)}>Get through <b>${E.TUTORIAL_ROOMS}</b> rooms</p><span class="state">${mapView === 'pause' ? `In progress · room ${s.roomsCleared + 1} of ${E.TUTORIAL_ROOMS}` : 'You are here'}</span></article>`;
 }
 function mapHTML() {
   const a = mapAct(), first = a * 3, here = nextFloor();
@@ -1715,8 +1731,8 @@ function renderTitle() {
     `<button data-mode="${k}" aria-pressed="${gameMode() === k}"${tipAttr(label, sub)}><b>${label}</b></button>`).join('')}</div>`;
   app.className = 'title'; delete app.dataset.place; setAmbient(null);
   app.innerHTML = `<section class="titlecard">
-    <div class="logo">${img('icons/emblem-guild.webp', 'emblem')}<h1>Guild Ledger</h1></div>
-    <p class="tagline">Sign a contract, clear the dungeon, get paid. Don't let the ledger bury you.</p>
+    <div class="logo"><h1>${img('ui/logo.webp', 'logoart', 'Scapegrace')}</h1></div>
+    <p class="tagline">The goat knows the way down. Sign contracts, clear the dungeon, get paid. Try to keep up.</p>
     ${modes}
     <button class="primary play" data-play${tipAttr('Play', 'Starts with a short training floor. You can skip it.')}>Play</button>
     ${boardHTML()}
@@ -1736,7 +1752,7 @@ function render() {
   if (where) app.dataset.place = where; else delete app.dataset.place;
   const pauseBtn = canPause() && !mapView ? `<button class="pause" data-pause aria-label="Pause" title="Pause (Esc)">${img('icons/hud-pause.webp')}</button>` : '';
   const more = tut ? '' : `<button class="more" data-more aria-expanded="${moreOpen}" title="How to play and top scores">${moreOpen ? 'Close' : 'More'}</button>`;
-  const head = `<header><h1>${img('icons/emblem-guild.webp', 'emblem')}Guild Ledger</h1>${more}<span class="muted where">${img(crestOf(where), 'crest')}${tut ? 'Training floor' : `Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span>${pauseBtn}</header>`;
+  const head = `<header><h1>${img('icons/emblem-goat.webp', 'emblem')}Scapegrace</h1>${more}<span class="muted where">${img(crestOf(where), 'crest')}${tut ? 'Training floor' : `Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span>${pauseBtn}</header>`;
   // extras (rules, scores, footer) sit under the side column on wide screens and behind the More button on phones
   const cols = (side, stage, extras = '') => `<div class="cols"><div class="side">${side}<div class="extras">${extras}${syncNote()}<p class="muted version">v${VERSION}</p></div></div><div class="stage">${stage}</div></div>`;
   let body = '';
@@ -2034,7 +2050,7 @@ store.set('mode', 'guided');
 render();
 </script>
 <script>
-// Guild Ledger: card warnings and status tooltips. A self-contained add-on loaded after the game's UI script.
+// Scapegrace: card warnings and status tooltips. A self-contained add-on loaded after the game's UI script.
 // It wraps the global render() and decorates the DOM it produces; it never changes game state.
 (function () {
   const css = document.createElement('style');

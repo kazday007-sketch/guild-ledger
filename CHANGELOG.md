@@ -1,12 +1,41 @@
 # Changelog
 
-Guild Ledger uses a three-part version number, `MAJOR.MINOR.PATCH`:
+Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number, `MAJOR.MINOR.PATCH`:
 
 - **MAJOR**: a complete overhaul or redesign of the game.
 - **MINOR**: an update (new content, balance changes, new features). Resets PATCH to 0.
 - **PATCH**: bug fixes only.
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
+
+## 1.21.0 (2026-10-09)
+New lettering with a dungeon feel, still easy to read.
+
+- **Titles and headings** use Grenze Gotisch, a gothic face with a carved, old-dungeon look that stays readable at a glance.
+- **All other text** (tips, buttons, contracts, the shop, the log) uses Alegreya, an old-book serif made for long reading, in place of the modern sans-serif.
+- **Numbers on cards, stamps and plates** use Cinzel, carved Roman capitals with clean upright figures. Every number in the game uses upright figures, so health, points and gold read at a glance.
+- The epitaph line on the death screen is in Alegreya italic.
+- Sideways phones: the title tagline gets a slightly wider column so it stays on two lines and the title screen still fits without scrolling.
+- The fonts now ship with the game (in `assets/fonts`, under the SIL Open Font License) instead of loading from Google Fonts, so they show up even when Google is blocked or slow.
+
+## 1.20.0 (2026-10-09)
+The game is now called **Scapegrace**, and an old goat replaces the guild clerk.
+
+- **New name and logo.** Scapegrace (an old word for a reckless rogue, and a nod to Scoundrel, the card game this one grew from). The title screen shows the new logo, the goat over the name, and the book crest in the header and browser tab is now a goat crest.
+- **The goat.** Years ago the guild threw a goat into the dungeon to take the blame. It never died. Now it knows the place inside out and shows each new recruit (you) the way. It takes over every place the clerk was: the tips panel, the training, the floor results and the shop, with the same moods (calm, smug, unimpressed, a bit concerned for you, impressed, counting coins, stamping).
+- **Its voice.** The training opens with the goat introducing itself, and a few tips get a dry remark from it. Every instruction says the same thing as before. The panel labels read "The goat says" and "The goat's tally".
+- **New title, victory, defeat and guild hall backgrounds**, each with the goat in it.
+- The guild, contracts, dues, strikes, bosses, monsters, relics, shop and map are unchanged. Run reports now start with "Scapegrace v1.20.0".
+- Upright phones: the title background shifts left so the painted goat doesn't sit behind the logo goat.
+
+## 1.19.2 (2026-10-09)
+Sharper batch 3 art, with the large pieces redrawn.
+
+- The table surfaces for each place were small tiles stretched to 360 px squares, which blurred and squashed them. They now show at the size they were painted, with no stretching.
+- The boss and training backgrounds no longer get a sharpening pass, which left halos around edges.
+- Backgrounds are saved at WebP quality 86 instead of 72, table surfaces at 90 instead of 72, and atmosphere layers at 85 instead of 70. The map medallions are kept at 240 px instead of 160 px, so they stay sharp on high-density screens.
+- The boss and training backgrounds and all six table surfaces are redrawn at full size: each background is its own 1376x768 painting, and each surface is about 600-690 px, shown without stretching.
+- The Crypt's fog layer is redrawn larger. The other atmosphere layers are unchanged.
 
 ## 1.19.1 (2026-10-09)
 Contracts and cards sized to the screen, with no scrolling.
