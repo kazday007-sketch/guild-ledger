@@ -1,7 +1,17 @@
 <title>Scapegrace</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Alegreya+Sans:wght@400;500;700&family=Spline+Sans+Mono:wght@500;700&display=swap">
+<link rel="preload" href="assets/fonts/grenze-gotisch-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/alegreya-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/cinzel-700.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+/* Fonts are self-hosted in assets/fonts (SIL Open Font License, see OFL-*.txt).
+   Grenze Gotisch: headings and titles. Alegreya: body text. Cinzel: numbers on cards, stamps and plates.
+   Each single-weight face claims the whole weight range so the browser never fakes a bold. */
+@font-face { font-family: "Grenze Gotisch"; src: url(assets/fonts/grenze-gotisch-600.woff2) format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Cinzel"; src: url(assets/fonts/cinzel-700.woff2) format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Alegreya"; src: url(assets/fonts/alegreya-400.woff2) format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Alegreya"; src: url(assets/fonts/alegreya-500.woff2) format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Alegreya"; src: url(assets/fonts/alegreya-700.woff2) format("woff2"); font-weight: 600 900; font-display: swap; }
+@font-face { font-family: "Alegreya"; src: url(assets/fonts/alegreya-400-italic.woff2) format("woff2"); font-weight: 100 900; font-style: italic; font-display: swap; }
 /* Layout: a single-column dungeon table. Status ledger on top, the room of four cards in the middle, contract and log below. Deliberately dark, single theme. */
 :root {
   color-scheme: dark;
@@ -16,17 +26,19 @@
   --steel: #7aa6d8;      /* weapons */
   --ink: #1d1a17;        /* text on bone */
   --gold: #e0b450;
-  --display: "IM Fell English SC", "Iowan Old Style", Georgia, serif;
-  --body: "Alegreya Sans", "Segoe UI", system-ui, sans-serif;
-  --mono: "Spline Sans Mono", ui-monospace, Menlo, monospace;
+  --display: "Grenze Gotisch", "Iowan Old Style", Georgia, serif;
+  --body: "Alegreya", "Iowan Old Style", Georgia, serif;
+  --mono: "Cinzel", "Iowan Old Style", Georgia, serif;  /* numbers: carved capitals with crisp lining figures */
 }
 * { box-sizing: border-box; }
+/* Alegreya and Grenze default to old-style figures; lining figures keep every number in the game upright and crisp (the font shorthand would otherwise reset this). */
+* { font-variant-numeric: lining-nums !important; }
 html, body { background: var(--stone); color: var(--bone); }
 body { font: 16px/1.45 var(--body); margin: 0; padding-inline: 16px; padding-block: 16px 40px; }
 main { max-width: 760px; margin: 0 auto; display: grid; gap: 14px; }
 h1 { font: 400 30px/1 var(--display); margin: 0; letter-spacing: .02em; }
 h2 { font: 400 20px/1.1 var(--display); margin: 0; letter-spacing: .03em; text-wrap: balance; }
-.mono, .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.mono, .num { font-family: var(--mono); font-variant-numeric: lining-nums tabular-nums !important; }
 .muted { color: var(--ash); }
 .label { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--ash); }
 header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
@@ -860,7 +872,7 @@ main.solo:has(> .end) > details.lb { margin: 0; max-width: none; }
 .end.dead { border: 2px solid #5c1d22; border-image: none; border-radius: 14px; background: radial-gradient(ellipse at 50% 0, rgba(130,24,30,.38), rgba(16,9,11,.94) 70%); box-shadow: 0 0 0 1px rgba(0,0,0,.6), 0 0 46px rgba(170,32,40,.32), inset 0 0 60px rgba(0,0,0,.6); }
 .end .label.ending { color: #d9a0a3; letter-spacing: .2em; }
 .end.dead h2 { color: #ef6a71; font-size: 38px; text-shadow: 0 0 18px rgba(208,84,91,.55), 0 2px 0 #000; }
-.end .epitaph { margin: 0; max-width: 34ch; font: italic 400 21px/1.3 var(--display); color: var(--bone); text-wrap: balance; }
+.end .epitaph { margin: 0; max-width: 34ch; font: italic 400 21px/1.3 var(--body); color: var(--bone); text-wrap: balance; }
 .end .epitaph::before { content: '“'; } .end .epitaph::after { content: '”'; }
 .end .tally { margin: 0; font-size: 15px; }
 .killer { position: relative; width: 138px; aspect-ratio: 4 / 5; transform: rotate(-5deg); animation: killerin .7s cubic-bezier(.2,1.3,.4,1) both; }
@@ -1029,7 +1041,7 @@ main.play .stage .offer .cl { font-size: clamp(10px, calc(var(--w) * .07), 15px)
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.20.0';
+const VERSION = '1.21.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
