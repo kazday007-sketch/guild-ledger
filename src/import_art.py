@@ -98,3 +98,19 @@ for f in each('ui/panels/*.png'):
     save(Image.open(f).convert('RGBA'), f'ui/{strip(f, "")}.webp', (320, 320), 85)
 for f in each('cards/frames/*.png'):
     save(Image.open(f).convert('RGBA'), f'cards/{strip(f, "card-")}.webp', None, 85)
+
+# Batch 3 art (2026-10-09): a table and frame for each place, atmosphere layers, crests, endings, medals,
+# map medallions and shop pieces. Already cut out; new effects, portraits and backgrounds use the loops above.
+for f in each('ui/tables/table-*.png'):
+    save(Image.open(f).convert('RGB'), f'ui/{strip(f, "")}.webp', (512, 512), 72)
+for f in each('ui/tables/frame-*.png'):
+    save(Image.open(f).convert('RGBA'), f'ui/{strip(f, "")}.webp', (360, 360), 85)
+for f in each('ui/ambient/ambient-*.png'):
+    save(Image.open(f).convert('RGBA'), f'ui/{strip(f, "")}.webp', (1024, 576), 70)
+for f in each('ui/crests/crest-*.png') + each('ui/map/*.png'):
+    save(Image.open(f).convert('RGBA'), f'ui/{strip(f, "")}.webp', (160, 160), 85)
+save(Image.open(os.path.join(src, 'ui/crests/ribbon.png')).convert('RGBA'), 'ui/ribbon.webp', (420, 110), 85)
+for f in each('ui/end/*.png'):
+    save(Image.open(f).convert('RGBA'), f'ui/{strip(f, "")}.webp', (240, 240), 85)
+for f in each('ui/shop/*.png'):
+    save(Image.open(f).convert('RGBA'), f'ui/{strip(f, "")}.webp', (420, 240), 85)
