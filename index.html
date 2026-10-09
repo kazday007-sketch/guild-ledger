@@ -1109,6 +1109,11 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
   main.play .stage .shop .ware b { grid-column: 1; grid-row: 2; align-self: center; }
   main.play .stage .shop .ware .buyrow { grid-column: 1; grid-row: 3; width: 100%; }
 }
+/* the shop's dues reminder stays on every screen size: it's the last chance to keep the gold back */
+.shop .warn.dueswarn { display: block !important; text-align: center; }
+.shop .warn.dueswarn.ok, .shop .warn.dueswarn.ok b { color: var(--gold); }
+.shop .warn.dueswarn.short, .shop .warn.dueswarn.short b { color: #f08a8f; }
+@media (max-height: 400px) and (orientation: landscape) { .shop .warn.dueswarn { padding: 2px 8px; font-size: 12px; } }
 </style>
 
 <div id="scene" aria-hidden="true"></div>
@@ -1447,6 +1452,55 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
   }
   function leaveShop(s) { if (s.phase !== 'shop') return; s.floor++; startFloor(s); }
 
+  // What the HUD shows about dues: the next dues you'll owe (for the act you're in, or heading into from the shop),
+  // and the floor (1-based) they're collected after. null when none are coming (training, guided act 1, run over).
+  function duesAhead(s) {
+    if (s.tutorial || !['bid', 'room', 'shop'].includes(s.phase)) return null;
+    const f = s.phase === 'shop' ? s.floor + 1 : s.floor, a = Math.floor(f / 3), last = a * 3 + 2;
+    if (a > 2 || (s.guided && last < UNLOCK.contracts)) return null;
+    return { due: DUES[a], act: a, floor: last + 1, next: f === last };
+  }
+  // The biggest monster your weapon can hit right now, with Keen Edge and Whetstone counted. null: no limit yet.
+  function weaponReach(s) {
+    if (!s.weapon || s.weapon.limit == null) return null;
+    return Math.max(s.weapon.limit + (has(s, 'keenedge') ? 2 : 0), has(s, 'whetstone') ? 8 : 0);
+  }
+  const nextCard = s => s.draw[0] || null;
+
+  // ---------- developer mode (?dev=1): jump anywhere, grant anything. Never used by a normal run. ----------
+  // Start floor f (0-based) fresh: the deck is rebuilt with the elites of every act reached so far.
+  function devJump(s, f) {
+    f = Math.max(0, Math.min(FLOORS - 1, f | 0));
+    s.deck = startingDeck();
+    if (f > 3) s.deck.push(card('monster', 15, '★'), card('monster', 15, '★'));
+    if (f > 6) s.deck.push(card('monster', 17, '★'), card('monster', 17, '★'));
+    s.floor = f; s.sealUsed = false; s.shop = null; s.lastResult = null;
+    if (s.hp <= 0) s.hp = s.maxHp;
+    startFloor(s);
+    log(s, `Dev: jumped to floor ${f + 1}.`);
+  }
+  // Skip to room n (0-based) of the current floor with a fresh deal.
+  function devRoom(s, n) {
+    if (s.phase === 'bid') bid(s, 0);
+    if (s.phase !== 'room') return false;
+    s.draw.push(...s.room); s.room = s.draw.splice(0, 4);
+    newRoom(s); s.fledStreak = 0; s.roomsCleared = Math.max(0, Math.min(ROOMS_PER_FLOOR - 1, n | 0));
+    return true;
+  }
+  function devGrant(s, key) {
+    if (!RELICS[key] || has(s, key)) return false;
+    s.relics.push(key);
+    if (key === 'hide') { s.maxHp += 6; s.hp = Math.min(s.maxHp, s.hp + 6); }
+    return true;
+  }
+  // End the floor now with the points you have, so its payout, interest and dues settle.
+  function devEndFloor(s) {
+    if (s.phase === 'bid') bid(s, 0);
+    if (s.phase !== 'room') return false;
+    s.roomsCleared = ROOMS_PER_FLOOR; endFloor(s);
+    return true;
+  }
+
   // A training floor with a stacked deck, used by the tutorial: clear a room, flee a room of big monsters, then clear one more.
   function newTutorial() {
     const s = newGame(1);
@@ -1464,6 +1518,7 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
     newGame, newTutorial, bid, flee, canFlee, handle, buy, dropRelic, leaveShop, allowedTiers, payout,
     canRaise, raise, canRedraw, redraw,
     canUseWeapon, monsterDamage, contractPoints, potionHeal, resolveCard, rankLabel, act,
+    duesAhead, weaponReach, nextCard, devJump, devRoom, devGrant, devEndFloor,
   };
   if (typeof module !== 'undefined') module.exports = api; else root.Engine = api;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -1473,11 +1528,14 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.22.1';
+const VERSION = '1.23.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
-const webReports = () => !!(REPORT.url && REPORT.entry) && dbState !== 'on';
+// Developer mode: the same build opened with ?dev=1. It adds the dev panel (see the add-on at the end) and never
+// sends run reports or saves runs, so test runs stay off the playtest sheet and the leaderboard.
+const DEV = new URLSearchParams(location.search).get('dev') === '1';
+const webReports = () => !DEV && !!(REPORT.url && REPORT.entry) && dbState !== 'on';
 const app = document.getElementById('app');
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 // A hold / hover tip (see "hold / hover tips" below). The text may hold <b>; it is always the game's own wording.
@@ -1631,7 +1689,7 @@ let db = null, uid = null, owner = false, myDoc = null, saving = Promise.resolve
   render();
 })();
 function save() {
-  if (dbState !== 'on' || !rec) return;
+  if (DEV || dbState !== 'on' || !rec) return;
   const snapshot = JSON.parse(JSON.stringify(rec));
   saving = saving.then(async () => {
     const runs = myDoc.runs.filter(r => r.id !== snapshot.id);
@@ -1689,13 +1747,15 @@ function currentHint() {
   const h = list.find(([k, cond]) => cond && !seenHints[k]);
   return h ? { key: h[0], text: h[2], focus: h[3] } : null;
 }
+// Shown in the shop and on the floor right before the guild collects. In the shop it stays up even when you can pay,
+// so nobody spends their dues by accident; it turns red when you're short.
 function duesWarning() {
-  if (tut || !contractsOpen() || !['bid', 'room', 'shop'].includes(s.phase)) return '';
-  const lastOfAct = s.phase === 'shop' ? s.floor % 3 === 1 : s.floor % 3 === 2;
-  if (!lastOfAct) return '';
-  const due = E.DUES[s.phase === 'shop' ? E.act({ floor: s.floor + 1 }) : E.act(s)];
-  if (s.gold >= due) return '';
-  return `<p class="warn short"${tipAttr('Guild dues', `Due after ${s.phase === 'shop' ? 'the next floor' : 'this floor'}. If you can't pay, it's a strike.`)}>Dues <b class="num">${due}</b>g · you have <b class="num">${s.gold}</b></p>`;
+  const d = !tut && E.duesAhead(s);
+  if (!d || !d.next) return '';
+  const short = s.gold < d.due, shop = s.phase === 'shop';
+  if (!short && !shop) return '';
+  const when = shop ? 'after the next floor' : 'after this floor';
+  return `<p class="warn dueswarn ${short ? 'short' : 'ok'}"${tipAttr('Guild dues', `The guild collects <b>${d.due}</b> gold ${when}. If you can't pay, it's a strike and they take what you have.`)}>${shop ? `Dues <b class="num">${d.due}</b>g ${when}` : `Dues <b class="num">${d.due}</b>g`} · you have <b class="num">${s.gold}</b>${shop && !short ? `, so keep <b class="num">${d.due}</b>` : ''}</p>`;
 }
 
 const survival = () => !!(tut || (s.contract && s.contract.survival));
@@ -1810,14 +1870,20 @@ function cardHTML(c, active) {
     <div class="name"><span class="face">${cardName(c)}</span></div>
     <div class="acts">${acts}</div></article>`;
 }
+// The Guild box's dues: the next dues ahead (in the shop, the coming act's), or none once the last are paid.
+function duesCell() {
+  const d = E.duesAhead(s);
+  return d ? `<span class="dues ${s.gold < d.due ? 'short' : ''}"><b class="num price">${d.due}</b>g due</span>` : '';
+}
 function statusHTML() {
-  const w = s.weapon ? `${s.weapon.v}${s.weapon.limit == null ? '' : ` <span class="muted lim"><span class="lg">hits up to</span><span class="sm">max</span> ${s.weapon.limit}</span>`}` : '<span class="muted">none</span>';
+  const reach = E.weaponReach(s); // Keen Edge and Whetstone stretch what the weapon can hit
+  const w = s.weapon ? `${s.weapon.v}${reach == null ? '' : ` <span class="muted lim"><span class="lg">hits up to</span><span class="sm">max</span> ${reach}</span>`}` : '<span class="muted">none</span>';
   const cells = [
     `<div class="stat hp"><span class="label">${img('icons/hud-hp.webp')}Health</span><span class="num">${s.hp}<span class="muted">/${s.maxHp}</span></span><div class="hpbar"><i style="width:${100 * s.hp / s.maxHp}%"></i></div></div>`,
     goldOpen() && `<div class="stat gold"><span class="label">${img('icons/hud-gold.webp')}Gold</span><span class="num price">${s.gold}</span></div>`,
     `<div class="stat weapon"><span class="label">${img('icons/hud-weapon-slot.webp')}Weapon</span><span class="num">${w}</span></div>`,
     contractsOpen() && `<div class="stat guild"><span class="label">${img('icons/hud-strike.webp')}Strikes</span><div class="pips" title="${s.strikes} of 3 strikes">${[0, 1, 2].map(i => `<span class="pip ${i < s.strikes ? 'on' : ''}"></span>`).join('')}</div>
-      <span class="dues ${s.gold < E.DUES[E.act(s)] ? 'short' : ''}"><b class="num price">${E.DUES[E.act(s)]}</b>g due</span></div>`,
+      ${duesCell()}</div>`,
   ].filter(Boolean);
   return `<section class="status n${cells.length}" aria-label="Status">${cells.join('')}</section>`;
 }
@@ -2207,7 +2273,7 @@ function render() {
     const up = E.canRaise(s) && !tut && { tier: s.contract.tier + 1, target: E.TARGETS[s.floor][s.contract.tier + 1], pay: E.payout(s, s.contract.tier + 1, s.contract.clause) };
     const fleeOk = E.canFlee(s) && (!tut || !!(TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.flee));
     body = cols(`${coachHTML()}${statusHTML()}${bossHTML()}${survival() ? '' : contractHTML()}${duesWarning()}`, `
-      ${roomHTML(true, `${up ? `<button data-raise${tipAttr('Raise your contract', `Kill <b>${up.target}</b> points instead, for <b>${up.pay}</b> gold. Between rooms, once per floor.`)}>${img('icons/hud-raise.webp', 'bi')}${s.contract.clause ? 'Raise' : `Raise to ${E.TIERS[up.tier]}`}</button>` : ''}
+      ${roomHTML(true, `${up ? `<button data-raise${tipAttr('Raise your contract', `Kill <b>${up.target}</b> points instead, for <b>${up.pay}</b> gold. Between rooms, ${s.relics.includes('loaded') ? 'twice' : 'once'} per floor.`)}>${img('icons/hud-raise.webp', 'bi')}${s.contract.clause ? 'Raise' : `Raise to ${E.TIERS[up.tier]}`}</button>` : ''}
         ${E.canRedraw(s) && !tut ? `<button data-redraw${tipAttr('Fortune Teller', 'Redraw this room. Once per floor, before you pick a card.')}>Redraw room</button>` : ''}<button data-flee ${fleeOk ? '' : 'disabled'} class="${tut && fleeOk ? 'lit' : ''}">${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room</button>`)}<div class="belt">${relicsHTML(false)}${peekHTML()}</div>`, `${tut ? '' : rulesHTML()}${boardHTML()}${statsHTML()}`);
   } else if (s.phase === 'shop') {
     // The guild hall's shop: the clerk at the counter reads out your floor, and the wares hang on a wooden board
@@ -2511,8 +2577,8 @@ render();
     const app = document.getElementById('app');
     const header = app.querySelector('header');
     const tips = { Health: 'Reach 0 and the run ends.', Gold: 'Earned on each floor. Pays for relics, services and dues.', Weapon: 'Softens monster hits. After a kill it can only hit monsters up to that size.', Strikes: 'Missed contracts and unpaid dues give a strike. 3 strikes ends the run. Dues are paid at the end of each act.' };
-    const dues = E.DUES[E.act(s)];
-    if (!inTraining()) tips.Strikes = `${s.strikes} of 3. A missed contract or unpaid dues is a strike, and 3 ends the run. Dues: <b>${dues}</b> gold after floor ${E.act(s) * 3 + 3}.`;
+    const d = E.duesAhead(s);
+    if (!inTraining()) tips.Strikes = `${s.strikes} of 3. A missed contract or unpaid dues is a strike, and 3 ends the run.${d ? ` Dues: <b>${d.due}</b> gold after floor ${d.floor}.` : ' No more dues this run.'}`;
     app.querySelectorAll('.status .stat').forEach(el => { const k = Object.keys(tips).find(k => el.querySelector('.label').textContent.includes(k)); if (k) { el.dataset.tipTitle = k === 'Strikes' ? 'Strikes and dues' : k; el.dataset.tip = tips[k]; } });
     if (inTraining()) return;
     if (s.phase === 'room') { // a disabled button gets no pointer events in some browsers, so it keeps a plain title too
@@ -2524,6 +2590,146 @@ render();
   const baseRender = render;
   render = function () { baseRender(); decorate(); };
   render();
+})();
+</script>
+<script>
+// Scapegrace developer mode: open the game with ?dev=1. A self-contained add-on loaded after the game's UI script.
+// The DEV button opens a panel to jump to any floor or room, deal any cards, grant any relic, set health, gold,
+// strikes and weapon, and settle a floor at once (payout, interest and dues). Dev runs never send reports or save.
+(function () {
+  if (!DEV) return;
+  const E = window.Engine;
+  const css = document.createElement('style');
+  css.textContent = `
+#devbtn { position: fixed; right: 8px; bottom: 8px; z-index: 9002; opacity: .85; font: 700 12px/1 system-ui, sans-serif; padding: 7px 10px; border-radius: 6px;
+  background: #b0302e; color: #fff; border: 0; cursor: pointer; letter-spacing: .08em; box-shadow: 0 2px 6px rgba(0,0,0,.5); }
+#devpanel { position: fixed; right: 8px; top: 8px; bottom: 46px; width: min(340px, calc(100vw - 16px)); z-index: 9001; overflow-y: auto;
+  background: #15171c; color: #e8e2d4; border: 1px solid #b0302e; border-radius: 8px; padding: 10px; font: 13px/1.35 system-ui, sans-serif;
+  box-shadow: 0 6px 24px rgba(0,0,0,.6); font-variant-numeric: lining-nums; }
+#devpanel[hidden] { display: none; }
+@media (min-width: 1100px) { body.devopen { padding-right: 356px; } body.devopen #scene { right: 356px; } } /* wide screens: the game moves over */
+#devpanel h3 { font: 700 11px/1 system-ui, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: #f08a8f; margin: 12px 0 6px; }
+#devpanel h3:first-of-type { margin-top: 0; }
+#devpanel .row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-bottom: 4px; }
+#devpanel button { font: 12px/1 system-ui, sans-serif; padding: 6px 8px; border-radius: 4px; border: 1px solid #444a55; background: #262a33; color: #e8e2d4; cursor: pointer; min-width: 0; }
+#devpanel button:hover { border-color: #e0b450; }
+#devpanel button.on { background: #3d5a3a; border-color: #7fbf6a; }
+#devpanel button.here { outline: 2px solid #e0b450; }
+#devpanel input { width: 52px; font: 12px system-ui, sans-serif; padding: 5px; border-radius: 4px; border: 1px solid #444a55; background: #0e1014; color: #e8e2d4; }
+#devpanel input.wide { width: 150px; }
+#devpanel label { display: inline-flex; gap: 3px; align-items: center; }
+#devpanel .relicgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px; }
+#devpanel .relicgrid button { display: flex; gap: 5px; align-items: center; text-align: left; padding: 3px 5px; }
+#devpanel .relicgrid img { width: 20px; height: 20px; flex: none; }
+#devpanel .note { color: #9aa0aa; font-size: 11.5px; margin: 2px 0 6px; }
+#devpanel .state { color: #c9c2b3; font-size: 12px; background: #0e1014; border-radius: 4px; padding: 5px 7px; }
+#devpanel .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+#devpanel .head b { color: #f08a8f; letter-spacing: .08em; }
+`;
+  document.head.appendChild(css);
+
+  const btn = document.createElement('button');
+  btn.id = 'devbtn'; btn.textContent = 'DEV'; btn.title = 'Developer panel';
+  const panel = document.createElement('aside');
+  panel.id = 'devpanel'; panel.hidden = true; panel.setAttribute('aria-label', 'Developer panel');
+  document.body.append(btn, panel);
+  const toggle = open => { panel.hidden = !open; document.body.classList.toggle('devopen', open); render(); };
+  btn.addEventListener('click', () => toggle(panel.hidden));
+
+  let devId = 100000;
+  const SUIT = { m: '♠', c: '♣', w: '♦', p: '♥' };
+  const KIND = { m: 'monster', c: 'monster', w: 'weapon', p: 'potion' };
+  // "m9 c12 w7 p5 m15": m = undead monster, c = beast monster, w = weapon, p = potion. 15 and 17 are elites.
+  function parseCards(text) {
+    return text.trim().split(/[\s,]+/).filter(Boolean).map(tok => {
+      const m = /^([mcwp])(\d{1,2})$/i.exec(tok); if (!m) return null;
+      const k = m[1].toLowerCase(), v = +m[2];
+      return { id: devId++, kind: KIND[k], v, suit: KIND[k] === 'monster' && v >= 15 ? '★' : SUIT[k] };
+    }).filter(Boolean).slice(0, 4);
+  }
+  const live = () => !titleOn && s && !tut && ['bid', 'room', 'shop'].includes(s.phase);
+  function ensureRun(guided) {
+    if (live() && guided == null) return;
+    titleOn = false; tut = null; lastHit = null;
+    s = E.newGame(undefined, { guided: guided == null ? gameMode() === 'guided' : guided });
+    rec = newRec(); rec.mode = s.guided ? 'guided' : 'full'; rec.dev = true;
+  }
+  function done() { mapView = null; paused = false; moreOpen = false; if (typeof noteSurvivalFloor === 'function') noteSurvivalFloor(); render(); paint(); }
+  const num = (id, d) => { const v = parseInt(panel.querySelector('#' + id).value, 10); return Number.isFinite(v) ? v : d; };
+
+  const actions = {
+    run: b => { ensureRun(b.dataset.run === 'guided'); done(); },
+    floor: b => { ensureRun(); E.devJump(s, +b.dataset.floor); done(); },
+    room: b => { ensureRun(); if (s.phase === 'shop') E.leaveShop(s); E.devRoom(s, +b.dataset.room); done(); },
+    meet: () => { ensureRun(); if (s.phase === 'bid') E.bid(s, 0); if (s.contract) s.slain = Math.max(s.slain, s.contract.target); done(); },
+    end: () => {
+      ensureRun(); const prev = s.phase;
+      if (E.devEndFloor(s)) { if (prev !== 'shop') afterAction('room'); }
+      done();
+    },
+    shop: () => { ensureRun(); if (s.phase !== 'shop') E.devEndFloor(s); if (s.phase === 'shop') s.shop.relics = Object.keys(E.RELICS).filter(k => !s.relics.includes(k)); done(); },
+    leave: () => { if (s && s.phase === 'shop') { E.leaveShop(s); } done(); },
+    stats: () => {
+      ensureRun();
+      s.maxHp = Math.max(1, num('dv-max', s.maxHp)); s.hp = Math.max(1, Math.min(s.maxHp, num('dv-hp', s.hp)));
+      s.gold = Math.max(0, num('dv-gold', s.gold)); s.strikes = Math.max(0, Math.min(2, num('dv-strikes', s.strikes)));
+      done();
+    },
+    weapon: () => {
+      ensureRun(); const v = num('dv-wv', 0), lim = panel.querySelector('#dv-wl').value.trim();
+      s.weapon = v > 0 ? { v, limit: lim === '' ? null : +lim } : null; done();
+    },
+    deal: () => {
+      ensureRun(); if (s.phase === 'bid') E.bid(s, 0); if (s.phase !== 'room') return;
+      const cards = parseCards(panel.querySelector('#dv-cards').value); if (!cards.length) return;
+      s.draw.push(...s.room); s.room = cards; s.handled = 0; s.potionUsed = false; s.roomKills = 0; s.fledStreak = 0;
+      done();
+    },
+    peek: () => {
+      ensureRun(); const cards = parseCards(panel.querySelector('#dv-cards').value); if (!cards.length) return;
+      s.draw.unshift(...cards); done();
+    },
+    relic: b => {
+      ensureRun(); const k = b.dataset.relic;
+      if (s.relics.includes(k)) E.dropRelic(s, k); else E.devGrant(s, k);
+      done();
+    },
+    close: () => toggle(false),
+    hints: () => { ['survive', 'gold', 'contracts', 'strikes', 'met', 'relics', 'dues', 'tiers', 'raise', 'bossroom', 'boss', 'clause', 'limit'].forEach(k => seenHints[k] = true); done(); },
+  };
+  panel.addEventListener('click', e => {
+    const b = e.target.closest('button[data-dv]'); if (!b || busy) return;
+    actions[b.dataset.dv](b);
+  });
+
+  function paint() {
+    if (panel.hidden) return;
+    const on = live();
+    const here = on ? (s.phase === 'shop' ? `Shop after floor ${s.floor + 1}` : `Floor ${s.floor + 1}, room ${s.roomsCleared + 1}${s.phase === 'bid' ? ' (choosing a contract)' : ''}`) : titleOn ? 'Title screen' : tut ? 'Training' : s ? s.phase : 'No run';
+    const d = on && E.duesAhead(s);
+    const c = on && s.contract;
+    const floorBtns = Array.from({ length: E.FLOORS }, (_, f) => `<button data-dv="floor" data-floor="${f}" class="${on && s.floor === f && s.phase !== 'shop' ? 'here' : ''}" title="Act ${Math.floor(f / 3) + 1}${E.BOSSES[f] ? ', ' + E.BOSSES[f].name : ''}">${f + 1}${E.BOSSES[f] ? '★' : ''}</button>`).join('');
+    const roomBtns = Array.from({ length: E.ROOMS_PER_FLOOR }, (_, r) => `<button data-dv="room" data-room="${r}" class="${on && s.phase === 'room' && s.roomsCleared === r ? 'here' : ''}">${r + 1}</button>`).join('');
+    const relics = Object.entries(E.RELICS).map(([k, r]) => `<button data-dv="relic" data-relic="${k}" class="${on && s.relics.includes(k) ? 'on' : ''}" title="${esc(r.text)}">${img(iconOf(k))}<span>${r.name}</span></button>`).join('');
+    panel.innerHTML = `<div class="head"><b>DEVELOPER</b><span class="row" style="margin:0"><button data-dv="hints" title="Mark every one-time tip as seen">Hide tips</button><button data-dv="close">Close</button></span></div>
+      <p class="note">Test build: runs here are never reported, saved or put on the leaderboard.</p>
+      <div class="state">${esc(here)}${on ? ` · ${s.guided ? 'guided' : 'full'}<br>HP ${s.hp}/${s.maxHp} · gold ${s.gold} · strikes ${s.strikes}${s.weapon ? ` · weapon ${s.weapon.v}${s.weapon.limit != null ? ' (max ' + s.weapon.limit + ')' : ''}` : ''}${c ? `<br>Contract: ${c.survival ? 'survive' : `${s.slain}/${c.target} points, pays ${c.pay}`}` : ''}<br>${d ? `Dues ${d.due}g after floor ${d.floor}` : 'No dues ahead'}` : ''}</div>
+      <h3>New run</h3><div class="row"><button data-dv="run" data-run="guided">Guided</button><button data-dv="run" data-run="full">Full game</button></div>
+      <h3>Go to floor</h3><div class="row">${floorBtns}</div><p class="note">★ boss floor. Dues are collected when floors 3, 6 and 9 end.</p>
+      <h3>Go to room</h3><div class="row">${roomBtns}</div>
+      <h3>Settle</h3><div class="row"><button data-dv="meet">Meet contract</button><button data-dv="end" title="Pays the contract, interest and any dues, then opens the shop">End floor now</button></div>
+      <div class="row"><button data-dv="shop" title="Opens the shop with every relic on sale">Shop with all relics</button><button data-dv="leave">Leave shop</button></div>
+      <h3>Stats</h3><div class="row"><label>HP <input id="dv-hp" type="number" value="${on ? s.hp : ''}"></label><label>Max <input id="dv-max" type="number" value="${on ? s.maxHp : ''}"></label></div>
+      <div class="row"><label>Gold <input id="dv-gold" type="number" value="${on ? s.gold : ''}"></label><label>Strikes <input id="dv-strikes" type="number" min="0" max="2" value="${on ? s.strikes : ''}"></label><button data-dv="stats">Set</button></div>
+      <h3>Weapon</h3><div class="row"><label>Value <input id="dv-wv" type="number" value="${on && s.weapon ? s.weapon.v : ''}"></label><label>Max <input id="dv-wl" type="number" placeholder="none" value="${on && s.weapon && s.weapon.limit != null ? s.weapon.limit : ''}"></label><button data-dv="weapon">Set</button></div>
+      <h3>Cards</h3><div class="row"><input id="dv-cards" class="wide" placeholder="m9 c12 w7 p5"><button data-dv="deal" title="Replace the room with these cards">Deal room</button><button data-dv="peek" title="Put these on top of the pile">On top of pile</button></div>
+      <p class="note">m undead, c beast, w weapon, p potion, then the number (m15 and m17 are elites).</p>
+      <h3>Relics</h3><div class="relicgrid">${relics}</div><p class="note">Tap to give or take away. Dev mode ignores the 4-relic limit.</p>`;
+  }
+  const baseRender = render;
+  render = function () { baseRender(); paint(); };
+  // On a wide screen the panel opens straight away, so a dev link is ready to use. On phones it waits for the DEV button.
+  toggle(!narrow());
 })();
 </script>
 

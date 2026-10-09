@@ -329,6 +329,55 @@
   }
   function leaveShop(s) { if (s.phase !== 'shop') return; s.floor++; startFloor(s); }
 
+  // What the HUD shows about dues: the next dues you'll owe (for the act you're in, or heading into from the shop),
+  // and the floor (1-based) they're collected after. null when none are coming (training, guided act 1, run over).
+  function duesAhead(s) {
+    if (s.tutorial || !['bid', 'room', 'shop'].includes(s.phase)) return null;
+    const f = s.phase === 'shop' ? s.floor + 1 : s.floor, a = Math.floor(f / 3), last = a * 3 + 2;
+    if (a > 2 || (s.guided && last < UNLOCK.contracts)) return null;
+    return { due: DUES[a], act: a, floor: last + 1, next: f === last };
+  }
+  // The biggest monster your weapon can hit right now, with Keen Edge and Whetstone counted. null: no limit yet.
+  function weaponReach(s) {
+    if (!s.weapon || s.weapon.limit == null) return null;
+    return Math.max(s.weapon.limit + (has(s, 'keenedge') ? 2 : 0), has(s, 'whetstone') ? 8 : 0);
+  }
+  const nextCard = s => s.draw[0] || null;
+
+  // ---------- developer mode (?dev=1): jump anywhere, grant anything. Never used by a normal run. ----------
+  // Start floor f (0-based) fresh: the deck is rebuilt with the elites of every act reached so far.
+  function devJump(s, f) {
+    f = Math.max(0, Math.min(FLOORS - 1, f | 0));
+    s.deck = startingDeck();
+    if (f > 3) s.deck.push(card('monster', 15, '★'), card('monster', 15, '★'));
+    if (f > 6) s.deck.push(card('monster', 17, '★'), card('monster', 17, '★'));
+    s.floor = f; s.sealUsed = false; s.shop = null; s.lastResult = null;
+    if (s.hp <= 0) s.hp = s.maxHp;
+    startFloor(s);
+    log(s, `Dev: jumped to floor ${f + 1}.`);
+  }
+  // Skip to room n (0-based) of the current floor with a fresh deal.
+  function devRoom(s, n) {
+    if (s.phase === 'bid') bid(s, 0);
+    if (s.phase !== 'room') return false;
+    s.draw.push(...s.room); s.room = s.draw.splice(0, 4);
+    newRoom(s); s.fledStreak = 0; s.roomsCleared = Math.max(0, Math.min(ROOMS_PER_FLOOR - 1, n | 0));
+    return true;
+  }
+  function devGrant(s, key) {
+    if (!RELICS[key] || has(s, key)) return false;
+    s.relics.push(key);
+    if (key === 'hide') { s.maxHp += 6; s.hp = Math.min(s.maxHp, s.hp + 6); }
+    return true;
+  }
+  // End the floor now with the points you have, so its payout, interest and dues settle.
+  function devEndFloor(s) {
+    if (s.phase === 'bid') bid(s, 0);
+    if (s.phase !== 'room') return false;
+    s.roomsCleared = ROOMS_PER_FLOOR; endFloor(s);
+    return true;
+  }
+
   // A training floor with a stacked deck, used by the tutorial: clear a room, flee a room of big monsters, then clear one more.
   function newTutorial() {
     const s = newGame(1);
@@ -346,6 +395,7 @@
     newGame, newTutorial, bid, flee, canFlee, handle, buy, dropRelic, leaveShop, allowedTiers, payout,
     canRaise, raise, canRedraw, redraw,
     canUseWeapon, monsterDamage, contractPoints, potionHeal, resolveCard, rankLabel, act,
+    duesAhead, weaponReach, nextCard, devJump, devRoom, devGrant, devEndFloor,
   };
   if (typeof module !== 'undefined') module.exports = api; else root.Engine = api;
 })(typeof window !== 'undefined' ? window : globalThis);
