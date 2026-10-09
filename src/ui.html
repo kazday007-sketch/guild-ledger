@@ -905,8 +905,8 @@ main.solo:has(> .end) > details.lb { margin: 0; max-width: none; }
 @keyframes drift { from { transform: translate(-2%, 0); } to { transform: translate(2%, -1%); } }
 @keyframes flicker { 0%, 100% { opacity: .7; } 40% { opacity: .58; } 70% { opacity: .66; } }
 @media (prefers-reduced-motion: reduce) { #ambient.on, #ambient.candle.on { animation: none; } }
-main[data-place] section.chamber, main[data-place] .contract.board { --frame: 34px; border: 14px solid transparent; border-radius: 0; padding: 12px; background: var(--surface) 0 0 / 360px; border-image: var(--edge) 22% / var(--frame) / 8px stretch; box-shadow: inset 0 0 50px rgba(0,0,0,.6), 0 4px 18px rgba(0,0,0,.45); background-clip: padding-box; }
-main[data-place] .contract.board { background: var(--surface) 0 0 / 360px; }
+main[data-place] section.chamber, main[data-place] .contract.board { --frame: 34px; border: 14px solid transparent; border-radius: 0; padding: 12px; background: var(--surface) 0 0 / auto; border-image: var(--edge) 22% / var(--frame) / 8px stretch; box-shadow: inset 0 0 50px rgba(0,0,0,.6), 0 4px 18px rgba(0,0,0,.45); background-clip: padding-box; }
+main[data-place] .contract.board { background: var(--surface) 0 0 / auto; } /* tiles show at their painted size: stretching them blurred the detail */
 main[data-place] .chamber-head { background: rgba(12,9,6,.66); }
 main[data-place=crypt] { --surface: #3d4148 url(assets/ui/table-crypt.webp); --edge: url(assets/ui/frame-crypt.webp); }
 main[data-place=sewers] { --surface: #24302a url(assets/ui/table-sewers.webp); --edge: url(assets/ui/frame-sewers.webp); }
@@ -918,7 +918,7 @@ main[data-place=boss] section.chamber, main[data-place=contracts] .contract.boar
 main[data-place=vault] section.chamber { --frame: 30px; }
 main[data-place=contracts] .contract.board > .contract-row h2 { display: inline-block; padding: 4px 14px; background: rgba(12,9,6,.66); border-radius: 6px; }
 @media not ((min-width: 900px) and (min-height: 520px)) {
-  main[data-place] section.chamber, main[data-place] .contract.board { --frame: 20px; border-width: 8px; padding: 6px; border-image-outset: 4px; background-size: 240px; }
+  main[data-place] section.chamber, main[data-place] .contract.board { --frame: 20px; border-width: 8px; padding: 6px; border-image-outset: 4px; }
   main[data-place=vault] section.chamber { --frame: 18px; }
 }
 /* the place's crest: in the header, the room's title and over the act map */
@@ -1027,7 +1027,7 @@ main.play .stage .offer .cl { font-size: clamp(10px, calc(var(--w) * .07), 15px)
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.19.1';
+const VERSION = '1.19.2';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
