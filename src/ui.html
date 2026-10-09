@@ -1041,9 +1041,20 @@ main.solo { min-height: calc(100vh - 56px); min-height: calc(100svh - 56px); box
 main.solo > header { position: absolute; top: 0; left: 0; right: 0; }
 @media not ((min-width: 900px) and (min-height: 520px)) { main.solo { padding-top: 50px; min-height: calc(100vh - 32px); min-height: calc(100svh - 32px); } }
 main.play .stage .contract.board { container: board / size; }
+/* 1.26.1: the table is split by how many offers there are, so one or two contracts get the room instead of a quarter of it */
+main.play .stage .offers:not(:has(> :nth-child(2))) { --cols: 1; --rows: 1; --maxw: 340px; grid-auto-flow: row; grid-template-columns: auto; }
+main.play .stage .offers:has(> :nth-child(2)):not(:has(> :nth-child(3))) { --cols: 2; --rows: 1; --maxw: 340px; grid-auto-flow: row; grid-template-columns: repeat(2, auto); }
+main.play .stage .offers:has(> :nth-child(3)):not(:has(> :nth-child(4))) { --cols: 3; }
+main.play .stage .offers:not(:has(> :nth-child(2))) > .offer { grid-column: auto; }
+main.play .stage .offers > .offer:last-child:nth-child(odd) { width: var(--w); } /* not the phone rule's half of its own cell */
+@media (max-width: 899px) and (orientation: portrait) {
+  main.play .stage .offers:has(> :nth-child(3)):not(:has(> :nth-child(4))) { --cols: 2; }
+  main.play .stage .offers:not(:has(> :nth-child(2))) { --maxw: 280px; }
+}
 @container board (max-aspect-ratio: 3 / 2) and (min-width: 520px) {
   main.play .stage .offers:has(> :nth-child(3)) { --cols: 2; --rows: 2; --maxw: 330px; grid-auto-flow: row; grid-template-columns: repeat(2, auto); }
   main.play .stage .offers:has(> :nth-child(3)) > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+  main.play .stage .offers:has(> :nth-child(3)):not(:has(> :nth-child(4))) { --cols: 2; }
 }
 /* small notices: the pin goes to the corner, clear of the name */
 .shop .ware::before { left: auto; right: 14%; margin: 0; top: -7px; width: 14px; height: 18px; }
@@ -1169,7 +1180,7 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.27.0';
+const VERSION = '1.27.1';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board

@@ -8,6 +8,12 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.27.1 (2026-10-09)
+A lone contract fills the board.
+
+- Fixed: on upright phones a floor with only one contract showed it as a thin strip in the middle of the board. It now shows as a full-size notice.
+- One or two contracts now get the whole board on every screen instead of a quarter of it, and three contracts sit in a row of three on wide screens (still 2 by 2 on upright phones and tall boards).
+
 ## 1.27.0 (2026-10-09)
 A shorter, current Top scores board.
 
