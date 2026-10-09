@@ -270,28 +270,33 @@
     const c = s.contract; s.totalSlain += s.slain;
     if (s.tutorial) { s.phase = 'tutdone'; s.lastResult = `You made it through with ${s.hp} health left.`; return; }
     let msg;
+    // The payout screen counts these up line by line: what the contract paid, the extras, and what was taken.
+    const pay = s.payout = { floor: s.floor, slain: s.slain, target: c.target, survival: !!c.survival, outcome: null, start: s.gold, lines: [], strikes: s.strikes };
+    const line = (key, label, gold) => pay.lines.push({ key, label, gold });
     if (c.survival) {
+      pay.outcome = 'survived'; line('contract', 'Survival pay', c.pay);
       s.gold += c.pay;
       msg = `Floor survived. The guild pays you ${c.pay} gold.`;
     } else if (s.slain >= c.target) {
       const over = Math.floor((s.slain - c.target) / (has(s, 'taxman') ? 2 : 5));
       s.gold += c.pay + over;
+      pay.outcome = 'met'; line('contract', 'Contract', c.pay); if (over) line('overkill', 'Overkill', over);
       msg = `Contract met: ${s.slain}/${c.target}. +${c.pay} gold` + (over ? `, +${over} overkill.` : '.');
-      if (has(s, 'bloodpact')) { s.maxHp += 2; s.hp += 2; msg += ' Blood Pact: +2 max HP.'; }
+      if (has(s, 'bloodpact')) { s.maxHp += 2; s.hp += 2; msg += ' Blood Pact: +2 max HP.'; line('bloodpact', 'Blood Pact: +2 max health', 0); }
     } else {
-      if (has(s, 'seal') && !s.sealUsed) { s.sealUsed = true; msg = `Contract missed (${s.slain}/${c.target}), but the Insurance Seal covers it.`; }
-      else { s.strikes++; msg = `Contract missed: ${s.slain}/${c.target}. Strike ${s.strikes} of 3.`; }
-      if (has(s, 'loanshark')) { s.gold = Math.max(0, s.gold - 8); msg += ' The loan shark takes 8 gold.'; }
+      if (has(s, 'seal') && !s.sealUsed) { s.sealUsed = true; pay.outcome = 'covered'; msg = `Contract missed (${s.slain}/${c.target}), but the Insurance Seal covers it.`; }
+      else { s.strikes++; pay.outcome = 'missed'; msg = `Contract missed: ${s.slain}/${c.target}. Strike ${s.strikes} of 3.`; }
+      if (has(s, 'loanshark')) { line('loanshark', 'Loan shark', -Math.min(8, s.gold)); s.gold = Math.max(0, s.gold - 8); msg += ' The loan shark takes 8 gold.'; }
     }
     const interest = c.survival ? 0 : Math.min(has(s, 'tithe') ? 6 : 3, Math.floor(s.gold / 5));
     s.gold += interest;
-    if (interest) msg += ` Interest +${interest}.`;
+    if (interest) { msg += ` Interest +${interest}.`; line('interest', 'Interest', interest); }
     if (s.floor % 3 === 2 && !locked(s, 'contracts')) { // no dues before contracts begin
       const due = DUES[act(s)];
-      if (s.gold >= due) { s.gold -= due; msg += ` Paid ${due} gold in guild dues.`; }
-      else { s.strikes++; s.gold = 0; msg += ` Couldn't pay ${due} gold in dues: strike ${s.strikes} of 3, and the guild takes what you have.`; }
+      if (s.gold >= due) { s.gold -= due; msg += ` Paid ${due} gold in guild dues.`; line('dues', 'Guild dues', -due); }
+      else { line('dues', `Guild dues (${due} owed, strike)`, -s.gold); s.strikes++; s.gold = 0; msg += ` Couldn't pay ${due} gold in dues: strike ${s.strikes} of 3, and the guild takes what you have.`; }
     }
-    log(s, msg); s.lastResult = msg;
+    log(s, msg); s.lastResult = msg; pay.end = s.gold; pay.strikesAfter = s.strikes;
     if (s.strikes >= 3) { s.phase = 'lost'; s.lastResult = msg + ' The guild revokes your license.'; return; }
     if (s.floor === FLOORS - 1) { s.phase = 'won'; return; }
     s.phase = 'shop';

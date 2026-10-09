@@ -8,6 +8,14 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.24.0 (2026-10-09)
+A payout screen after every floor.
+
+- When a floor ends, the goat stamps the contract **PAID** or **STRIKE** (or notes that the Insurance Seal covered it), shows how many points you killed against the target, then counts your gold up line by line: the contract's pay, overkill, interest, and anything taken (the loan shark, guild dues). Each gain drops coins; the total ticks up and pops when it's done.
+- **To the shop** goes on to the shop as before. Survival floors show the guild's survival pay.
+- Dev mode's "End floor" shows the payout screen too, so the count-up is easy to test.
+- With reduced motion turned on, the payout shows its result at once.
+
 ## 1.23.0 (2026-10-09)
 A developer mode, clearer guild dues, and every relic checked.
 
