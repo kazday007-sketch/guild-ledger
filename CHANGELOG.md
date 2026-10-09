@@ -8,6 +8,14 @@ Guild Ledger uses a three-part version number, `MAJOR.MINOR.PATCH`:
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.17.0 (2026-10-09)
+Act map, pause menu, a real shop, and one loop from screen to screen: **map, floor, shop, map**.
+- **Act map.** Shows the floors of the current act side by side, like Balatro's blind select: the two regular floors and the boss floor, with the boss's portrait, name and rule. Each floor shows what it asks of you (survive 4 rooms, or the Safe/Bold/Reckless contract targets and whether a Wildcard can turn up), and whether it's done (stamped PAID or STRIKE), in progress, up next or ahead. The act's guild dues are shown underneath. On phones held upright the floors stack top to bottom.
+- **Every run starts on the map**, and so does training: the training floor is shown first, before act 1's floors. **Start training** or **Start floor N** takes you to the table. After a floor comes the shop, and **Leave shop** goes back to the map.
+- **Pause menu.** A pause button in the top right corner (or Esc) opens a short menu: Resume, Map and Main menu. The Main menu link moved here from How to play. The map opened from here has a Back button.
+- **The shop looks like a shop.** The Guild Shop is a wooden board: the clerk reads out your floor at the counter, wares hang as pinned parchment notices on shelves with brass price tags (greyed when you can't afford them), and your purse is on the sign. The next-boss card moved off the shop, since the map shows it.
+- Regular floors use a contract seal or room candle as their medallion until map art exists; see `art/map-art.md` in the project files for the map and shop art prompts.
+
 ## 1.16.0 (2026-10-09)
 Painted UI, so the whole screen matches the card art.
 - Cards have painted frames (iron corners for monsters, steel for weapons, red glass for potions, gold filigree for elites) and their number is set in inked numerals on an enamel plate in the card's colour.

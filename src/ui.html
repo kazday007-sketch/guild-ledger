@@ -601,6 +601,110 @@ details[open] > summary::before { transform: rotate(90deg); }
   .hpbar, .progress, .contract.paper .progress { height: 11px; }
   .coach, .coach.hint, .coach.done { border-image-width: 10px; }
 }
+/* ---------- pause menu and act map ---------- */
+header .pause { flex: none; width: 40px; height: 40px; padding: 6px; display: grid; place-items: center; }
+header .pause img { width: 24px; height: 24px; }
+.overlay { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 16px; background: rgba(8,10,14,.72); backdrop-filter: blur(2px); }
+.pausebox { display: grid; gap: 12px; width: min(100%, 320px); padding: 22px 22px 24px; text-align: center; border: 1px solid transparent; border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; box-shadow: 0 12px 40px rgba(0,0,0,.6); }
+.pausebox h2 { font-size: 28px; }
+.pausebox h2::after { content: ''; display: block; width: 200px; height: 30px; margin: 2px auto 0; background: url(assets/ui/divider.webp) center / contain no-repeat; }
+.pausebox button { font-size: 17px; padding: 11px 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.pausebox .muted { margin: 0; font-size: 13px; }
+/* The act map: the act's three floors side by side, boss last, like a road you walk left to right. */
+main.solo.map { max-width: 980px; }
+.actmap { display: grid; gap: 14px; justify-items: center; text-align: center; }
+.actmap > .label { color: var(--gold); }
+.actmap h2 { font-size: 34px; text-shadow: 0 2px 8px rgba(0,0,0,.8); }
+.actmap h2::after { content: ''; display: block; width: 240px; height: 34px; margin: 2px auto 0; background: url(assets/ui/divider.webp) center / contain no-repeat; }
+.floors { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; width: 100%; }
+.floors::before { content: ''; position: absolute; left: 16%; right: 16%; top: 96px; border-top: 3px dashed rgba(224,180,80,.45); z-index: 0; }
+.floor { position: relative; z-index: 1; display: grid; gap: 6px; justify-items: center; align-content: start; padding: 16px 12px 18px; border: 1px solid transparent; border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; }
+.floor.bossfloor { border-image-source: url(assets/ui/panel-gold.webp); border-image-slice: 40 fill; border-image-width: 14px; }
+.floor .token { width: 120px; height: 120px; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle, rgba(60,45,25,.85), rgba(20,16,12,.95) 70%); box-shadow: inset 0 0 0 3px #6b4e33, inset 0 0 0 6px rgba(0,0,0,.5), 0 4px 12px rgba(0,0,0,.6); }
+.floor .token img { width: 74px; height: 74px; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0,0,0,.6)); }
+.floor.bossfloor .token { border-radius: 10px; width: 112px; height: 140px; background: #151a21; box-shadow: inset 0 0 0 3px #a37b2c, 0 0 18px rgba(208,84,91,.45), 0 4px 12px rgba(0,0,0,.6); overflow: hidden; }
+.floor.bossfloor .token img { width: 100%; height: 100%; object-fit: cover; }
+.floor h3 { margin: 4px 0 0; font: 400 22px/1.1 var(--display); }
+.floor.bossfloor h3 { color: #f08a8f; }
+.floor .rule { margin: 0; font-size: 15px; color: var(--bone); max-width: 26ch; }
+.floor .task { margin: 0; font-size: 15px; color: var(--ash); }
+.floor .task b { color: var(--bone); }
+.floor .tiers { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; font-size: 14px; }
+.floor .tiers li { display: flex; align-items: center; gap: 3px; }
+.floor .tiers img { width: 24px; height: 24px; }
+.floor .state { margin-top: 4px; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ash); }
+.floor.next { transform: translateY(-6px); }
+.floor.next .state { color: #2a1d05; background: #c9a24a url(assets/ui/texture-brass.webp) center / cover; padding: 3px 12px; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,.5); }
+.floor.next .token { box-shadow: inset 0 0 0 3px #e0b450, inset 0 0 0 6px rgba(0,0,0,.5), 0 0 22px rgba(224,180,80,.55); }
+.floor.done > :not(.mark) { filter: saturate(.55) brightness(.8); }
+.floor .mark { position: absolute; z-index: 2; top: 54px; left: 50%; width: 132px; margin-left: -66px; aspect-ratio: 512 / 232; display: grid; place-items: center; pointer-events: none; transform: rotate(-8deg); }
+.floor .mark img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.floor .mark b { position: relative; font: 700 18px/1 var(--mono); letter-spacing: .12em; }
+.floor .mark.paid b { color: #2f8f3e; } .floor .mark.strike b { color: #c8312f; }
+.actmap .dues { margin: 0; padding: 8px 14px; font-size: 15px; border: 1px solid transparent; border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; }
+.actmap .go { font-size: 20px; padding: 12px 44px; font-family: var(--display); font-weight: 400; letter-spacing: .04em; }
+@media (prefers-reduced-motion: reduce) { .floor.next { transform: none; } }
+/* Phones held upright: the floors stack top to bottom, each a row with its token on the left. */
+@media (max-width: 620px) {
+  .actmap { gap: 10px; } .actmap h2 { font-size: 26px; } .actmap h2::after { height: 26px; }
+  .floors { grid-template-columns: 1fr; gap: 8px; }
+  .floors::before { left: 50px; right: auto; top: 30px; bottom: 30px; border-top: 0; border-left: 3px dashed rgba(224,180,80,.45); }
+  .floor { grid-template-columns: auto 1fr; justify-items: start; text-align: left; column-gap: 12px; row-gap: 2px; padding: 10px 12px; }
+  .floor > :not(.token):not(.mark) { grid-column: 2; }
+  .floor .token { grid-row: span 5; width: 72px; height: 72px; align-self: center; } .floor .token img { width: 46px; height: 46px; }
+  .floor.bossfloor .token { width: 72px; height: 90px; }
+  .floor h3 { font-size: 18px; margin: 0; } .floor .rule, .floor .task { font-size: 13.5px; } .floor .tiers { justify-content: flex-start; font-size: 13px; }
+  .floor .tiers img { width: 20px; height: 20px; }
+  .floor.next { transform: none; } .floor .state { margin-top: 2px; font-size: 11px; }
+  .floor .mark { top: 50%; left: auto; right: 8px; margin: -24px 0 0; width: 100px; } .floor .mark b { font-size: 14px; }
+  .actmap .dues { font-size: 13px; } .actmap .go { font-size: 18px; padding: 10px 36px; }
+}
+/* Phones held sideways: three short columns. */
+@media (max-height: 519px) and (orientation: landscape) {
+  .actmap { gap: 6px; } .actmap h2 { font-size: 22px; } .actmap h2::after { display: none; }
+  .floor { padding: 8px 10px; gap: 3px; } .floor .token { width: 64px; height: 64px; } .floor .token img { width: 40px; height: 40px; }
+  .floor.bossfloor .token { width: 56px; height: 70px; } .floors::before { top: 40px; }
+  .floor h3 { font-size: 17px; } .floor .rule, .floor .task { font-size: 13px; } .floor .mark { top: 20px; width: 100px; margin-left: -50px; }
+  .actmap .dues { padding: 4px 10px; font-size: 13px; } .actmap .go { padding: 8px 32px; font-size: 17px; }
+  .floor .ask { display: none; } .floor .tiers { gap: 6px; font-size: 12.5px; flex-wrap: nowrap; } .floor .tiers img { width: 18px; height: 18px; }
+  .floor .mark { width: 90px; margin-left: -45px; } .floor .mark b { font-size: 13px; } .floor .state { margin-top: 0; }
+}
+.floors.n4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.floor.training .token { border-radius: 10px; width: 100px; height: 125px; overflow: hidden; background: #151a21; }
+.floor.training .token img { width: 100%; height: 100%; object-fit: cover; }
+/* ---------- the shop: wares pinned to a wooden board, with brass price tags ---------- */
+.stage .shop, .shop { background: #3a2a1d url(assets/ui/texture-wood.webp) 0 0 / 256px; border: 2px solid #6b4e33; border-image: none; border-radius: 14px; box-shadow: inset 0 0 50px rgba(0,0,0,.6), 0 4px 18px rgba(0,0,0,.45); }
+.shop > .label { color: #e8d9b5; text-shadow: 0 1px 2px #000; }
+.shopsign { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 8px 16px; background: rgba(12,9,6,.62); border-radius: 10px; box-shadow: inset 0 0 0 1px rgba(224,180,80,.35); }
+.shopsign h2 { font-size: 26px; color: var(--gold); text-shadow: 0 2px 4px #000; }
+.purse { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; color: var(--ash); }
+.purse img { width: 26px; height: 26px; } .purse b { font-size: 22px; color: var(--gold); }
+.shop .settle { border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; }
+.shelf { display: grid; gap: 6px; padding: 8px 10px 16px; border-radius: 8px; background: rgba(12,9,6,.28); box-shadow: inset 0 -12px 0 #4a3322, inset 0 -14px 0 rgba(0,0,0,.5), inset 0 -16px 10px rgba(0,0,0,.3); }
+.shelf > .label { color: #e8d9b5; text-shadow: 0 1px 2px #000; }
+.shop .ware { background: url(assets/ui/panel-parchment.webp) center / 100% 100% no-repeat; border: 0; border-image: none; color: var(--paper-ink); padding: 20px 14px 14px; gap: 6px; filter: drop-shadow(0 4px 5px rgba(0,0,0,.55)); }
+.shop .ware:nth-child(2) { transform: rotate(.8deg); } .shop .ware:nth-child(3) { transform: rotate(-.7deg); }
+.shop .ware b { color: var(--paper-ink); }
+.shop .ware .desc { color: var(--paper-muted); font-size: 14px; line-height: 1.3; }
+.shop .ware .ico { filter: drop-shadow(0 2px 2px rgba(0,0,0,.4)); }
+.shop .ware.sold { opacity: .6; }
+.buyrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; }
+.tag { display: inline-flex; align-items: center; gap: 3px; padding: 3px 10px 3px 6px; border-radius: 4px 12px 12px 4px; background: #c9a24a url(assets/ui/texture-brass.webp) center / cover; color: #2a1d05; font-weight: 700; font-size: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.5); }
+.tag img { width: 18px; height: 18px; } .tag.short { filter: grayscale(.8) brightness(.8); }
+.buyrow button { padding: 6px 16px; }
+.shopexit { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.shopexit .muted { color: #d8cdb4; font-size: 14px; }
+.shop .relic { border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; }
+.shop .warn { border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; }
+@media not ((min-width: 900px) and (min-height: 520px)) {
+  .shopsign { padding: 4px 10px; } .shopsign h2 { font-size: 18px; } .purse b { font-size: 16px; } .purse img { width: 18px; height: 18px; }
+  .shelf { padding: 4px 5px 10px; gap: 3px; box-shadow: inset 0 -7px 0 #4a3322, inset 0 -9px 0 rgba(0,0,0,.5); }
+  .shop .ware { padding: 12px 7px 8px; } .shop .ware .desc { font-size: 11px; }
+  .buyrow { flex-wrap: wrap; gap: 3px; } .tag { font-size: 12px; padding: 1px 6px 1px 3px; } .tag img { width: 13px; height: 13px; }
+  .buyrow button { padding: 4px 8px; font-size: 12px; } .shopexit .muted { font-size: 12px; }
+}
+@media (max-width: 620px) { .floors.n4 { grid-template-columns: 1fr; } .floor.training .token { width: 72px; height: 90px; } }
+@media (max-height: 519px) and (orientation: landscape) { .floor.training .token { width: 56px; height: 70px; } }
 </style>
 
 <div id="scene" aria-hidden="true"></div>
@@ -613,7 +717,7 @@ details[open] > summary::before { transform: rotate(90deg); }
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.16.0';
+const VERSION = '1.17.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -649,6 +753,7 @@ const stamp = (kind, key) => {
   return `<span class="stamp ${kind} ${fresh ? 'fresh' : ''}">${img(`ui/stamp-${kind}.webp`)}<b>${kind.toUpperCase()}</b></span>`;
 };
 function scene() {
+  if (mapView) return ACTS[mapAct()].scene;
   if (s.phase === 'bid') return 'contract-board';
   if (s.phase === 'room') return ['act1-crypt', 'act2-sewers', 'act3-vault'][Math.min(2, E.act(s))];
   if (s.phase === 'shop') return 'guild-hall';
@@ -717,14 +822,14 @@ function newRec() {
 }
 // 'guided' starts with only health, weapons and potions and unlocks the rest floor by floor; 'full' has everything from floor 1.
 const gameMode = () => store.get('mode', 'guided') === 'full' ? 'full' : 'guided';
-function startRun() { tut = null; lastHit = null; s = E.newGame(undefined, { guided: gameMode() === 'guided' }); rec = newRec(); rec.mode = gameMode(); store.set('tutorial', true); noteSurvivalFloor(); }
+function startRun() { tut = null; lastHit = null; s = E.newGame(undefined, { guided: gameMode() === 'guided' }); rec = newRec(); rec.mode = gameMode(); store.set('tutorial', true); noteSurvivalFloor(); mapView = 'auto'; }
 function noteSurvivalFloor() { // a floor with no contract starts without a bid, so record it here
   if (!rec || s.phase !== 'room' || !s.contract || !s.contract.survival) return;
   const f = rec.floors[rec.floors.length - 1];
   if (f && f.floor === s.floor + 1) return;
   rec.floors.push({ floor: s.floor + 1, tier: null, survival: true, clause: null, target: 0, boss: s.boss ? s.boss.key : null, hpStart: s.hp, goldStart: s.gold, raises: 0, flees: 0 });
 }
-function startTutorial() { readReportForm(); if (rec && rec.status === 'in_progress' && rec.floors.length) { rec.status = 'abandoned'; save(); } sendReport(rec); s = E.newTutorial(); rec = null; tut = { step: 0 }; }
+function startTutorial() { readReportForm(); if (rec && rec.status === 'in_progress' && rec.floors.length) { rec.status = 'abandoned'; save(); } sendReport(rec); s = E.newTutorial(); rec = null; tut = { step: 0 }; mapView = 'auto'; }
 
 // ---------- shared playtest log (db capability) ----------
 let db = null, uid = null, owner = false, myDoc = null, saving = Promise.resolve(), dbState = 'connecting';
@@ -787,7 +892,7 @@ function currentHint() {
   const shopNow = s.phase === 'shop';
   const list = [
     ['survive', s.phase === 'room' && survival() && s.floor === 0, 'Just like training, <b>stay alive</b> for 4 rooms. Pick 3 cards in each room.', null],
-    ['gold', shopNow && s.floor === 0, '<b>New! Gold.</b> The guild paid you 6 gold for surviving. Spend it here: a <b>Bandage</b> heals 6 health. Then tap <b>Descend</b>.', '.stat.gold, .shop .services'],
+    ['gold', shopNow && s.floor === 0, '<b>New! Gold.</b> The guild paid you 6 gold for surviving. Spend it here: a <b>Bandage</b> heals 6 health. Then tap <b>Leave shop</b>.', '.stat.gold, .shop .services'],
     ['contracts', s.phase === 'bid' && !multi, '<b>New! Contracts.</b> Promise to kill this many monster points on this floor. Make it and you get gold. Miss it and you get a <b>strike</b>. Three strikes ends your run.', '.offers'],
     ['strikes', s.phase === 'bid' && contractsOpen(), 'These are your <b>strikes</b>. Miss a contract and you get one. Three strikes ends your run.', '.stat.guild'],
     ['met', s.phase === 'room' && s.contract && !survival() && s.slain >= s.contract.target, '<b>Contract met!</b> Extra points only pay a little more gold, so from here on, <b>protect your health</b>. Take the smallest hits and drink potions.', '.contract'],
@@ -879,7 +984,7 @@ function goal() {
     if (need <= 0) return { done: true, text: `Contract met! Now just stay alive for <b>${left}</b> more room${left === 1 ? '' : 's'}. Take small hits and drink potions.` };
     return { text: `Kill <b>${need}</b> more monster points in <b>${left}</b> room${left === 1 ? '' : 's'}, without your health reaching 0.` };
   }
-  if (s.phase === 'shop') return { text: `Floor ${s.floor + 1} of ${E.FLOORS} done. Spend gold if you like, then head down.` };
+  if (s.phase === 'shop') return { text: `Floor ${s.floor + 1} of ${E.FLOORS} done. Spend gold if you like, then leave the shop to see the map.` };
   return null;
 }
 
@@ -1141,6 +1246,70 @@ function settleHTML() {
   return `<section class="settle ${mark ? 'stamped' : ''}">${mark}${clerk(mood)}<div class="say"><span class="label">The clerk's ledger</span><p class="result">${esc(r)}</p></div></section>`;
 }
 
+// ---------- pause menu and act map ----------
+// Pause (the button in the header, or Esc) covers the table with a short menu. The act map shows the act's three
+// floors, boss last. Every run and the training start on it, and the shop leads back to it: map, floor, shop, map.
+// It also opens from the pause menu at any time.
+let paused = false;
+let mapView = null; // 'auto': shown after the shop, with a button into the floor. 'pause': opened from the pause menu.
+const ACTS = [{ name: 'The Crypt', scene: 'act1-crypt' }, { name: 'The Sewers', scene: 'act2-sewers' }, { name: 'The Vault', scene: 'act3-vault' }];
+const canPause = () => !titleOn && s && ['bid', 'room', 'shop'].includes(s.phase);
+const nextFloor = () => s.phase === 'shop' ? s.floor + 1 : s.floor; // the floor you're on, or heading to from the shop
+const mapAct = () => tut ? 0 : Math.min(2, Math.floor(nextFloor() / 3));
+// What floor f (0-based) will ask of you, from the engine's own unlock rules.
+function floorPlan(f) {
+  const boss = E.BOSSES[f] || null, guided = tut ? gameMode() === 'guided' : s.guided; // in training, plan for the run that follows
+  if (guided && f < E.UNLOCK.contracts) return { survival: true, boss };
+  const tiers = guided && f < E.UNLOCK.tiers ? [0] : boss && boss.key === 'recklessOnly' ? [2] : [0, 1, 2];
+  return { tiers, wild: !(guided && f < E.UNLOCK.clauses), boss };
+}
+function floorHTML(f) {
+  const p = floorPlan(f), here = tut ? -1 : nextFloor(); // in training every floor is still ahead
+  const done = f < here, now = f === here && s.phase === 'room';
+  const r = done && rec && rec.floors.find(x => x.floor === f + 1);
+  const mark = !r ? '' : r.survival ? '' : r.met ? 'paid' : r.met === false ? 'strike' : '';
+  const state = done ? (r && r.survival ? 'Survived' : r && r.met ? 'Contract met' : r && r.met === false ? 'Contract missed' : 'Cleared')
+    : now ? `In progress · room ${s.roomsCleared + 1} of ${E.ROOMS_PER_FLOOR}` : f === here ? 'Up next' : 'Ahead';
+  const token = p.boss ? img(`portraits/${bossArt[p.boss.key]}.webp`, '', p.boss.name)
+    : p.survival ? img('ui/pip-room-on.webp') : img(tierSeal(p.tiers[0]));
+  const task = p.survival ? `<p class="task"><b>Survive</b> ${E.ROOMS_PER_FLOOR} rooms · pays <span class="num price">${E.SURVIVAL_PAY}</span> gold</p>`
+    : `<p class="task ask">Contract: kill this many points</p><ul class="tiers">${p.tiers.map(t => `<li>${img(tierSeal(t))}${E.TIERS[t]} <b class="num">${E.TARGETS[f][t]}</b></li>`).join('')}</ul>
+      ${p.wild ? '<p class="task">or a Wildcard, for more gold and a twist</p>' : ''}`;
+  return `<article class="floor ${p.boss ? 'bossfloor' : ''} ${done ? 'done' : f === here ? 'next' : 'later'}">
+    ${mark ? `<span class="mark ${mark}">${img(`ui/stamp-${mark}.webp`)}<b>${mark.toUpperCase()}</b></span>` : ''}
+    <div class="token">${token}</div>
+    <span class="label">${p.boss ? `Boss · floor ${f + 1}` : `Floor ${f + 1}`}</span>
+    ${p.boss ? `<h3>${p.boss.name}</h3><p class="rule">${p.boss.rule}</p>` : ''}
+    ${task}<span class="state">${state}</span></article>`;
+}
+// Training is one short floor before act 1, so its map shows it first and the act's floors after it.
+function trainingHTML() {
+  return `<article class="floor next training"><div class="token">${clerk('neutral', '')}</div><span class="label">Before act 1</span><h3>Training floor</h3>
+    <p class="task">Get through <b>${E.TUTORIAL_ROOMS}</b> rooms while the clerk shows you how.</p><span class="state">${mapView === 'pause' ? `In progress · room ${s.roomsCleared + 1} of ${E.TUTORIAL_ROOMS}` : 'Up next'}</span></article>`;
+}
+function mapHTML() {
+  const a = mapAct(), first = a * 3, here = nextFloor();
+  const dues = !tut && !(s.guided && first + 2 < E.UNLOCK.contracts);
+  const go = mapView === 'auto' ? `<button class="primary go" data-mapgo>${tut ? 'Start training' : `Start floor ${here + 1}`}</button>` : '<button class="go" data-mapback>Back</button>';
+  const floors = [first, first + 1, first + 2].map(floorHTML).join('');
+  return `<section class="actmap" aria-label="Act map"><span class="label">Act ${a + 1} of 3</span><h2>${ACTS[a].name}</h2>
+    <div class="floors ${tut ? 'n4' : ''}">${tut ? trainingHTML() : ''}${floors}</div>
+    ${dues ? `<p class="dues">The guild collects <b class="num price">${E.DUES[a]}</b> gold in dues after the boss floor. You have <b class="num price">${s.gold}</b>.</p>` : ''}
+    ${go}</section>`;
+}
+const pauseHTML = () => `<div class="overlay" role="dialog" aria-modal="true" aria-label="Paused"><section class="pausebox"><h2>Paused</h2>
+  <button class="primary" data-resume>Resume</button>
+  <button data-map>Map</button>
+  <button data-title>Main menu</button>
+  <p class="muted">${gameMode() === 'full' ? 'Full game' : 'Guided start'}${tut ? ' · training' : ''}</p></section></div>`;
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape' || !canPause() || busy) return;
+  if (mapView === 'pause') mapView = null;
+  else if (mapView) return;
+  else paused = !paused;
+  moreOpen = false; render();
+});
+
 // ---------- title screen ----------
 // Every visit opens here. Play goes into the training floor, as the game always has; the mode picked here is used after training.
 let titleOn = true;
@@ -1168,13 +1337,17 @@ function render() {
   if (!s) return;
   if (shownScene === 'title') document.getElementById('scene').className = '';
   setScene();
-  const menu = tut ? '' : `<div class="mode-row"><span class="muted">${gameMode() === 'full' ? 'Full game' : 'Guided start'}</span><button class="link" data-title>Main menu</button></div>`;
+  const menu = tut ? '' : `<div class="mode-row"><span class="muted">${gameMode() === 'full' ? 'Full game' : 'Guided start'}</span></div>`;
+  if (!canPause()) { paused = false; mapView = null; }
+  const pauseBtn = canPause() && !mapView ? `<button class="pause" data-pause aria-label="Pause" title="Pause (Esc)">${img('icons/hud-pause.webp')}</button>` : '';
   const more = tut ? '' : `<button class="more" data-more aria-expanded="${moreOpen}" title="How to play and top scores">${moreOpen ? 'Close' : 'More'}</button>`;
-  const head = `<header><h1>${img('icons/emblem-guild.webp', 'emblem')}Guild Ledger</h1>${more}<span class="muted where">${tut ? 'Training floor' : `Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span></header>`;
+  const head = `<header><h1>${img('icons/emblem-guild.webp', 'emblem')}Guild Ledger</h1>${more}<span class="muted where">${tut ? 'Training floor' : `Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span>${pauseBtn}</header>`;
   // extras (rules, scores, footer) sit under the side column on wide screens and behind the More button on phones
   const cols = (side, stage, extras = '') => `<div class="cols"><div class="side">${side}<div class="extras">${menu}${extras}${syncNote()}<p class="muted version">v${VERSION}</p></div></div><div class="stage">${stage}</div></div>`;
   let body = '';
-  if (s.phase === 'bid') {
+  if (mapView) {
+    body = mapHTML();
+  } else if (s.phase === 'bid') {
     body = cols(`${coachHTML()}${statusHTML()}${bossHTML()}${duesWarning()}`, `
       <section class="contract board"><div class="contract-row"><h2>${s.offers.length > 1 ? 'Choose this floor\'s contract' : 'Sign this floor\'s contract'}</h2>${E.canRedraw(s) ? '<button data-redraw>Redraw room (Fortune Teller)</button>' : ''}</div>
         <p class="muted" style="margin:0">${s.offers.length > 1 ? `Here's the first room. How many monster points can you kill across ${roomsOnFloor()} rooms? Higher targets pay more.` : `Here's the first room. Kill this many monster points across ${roomsOnFloor()} rooms to get paid.`}</p>
@@ -1193,19 +1366,24 @@ function render() {
       ${roomHTML(true, `${E.canRaise(s) && !tut ? `<button data-raise>${img('icons/hud-raise.webp', 'bi')}Raise to ${E.TIERS[s.contract.tier + 1]}: kill ${E.TARGETS[s.floor][s.contract.tier + 1]} points, pays ${E.payout(s, s.contract.tier + 1, s.contract.clause)}</button>` : ''}
         <button data-flee ${fleeOk ? '' : 'disabled'} class="${tut && fleeOk ? 'lit' : ''}">${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room${fleeNote}</button>`)}${relicsHTML(false)}`, `${tut ? '' : rulesHTML()}${boardHTML()}${statsHTML()}`);
   } else if (s.phase === 'shop') {
+    // The guild hall's shop: the clerk at the counter reads out your floor, and the wares hang on a wooden board
+    // as pinned notices with brass price tags. Leaving goes back to the act map.
     const full = s.relics.length >= E.MAX_RELICS;
-    const ware = (k, item) => `<div class="ware"><div class="whead">${img(iconOf(k), 'ico')}<b>${item.name}</b></div><span class="muted" style="font-size:14px">${item.text}</span>
-      <button data-buy="${k}" ${s.shop.bought[k] || s.gold < item.cost || (E.RELICS[k] && full) ? 'disabled' : ''}>${s.shop.bought[k] ? 'Bought' : `Buy · <span class="num">${item.cost}</span>g`}</button></div>`;
-    body = cols(`${coachHTML()}${statusHTML()}
-      ${settleHTML()}`, `
-      <section class="shop"><div class="contract-row"><h2>Guild hall</h2><span class="muted">Next: floor ${s.floor + 2}${E.BOSSES[s.floor + 1] ? ' · <span style="color:var(--blood)">boss</span>' : ''}</span></div>
-        ${E.BOSSES[s.floor + 1] ? bossCard(E.BOSSES[s.floor + 1], 'Next floor') : ''}
-        ${relicsOpen() ? `<div class="label">Relics ${full ? '(slots full: drop one to buy)' : ''}</div>
-        <div class="shopgrid relicgrid">${s.shop.relics.map(k => ware(k, E.RELICS[k])).join('') || '<p class="muted">Sold out.</p>'}</div>` : ''}
-        <div class="label">Services</div>
-        <div class="shopgrid services">${Object.entries(E.SERVICES).map(([k, v]) => ware(k, v)).join('')}</div>
+    const ware = (k, item) => {
+      const sold = !!s.shop.bought[k], short = s.gold < item.cost;
+      return `<div class="ware ${sold ? 'sold' : ''}"><div class="whead">${img(iconOf(k), 'ico')}<b>${item.name}</b></div><span class="muted desc">${item.text}</span>
+      <div class="buyrow"><span class="tag ${short && !sold ? 'short' : ''}">${img('icons/hud-gold.webp')}<span class="num">${item.cost}</span></span>
+      <button data-buy="${k}" ${sold || short || (E.RELICS[k] && full) ? 'disabled' : ''}>${sold ? 'Sold' : 'Buy'}</button></div></div>`;
+    };
+    body = cols(`${coachHTML()}${statusHTML()}`, `
+      <section class="shop"><div class="shopsign"><h2>Guild Shop</h2><span class="purse">${img('icons/hud-gold.webp')}<b class="num">${s.gold}</b> gold</span></div>
+        ${settleHTML()}
+        ${relicsOpen() ? `<div class="shelf"><div class="label">Relics ${full ? '(slots full: drop one to buy)' : ''}</div>
+        <div class="shopgrid relicgrid">${s.shop.relics.map(k => ware(k, E.RELICS[k])).join('') || '<p class="muted">Sold out.</p>'}</div></div>` : ''}
+        <div class="shelf"><div class="label">Services</div>
+        <div class="shopgrid services">${Object.entries(E.SERVICES).map(([k, v]) => ware(k, v)).join('')}</div></div>
         ${relicsOpen() ? `<div class="label">Your relics (${s.relics.length}/${E.MAX_RELICS})</div>${relicsHTML(true)}` : ''}
-        ${duesWarning()}<div><button class="primary" data-leave>Descend to floor ${s.floor + 2}</button></div>
+        ${duesWarning()}<div class="shopexit"><button class="primary" data-leave>Leave shop</button><span class="muted">Next: floor ${s.floor + 2}${E.BOSSES[s.floor + 1] ? ', a boss floor' : ''}</span></div>
       </section>`, `${rulesHTML()}${boardHTML()}${statsHTML()}`);
   } else if (s.phase === 'tutdone') {
     body = tutDoneHTML();
@@ -1213,8 +1391,12 @@ function render() {
     body = endHTML() + boardHTML(!narrow() && innerHeight > 820) + logHTML() + statsHTML();
   }
   const framed = body.startsWith('<div class="cols">');
-  app.className = (framed ? 'play' : 'solo') + (moreOpen && framed ? ' more-open' : '');
-  app.innerHTML = head + body + (framed ? '' : syncNote() + `<p class="muted version">v${VERSION}</p>`);
+  app.className = (framed ? 'play' : 'solo') + (moreOpen && framed ? ' more-open' : '') + (mapView ? ' map' : '');
+  app.innerHTML = head + body + (framed ? '' : syncNote() + `<p class="muted version">v${VERSION}</p>`) + (paused && !mapView ? pauseHTML() : '');
+  if (paused && !mapView) { // only the menu takes clicks and focus while paused
+    app.querySelectorAll(':scope > :not(.overlay)').forEach(el => { el.inert = true; });
+    app.querySelector('.overlay [data-resume]').focus();
+  }
   dealIn();
   if ((s.phase === 'won' || s.phase === 'lost') && boardState !== 'off' && boardState !== 'loading' && Date.now() - boardAt > 60000) { boardMode = null; loadBoard(); } // fresh scores on the end screen
   const focus = tut ? TUTORIAL[tut.step] && TUTORIAL[tut.step].focus : (currentHint() || {}).focus;
@@ -1306,11 +1488,16 @@ app.addEventListener('click', async e => {
     const d = b.dataset;
     if (d.mode) { store.set('mode', d.mode); boardMode = null; render(); }
     else if (d.board) { boardMode = d.board; paintBoards(); }
-    else if ('play' in d) { titleOn = false; s = E.newTutorial(); tut = { step: 0 }; render(); }
+    else if ('play' in d) { titleOn = false; s = E.newTutorial(); tut = { step: 0 }; mapView = 'auto'; render(); }
     return;
   }
   const d = b.dataset, prev = s.phase, hintBefore = shownHint;
   if ('more' in d) { moreOpen = !moreOpen; render(); return; }
+  if ('pause' in d) { paused = true; moreOpen = false; render(); return; }
+  if ('resume' in d) { paused = false; render(); return; }
+  if ('map' in d) { mapView = 'pause'; render(); return; }
+  if ('mapback' in d) { mapView = null; render(); return; } // back to the pause menu
+  if ('mapgo' in d) { mapView = null; paused = false; render(); return; }
   if (moreOpen && !e.target.closest('.extras')) moreOpen = false;
   let acted = true, effect = null;
   const cardEl = b.closest('.card');
@@ -1352,7 +1539,7 @@ app.addEventListener('click', async e => {
     if (E.buy(s, d.buy)) { effect = () => fx('coins', at); if (rec && rec.shops.length) rec.shops[rec.shops.length - 1].bought.push(d.buy); }
   }
   else if (d.drop) E.dropRelic(s, d.drop);
-  else if ('leave' in d) E.leaveShop(s);
+  else if ('leave' in d) { E.leaveShop(s); mapView = 'auto'; }
   else if ('new' in d) {
     readReportForm();
     if (rec && rec.status === 'in_progress' && rec.floors.length) { rec.status = 'abandoned'; save(); }
@@ -1365,7 +1552,7 @@ app.addEventListener('click', async e => {
     readReportForm();
     if (underway) { rec.status = 'abandoned'; save(); } // an untouched run isn't worth a report
     if (underway || (rec && rec.status === 'finished')) sendReport(rec);
-    rec = null; moreOpen = false; titleOn = true; render(); return;
+    rec = null; moreOpen = false; paused = false; mapView = null; titleOn = true; render(); return;
   }
   else if ('tutorial' in d) { startTutorial(); acted = false; }
   else if ('tutnext' in d) { if (tut) tut.step++; acted = false; }
