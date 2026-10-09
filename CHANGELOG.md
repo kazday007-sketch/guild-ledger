@@ -8,6 +8,15 @@ Guild Ledger uses a three-part version number, `MAJOR.MINOR.PATCH`:
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.16.0 (2026-10-09)
+Painted UI, so the whole screen matches the card art.
+- Cards have painted frames (iron corners for monsters, steel for weapons, red glass for potions, gold filigree for elites) and their number is set in inked numerals on an enamel plate in the card's colour.
+- Buttons are painted plates: brass for main actions, slate for the rest, leather on cards, and red lacquer with a skull when a fight would kill you. Disabled buttons are cracked grey stone. The Guided start / Full game switch on the title screen uses wood and brass.
+- Panels (stats, shop, How to play, Top scores, end screen) have iron-bound slate frames, and the clerk's panel a gilded one. Text fields are carved slots.
+- The health and contract bars are brass casings filled with red and green ink (gold once the contract is met). Strikes are wax seals that crack when you take one, and rooms on a survival floor are candles that light up.
+- A picked card leaves a chalk outline, the How to play and Top scores arrows are brass, and the title and end screens get a brass flourish.
+- All new art is in `assets/ui` and `assets/cards/frame-*`, made from the batch 2 sheets by `src/import_art.py`.
+
 ## 1.15.0 (2026-10-09)
 A simpler screen.
 - The clerk and the goal share one panel. With no tip, the clerk's line is your goal. A tip shows above the goal and goes away after your next move, so there's no "Got it" button. On phones the goal panel is hidden while your contract is on screen, since the contract shows the same numbers.
