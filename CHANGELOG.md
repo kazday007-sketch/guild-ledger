@@ -8,6 +8,18 @@ Guild Ledger uses a three-part version number, `MAJOR.MINOR.PATCH`:
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.18.1 (2026-10-09)
+Bug fixes for phone layouts.
+- **Cards stay 2 by 2 on upright phones.** The room used to switch between a 2 by 2 grid and a row of 4 depending on how much height was left, so a long clerk line, a boss or a dues warning could flip it mid-floor. Upright phones now always use 2 by 2.
+- **Contract offers are 2 by 2 on upright phones too**, with bigger seals and text. Three offers put the third in the middle of the second row.
+- When a card can be fought with your weapon or your fists, the two buttons sit side by side on upright phones, so the art keeps its height.
+- On short upright screens (most phones with the browser bars showing), the boss panel, clerk and signed contract are slimmer, and the dues reminder is left to the red "due" in the Guild box (as on sideways phones and short desktop windows). If the room still runs short, the card's name sits on its art so its number stays visible, and on the very smallest screens the table scrolls a little rather than hiding the buttons.
+- The Weapon box reads "7 max 12" on phones instead of wrapping "hits up to" over three lines, and can no longer run into the strikes.
+- The Lantern's "Next:" line shortens with "…" instead of pushing your relics onto a second row.
+- The act map fits a 375x553 screen (an iPhone SE with Safari's bars) without scrolling.
+- On short desktop windows, the clerk's "Goal" line hides while a signed contract shows the same target, and on the shortest ones the clerk's portrait hides, so the contract stays in view on boss floors.
+- Holding a relic or a tip on an iPhone no longer brings up the "Save image" menu.
+
 ## 1.18.0 (2026-10-09)
 A cleaner screen, and a proper death.
 - **Relics are just their pictures.** Hover over one (or press and hold on a phone) to see its name and what it does. Your relics take one short row in a room, and in the shop they sit next to Leave shop.
