@@ -8,6 +8,17 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.22.0 (2026-10-09)
+A cleaner title screen, and every screen sized to fit the window.
+
+- **Title screen**: one centred column under the logo, the same width as the logo, on every screen. On computers and sideways phones it sits in the dark left part of the painting; on upright phones it sits in the middle of the screen. All text is centred, the mode buttons and Play fill the column, and their lettering is sized to the buttons. The playtest note is one short line.
+- **Contracts**: on computers the contract board deals its offers 2 by 2 when that makes them bigger, so they fill the board instead of sitting in a thin strip.
+- **Shop**: the notices for relics and services keep their torn parchment edges crisp at any size (they used to be stretched and blurry), with the brass pin drawn at its own shape. On computers the notices grow to fill the board, with bigger icons and names.
+- **Map, training done and end of run** sit in the middle of the window under the header instead of hugging the top. The end screen is larger on computers.
+- **End of run**: the name and feedback boxes show their hint inside the box instead of a label above it, and the "Here lies an adventurer" line is gone. The PAID stamp moved so it no longer covers the name box on sideways phones.
+- **Training done** is laid out like the end of a run: the goat and the result on one side, the three tips and the button on the other.
+- Sideways phones: the goat's tips get a little more room so the last line no longer runs into the panel's frame.
+
 ## 1.21.0 (2026-10-09)
 New lettering with a dungeon feel, still easy to read.
 
