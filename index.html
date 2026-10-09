@@ -481,7 +481,7 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
   .stage .warn, .shop .warn { display: none; } .stage .shop .ware .desc { -webkit-line-clamp: 1; }
   .actmap h2 { font-size: 20px; } .actmap .acthead .label { font-size: 11px; }
   .side .contract.paper .progress { height: 9px; } .side .status .stat:first-child .hpbar { height: 9px; }
-  main.solo .endform > p.muted { display: none; } main.solo .end { gap: 4px 14px; padding-block: 6px; } main.solo .endsum .muted { font-size: 13px; }
+  main.solo .end { gap: 4px 14px; padding-block: 6px; } main.solo .endsum .muted { font-size: 13px; }
   .titlecard { gap: 6px; } .titlecard .logo h1 { font-size: 32px; } .titlecard .logo .emblem { width: 44px; height: 44px; }
 }
 @media (max-width: 899px) and (max-height: 800px), (max-height: 519px) {
@@ -738,6 +738,91 @@ main.solo.map { max-width: 980px; }
 }
 @media (max-width: 620px) { .floors.n4 { grid-template-columns: 1fr; } }
 @media (max-height: 360px) and (orientation: landscape) { .floor .rule { -webkit-line-clamp: 1; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; } }
+
+/* ---------- hold / hover tips: the details that don't need to sit on screen ---------- */
+[data-tip], [data-tip] img { -webkit-touch-callout: none; }
+@media (hover: none) { [data-tip] { -webkit-user-select: none; user-select: none; } }
+#tip { position: fixed; z-index: 40; left: 0; top: 0; max-width: min(280px, calc(100vw - 24px)); padding: 9px 13px 11px; display: none; gap: 3px; pointer-events: none; color: var(--bone); font-size: 14px; line-height: 1.35; text-align: left; border: 1px solid transparent; border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; filter: drop-shadow(0 8px 16px rgba(0,0,0,.7)); }
+#tip.on { display: grid; animation: tipin .12s ease-out; }
+#tip b { font: 400 17px/1.1 var(--display); color: var(--gold); }
+#tip span b { font: inherit; font-weight: 700; color: var(--bone); }
+@keyframes tipin { from { opacity: 0; transform: translateY(4px); } }
+@media (prefers-reduced-motion: reduce) { #tip.on { animation: none; } }
+
+/* relics: just the picture. Hold or hover for the name and what it does. */
+.relics, .stage .relics { display: flex; flex-wrap: wrap; gap: 8px; }
+.relic, .stage .relic, .stage .shop .relic { flex: none; display: grid; justify-items: center; align-content: center; gap: 2px; padding: 6px; min-width: 0; cursor: help; }
+.relic .ico, .stage .relic .ico, .stage .shop .relic .ico { display: block; width: 44px; height: 44px; }
+.relic:focus-visible { outline: 2px solid var(--verdigris); outline-offset: 2px; }
+.relic .link { font-size: 12px; }
+.relic.empty { cursor: default; }
+@media not ((min-width: 900px) and (min-height: 520px)) {
+  .relics, .stage .relics { gap: 5px; } .relic, .stage .relic, .stage .shop .relic { padding: 3px; }
+  .relic .ico, .stage .relic .ico, .stage .shop .relic .ico { width: 30px; height: 30px; }
+  .stage .shop .relic .link { font-size: 11px; justify-self: center; }
+}
+.ware { cursor: help; }
+.belt { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; } .belt:empty { display: none; }
+.shopexit { justify-content: space-between; } .shopexit .relics { flex: 1 1 auto; }
+@media not ((min-width: 900px) and (min-height: 520px)) {
+  .belt { gap: 10px; flex-wrap: nowrap; } .belt .peek { font-size: 13px; }
+  .shop .label.yours { display: none; } /* the relic row sits next to Leave shop, so it explains itself */
+  .side:has(.contract.paper) .coach.hint .sub { display: none; } /* the contract shows the same target */
+}
+.peek img { width: 20px; height: 20px; vertical-align: -5px; margin-right: 4px; }
+
+/* ---------- end of run: each ending has its own look ---------- */
+main.solo:has(> .end) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+main.solo:has(> .end) > :not(details) { grid-column: 1 / -1; }
+main.solo:has(> .end) > details[open] { grid-column: 1 / -1; }
+main.solo:has(> .end) > details.lb { margin: 0; max-width: none; }
+#scene.dead::after { background: radial-gradient(ellipse at 50% 40%, rgba(40,6,8,.55), rgba(18,4,6,.94) 75%); animation: deadglow 2.4s ease-out both; }
+@keyframes deadglow { from { background-color: rgba(150,20,26,.55); } to { background-color: transparent; } }
+.end.dead { border: 2px solid #5c1d22; border-image: none; border-radius: 14px; background: radial-gradient(ellipse at 50% 0, rgba(130,24,30,.38), rgba(16,9,11,.94) 70%); box-shadow: 0 0 0 1px rgba(0,0,0,.6), 0 0 46px rgba(170,32,40,.32), inset 0 0 60px rgba(0,0,0,.6); }
+.end .label.ending { color: #d9a0a3; letter-spacing: .2em; }
+.end.dead h2 { color: #ef6a71; font-size: 38px; text-shadow: 0 0 18px rgba(208,84,91,.55), 0 2px 0 #000; }
+.end .epitaph { margin: 0; max-width: 34ch; font: italic 400 21px/1.3 var(--display); color: var(--bone); text-wrap: balance; }
+.end .epitaph::before { content: '“'; } .end .epitaph::after { content: '”'; }
+.end .tally { margin: 0; font-size: 15px; }
+.killer { position: relative; width: 138px; aspect-ratio: 4 / 5; transform: rotate(-5deg); animation: killerin .7s cubic-bezier(.2,1.3,.4,1) both; }
+.kcard { width: 100%; height: 100%; border: 9px solid transparent; border-image: url(assets/cards/frame-monster.webp) 60 / 9px stretch; background: #151a21; filter: drop-shadow(0 6px 14px rgba(0,0,0,.7)); }
+.kcard img { display: block; width: 100%; height: 100%; object-fit: cover; filter: sepia(.3) saturate(1.25) brightness(.9); }
+.killer.elite .kcard { border-image-source: url(assets/cards/frame-elite.webp); }
+.killer .claw { position: absolute; inset: -18% -22%; width: 144%; height: 136%; object-fit: contain; pointer-events: none; mix-blend-mode: screen; animation: clawin .35s .55s ease-out both; }
+.killer .rank { position: absolute; left: -10px; top: -10px; z-index: 1; display: flex; align-items: center; justify-content: center; width: 2em; height: 2em; font: 700 20px/1 var(--mono); color: #2a2622; background: url(assets/ui/rank-plate-monster.webp) center / contain no-repeat; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
+.killer.elite .rank { background-image: url(assets/ui/rank-plate-elite.webp); color: #4a3105; }
+@keyframes killerin { from { opacity: 0; transform: translateY(-40px) rotate(8deg) scale(1.15); } }
+@keyframes clawin { from { opacity: 0; transform: scale(.6) rotate(-12deg); } }
+.end.revoked h2 { color: #f0b46a; }
+.license { position: relative; width: 150px; height: 118px; background: url(assets/ui/contract-parchment.webp) center / 100% 100% no-repeat; transform: rotate(4deg); filter: drop-shadow(0 6px 10px rgba(0,0,0,.6)); clip-path: polygon(0 0, 54% 0, 49% 18%, 56% 34%, 47% 52%, 55% 70%, 48% 86%, 53% 100%, 0 100%); animation: killerin .6s cubic-bezier(.2,1.3,.4,1) both; }
+.license + .license { position: absolute; left: 50%; top: 0; margin-left: -66px; transform: rotate(-7deg) translate(18px, 6px); clip-path: polygon(54% 0, 100% 0, 100% 100%, 53% 100%, 48% 86%, 55% 70%, 47% 52%, 56% 34%, 49% 18%); }
+.torn { position: relative; display: grid; justify-items: center; }
+.torn .seal { position: absolute; top: 34px; width: 50px; height: 50px; filter: grayscale(.2) drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
+.torn .stamp { top: 26px; left: 50%; margin-left: -66px; }
+@media (prefers-reduced-motion: reduce) { #scene.dead::after, .killer, .killer .claw, .license { animation: none; } }
+@media not ((min-width: 900px) and (min-height: 520px)) {
+  .killer { width: 84px; } .killer .rank { font-size: 15px; left: -6px; top: -6px; }
+  .license { width: 110px; height: 86px; } .license + .license { margin-left: -48px; } .torn .seal { top: 24px; width: 36px; height: 36px; }
+  .end.dead h2, main.solo .end.dead h2 { font-size: 26px; } .end .epitaph { font-size: 17px; }
+}
+@media (min-width: 900px) and (max-height: 820px) {
+  .killer { width: 112px; } .end.dead h2 { font-size: 32px; } .end .epitaph { font-size: 19px; }
+}
+@media (max-width: 620px) and (max-height: 760px) {
+  .killer { width: 62px; } .license { width: 84px; height: 66px; } .license + .license { margin-left: -38px; } .torn .seal { top: 16px; width: 28px; height: 28px; }
+  .end .label.ending { display: none; } main.solo .end h2::after { display: none; } .end .epitaph { font-size: 15px; line-height: 1.25; }
+  main.solo .end .stamp { width: 76px; top: 4px; } main.solo .end { padding-block: 10px; gap: 6px; }
+}
+@media (max-height: 519px) and (orientation: landscape) {
+  .killer { width: 64px; } .license { width: 90px; height: 70px; } .license + .license { margin-left: -40px; }
+  .end.dead h2, main.solo .end.dead h2 { font-size: 22px; } .end .epitaph { font-size: 15px; } .end .label.ending { display: none; }
+  .end h2::after { display: none; }
+}
+@media (max-height: 400px) and (orientation: landscape) {
+  .side .coach .label { display: none; } .side .boss span:not(.label) { display: none; } /* hold the boss for its rule */
+  .side .coach p { font-size: 13px; line-height: 1.22; } .side .coach { padding: 5px 8px; } main.solo:has(> .end) > .version { display: none; }
+}
+.deathflash { position: fixed; inset: 0; z-index: 45; pointer-events: none; background: radial-gradient(ellipse, rgba(200,30,40,.15), rgba(140,10,18,.75)); }
 </style>
 
 <div id="scene" aria-hidden="true"></div>
@@ -801,7 +886,7 @@ main.solo.map { max-width: 980px; }
     lantern: { name: 'Lantern', text: 'See the next card in the draw pile.', cost: 3 },
     fortune: { name: 'Fortune Teller', text: 'Once per floor, redraw a room before you pick any of its cards.', cost: 5 },
     // points
-    trophy: { name: 'Trophy Hunter', text: 'Face and elite monsters (J and up) count +3 toward contracts.', cost: 7 },
+    trophy: { name: 'Trophy Hunter', text: 'Monsters of 11 and up count +3 toward contracts.', cost: 7 },
     brawler: { name: 'Brawler', text: 'Bare-handed kills count +3 toward contracts.', cost: 6 },
     ambush: { name: 'Ambush', text: 'The first monster you kill in each room counts +2.', cost: 6 },
     berserk: { name: 'Berserker', text: 'Kills made while at 5 HP or less count +5.', cost: 5 },
@@ -1101,13 +1186,15 @@ main.solo.map { max-width: 980px; }
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.17.1';
+const VERSION = '1.18.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
 const webReports = () => !!(REPORT.url && REPORT.entry) && dbState !== 'on';
 const app = document.getElementById('app');
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+// A hold / hover tip (see "hold / hover tips" below). The text may hold <b>; it is always the game's own wording.
+const tipAttr = (title, text) => ` data-tip-title="${esc(title)}" data-tip="${esc(text)}"`;
 // Card names match the card art: spades are the undead, clubs the beasts and goblinkin.
 const monsterNames = {
   '♠': { 2: 'Rats', 3: 'Bone Spider', 4: 'Zombie', 5: 'Ghost', 6: 'Skeleton Warrior', 7: 'Ghoul', 8: 'Wraith', 9: 'Mummy', 10: 'Bone Golem', 11: 'Jailer', 12: 'Banshee Matriarch', 13: 'Skeleton King', 14: 'Vampire Lord' },
@@ -1151,6 +1238,7 @@ function setScene() {
   const el = document.getElementById('scene');
   el.style.backgroundImage = `url(${ART}backgrounds/${sc}.webp)`;
   el.classList.toggle('dim', sc === 'act2-sewers'); // the sewer art is busy behind cards
+  el.classList.toggle('dead', sc === 'defeat');
 }
 // Effects: a one-shot sprite over a spot on screen. Skipped for reduced motion.
 const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1280,7 +1368,7 @@ function currentHint() {
     ['contracts', s.phase === 'bid' && !multi, '<b>New! Contracts.</b> Promise to kill this many monster points on this floor. Make it and you get gold. Miss it and you get a <b>strike</b>. Three strikes ends your run.', '.offers'],
     ['strikes', s.phase === 'bid' && contractsOpen(), 'These are your <b>strikes</b>. Miss a contract and you get one. Three strikes ends your run.', '.stat.guild'],
     ['met', s.phase === 'room' && s.contract && !survival() && s.slain >= s.contract.target, '<b>Contract met!</b> Extra points only pay a little more gold, so from here on, <b>protect your health</b>. Take the smallest hits and drink potions.', '.contract'],
-    ['relics', shopNow && relicsOpen() && s.shop.relics.length > 0, '<b>New! Relics.</b> Each one gives you a power for the rest of the run. You can carry 4.', '.shop .relicgrid'],
+    ['relics', shopNow && relicsOpen() && s.shop.relics.length > 0, '<b>New! Relics.</b> Each one gives you a power for the rest of the run. You can carry 4. Hover or hold one to read it.', '.shop .relicgrid'],
     ['dues', shopNow && contractsOpen() && s.floor % 3 === 1, '<b>Guild dues.</b> After the next floor, the guild collects this fee. Keep enough gold, or it\'s a strike.', '.stat.guild'],
     ['tiers', s.phase === 'bid' && multi && !s.boss, '<b>New! Bold and Reckless contracts.</b> A bigger target pays more gold, but a miss is a strike. When in doubt, Safe is fine.', '.offers'],
     ['raise', s.phase === 'room' && E.canRaise(s), '<b>New! Raise.</b> If a floor is going well, you can raise your contract one step between rooms, for more gold. Once per floor.', '[data-raise]'],
@@ -1297,10 +1385,8 @@ function duesWarning() {
   const lastOfAct = s.phase === 'shop' ? s.floor % 3 === 1 : s.floor % 3 === 2;
   if (!lastOfAct) return '';
   const due = E.DUES[s.phase === 'shop' ? E.act({ floor: s.floor + 1 }) : E.act(s)];
-  const short = s.gold < due;
-  if (!short && s.phase === 'room') return '';
-  return `<p class="warn ${short ? 'short' : ''}">${dual(`Guild dues of <b class="num">${due}</b> gold are due after ${s.phase === 'shop' ? 'the next floor' : 'this floor'}. You have <b class="num">${s.gold}</b>.${short ? ' Miss them and it\'s a strike.' : ''}`,
-    `Dues: <b class="num">${due}</b> gold after ${s.phase === 'shop' ? 'next floor' : 'this floor'}. You have <b class="num">${s.gold}</b>.${short ? ' Can\'t pay = strike.' : ''}`)}</p>`;
+  if (s.gold >= due) return '';
+  return `<p class="warn short"${tipAttr('Guild dues', `Due after ${s.phase === 'shop' ? 'the next floor' : 'this floor'}. If you can't pay, it's a strike.`)}>Dues <b class="num">${due}</b>g · you have <b class="num">${s.gold}</b></p>`;
 }
 
 const survival = () => !!(tut || (s.contract && s.contract.survival));
@@ -1315,17 +1401,14 @@ function roomHTML(active, actions = '') {
   roomSlots = roomSlots.map(id => ids.includes(id) ? id : null);
   ids.forEach(id => { if (!roomSlots.includes(id)) roomSlots[roomSlots.indexOf(null)] = id; });
   const left = 3 - s.handled;
-  const say = !active ? 'This is your first room. Sign a contract to step in.'
-    : s.handled === 0 ? 'Pick <b>3</b> of these 4 cards. The last one stays for the next room.'
-    : `Pick <b>${left}</b> more card${left === 1 ? '' : 's'}.`;
+  const say = s.handled === 0 ? 'Pick <b>3</b> of these 4 cards. The last one stays for the next room.' : `Pick <b>${left}</b> more card${left === 1 ? '' : 's'} in this room.`;
   const slots = roomSlots.map(id => {
     const c = id != null && s.room.find(x => x.id === id);
     return c ? cardHTML(c, active) : '<div class="slot"><small>Picked</small></div>';
   }).join('');
   return `<section class="chamber ${active ? '' : 'preview'}" aria-label="Room ${s.roomsCleared + 1}">
     <div class="chamber-head"><div class="pile" aria-hidden="true">${img('cards/back.webp')}${img('cards/back.webp')}${img('cards/back.webp')}</div>
-      <div class="chamber-title"><h2>Room ${s.roomsCleared + 1} <span class="muted">of ${roomsOnFloor()}</span></h2><span>${say}</span>
-</div>
+      <div class="chamber-title"${tipAttr(`Room ${s.roomsCleared + 1} of ${roomsOnFloor()}`, say)}><h2>Room ${s.roomsCleared + 1} <span class="muted">of ${roomsOnFloor()}</span></h2></div>
       ${actions ? `<div class="chamber-actions">${actions}</div>` : ''}</div>
     <div class="room">${slots}</div></section>`;
 }
@@ -1403,13 +1486,14 @@ function allowed(c, mode) {
   return !!a && a.v === c.v && a.mode === mode;
 }
 function cardHTML(c, active) {
-  const btn = (mode, label) => `<button data-act="${mode || 'take'}" data-id="${c.id}" ${allowed(c, mode) ? '' : 'disabled'}${c.kind === 'monster' && E.monsterDamage(s, c, mode === 'weapon') >= s.hp ? ' class="fatal"' : ''}>${label}</button>`;
+  const btn = (mode, label, tip = '') => `<button data-act="${mode || 'take'}" data-id="${c.id}" ${allowed(c, mode) ? '' : 'disabled'}${c.kind === 'monster' && E.monsterDamage(s, c, mode === 'weapon') >= s.hp ? ' class="fatal"' : ''}${tip}>${label}</button>`;
   let acts = '';
   if (c.kind === 'monster') {
     if (E.canUseWeapon(s, c)) acts += btn('weapon', fightLabel(c, true));
     acts += btn('bare', fightLabel(c, false));
   } else if (c.kind === 'weapon') {
-    acts = btn(null, dual(`Equip${s.relics.includes('grindstone') ? ` as ${c.v + 1}` : ''}${s.weapon ? ` (drops your ${s.weapon.v})` : ''}`, 'Equip'));
+    const v = c.v + (s.relics.includes('grindstone') ? 1 : 0);
+    acts = btn(null, 'Equip', tipAttr(`Equip the ${cardName(c)}`, `Blocks up to <b>${v}</b> damage per fight.${s.weapon ? ` Drops your ${s.weapon.v}.` : ''}`));
   } else acts = btn(null, potionPreview(c));
   const lit = tut && TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.v === c.v && s.phase === 'room';
   return `<article class="card ${c.kind} ${c.v >= 15 ? 'elite' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''}" data-card="${c.id}">
@@ -1418,33 +1502,33 @@ function cardHTML(c, active) {
     <div class="acts">${acts}</div></article>`;
 }
 function statusHTML() {
-  const w = s.weapon ? `${s.weapon.v} <span class="muted" style="font-size:13px">${s.weapon.limit == null ? 'fresh' : 'hits up to ' + s.weapon.limit}</span>` : '<span class="muted">none</span>';
+  const w = s.weapon ? `${s.weapon.v}${s.weapon.limit == null ? '' : ` <span class="muted" style="font-size:13px">hits up to ${s.weapon.limit}</span>`}` : '<span class="muted">none</span>';
   const cells = [
     `<div class="stat hp"><span class="label">${img('icons/hud-hp.webp')}Health</span><span class="num">${s.hp}<span class="muted">/${s.maxHp}</span></span><div class="hpbar"><i style="width:${100 * s.hp / s.maxHp}%"></i></div></div>`,
     goldOpen() && `<div class="stat gold"><span class="label">${img('icons/hud-gold.webp')}Gold</span><span class="num price">${s.gold}</span></div>`,
     `<div class="stat weapon"><span class="label">${img('icons/hud-weapon-slot.webp')}Weapon</span><span class="num">${w}</span></div>`,
     contractsOpen() && `<div class="stat guild"><span class="label">${img('icons/hud-strike.webp')}Strikes</span><div class="pips" title="${s.strikes} of 3 strikes">${[0, 1, 2].map(i => `<span class="pip ${i < s.strikes ? 'on' : ''}"></span>`).join('')}</div>
-      <span class="dues ${s.gold < E.DUES[E.act(s)] ? 'short' : ''}">${dual(`Dues <b class="num price">${E.DUES[E.act(s)]}</b> gold after floor ${E.act(s) * 3 + 3}`, `<b class="num price">${E.DUES[E.act(s)]}</b>g due`)}</span></div>`,
+      <span class="dues ${s.gold < E.DUES[E.act(s)] ? 'short' : ''}"><b class="num price">${E.DUES[E.act(s)]}</b>g due</span></div>`,
   ].filter(Boolean);
   return `<section class="status n${cells.length}" aria-label="Status">${cells.join('')}</section>`;
 }
-const bossCard = (b, label) => `<div class="boss">${img(`portraits/${bossArt[b.key]}.webp`, '', b.name)}<div class="who"><span class="label">${label}</span><b>${b.name}</b><span>${b.rule}</span></div></div>`;
+const bossCard = (b, label) => `<div class="boss"${tipAttr(b.name, b.rule)}>${img(`portraits/${bossArt[b.key]}.webp`, '', b.name)}<div class="who"><span class="label">${label}</span><b>${b.name}</b><span>${b.rule}</span></div></div>`;
 const bossHTML = () => s.boss ? bossCard(s.boss, 'Boss floor') : '';
 function relicsHTML(withDrop) {
   if (!relicsOpen()) return '';
   if (!s.relics.length && !withDrop) return '';
-  const empty = withDrop ? Array.from({ length: E.MAX_RELICS - s.relics.length }, () => `<div class="relic empty">${img('icons/hud-relic-slot.webp', 'ico')}<span class="muted">Empty slot</span></div>`).join('') : '';
-  return `<div class="relics">${s.relics.map(k => `<div class="relic">${img(iconOf(k), 'ico')}<div class="rbody"><div class="row"><b>${E.RELICS[k].name}</b>${withDrop ? `<button class="link" data-drop="${k}">Drop</button>` : ''}</div><span class="muted" style="font-size:14px">${E.RELICS[k].text}</span></div></div>`).join('')}${empty}</div>`;
+  const empty = withDrop ? Array.from({ length: E.MAX_RELICS - s.relics.length }, () => `<div class="relic empty"${tipAttr('Empty slot', 'Buy a relic to fill it.')}>${img('icons/hud-relic-slot.webp', 'ico', 'Empty slot')}</div>`).join('') : '';
+  return `<div class="relics">${s.relics.map(k => `<div class="relic" tabindex="0" role="group" aria-label="${E.RELICS[k].name}: ${E.RELICS[k].text}"${tipAttr(E.RELICS[k].name, E.RELICS[k].text)}>${img(iconOf(k), 'ico')}${withDrop ? `<button class="link" data-drop="${k}">Drop</button>` : ''}</div>`).join('')}${empty}</div>`;
 }
 const roomsOnFloor = () => s.tutorial ? E.TUTORIAL_ROOMS : E.ROOMS_PER_FLOOR;
 function contractHTML() {
   const c = s.contract;
   if (survival()) return `<section class="contract paper"><div class="contract-row"><h2>${tut ? 'Training floor' : 'Survive this floor'}</h2>
-      <span class="pips" title="Rooms cleared">${Array.from({ length: roomsOnFloor() }, (_, i) => `<span class="pip room ${i < s.roomsCleared ? 'on' : ''}"></span>`).join('')}<span class="muted" style="font-size:13px">rooms</span></span></div></section>`;
+      <span class="pips"${tipAttr('Rooms', `${s.roomsCleared} of ${roomsOnFloor()} cleared.`)}>${Array.from({ length: roomsOnFloor() }, (_, i) => `<span class="pip room ${i < s.roomsCleared ? 'on' : ''}"></span>`).join('')}</span></div></section>`;
   const pct = Math.min(100, 100 * s.slain / c.target);
   return `<section class="contract paper">${s.raises ? stamp('raised', `raise-${s.floor}-${s.raises}`) : ''}
-    <div class="contract-row"><h2><span class="seals">${img(c.clause ? clauseSeal(c.clause) : tierSeal(c.tier))}</span>${tut ? 'Training' : c.clause ? 'Wildcard' : E.TIERS[c.tier]} contract</h2>${tut ? '' : `<span>Pays <span class="num price">${c.pay}</span> gold + overkill</span>`}</div>
-    ${c.clause ? `<div class="cline"><b>${E.CLAUSES[c.clause].name}:</b> ${E.CLAUSES[c.clause].text}</div>` : ''}
+    <div class="contract-row"><h2><span class="seals">${img(c.clause ? clauseSeal(c.clause) : tierSeal(c.tier))}</span>${tut ? 'Training' : c.clause ? 'Wildcard' : E.TIERS[c.tier]} contract</h2>${tut ? '' : `<span${tipAttr('Pay', `<b>${c.pay}</b> gold if you make it, plus 1 gold for every ${s.relics.includes('taxman') ? 2 : 5} points over.`)}>Pays <span class="num price">${c.pay}</span> gold</span>`}</div>
+    ${c.clause ? `<div class="cline"${tipAttr(E.CLAUSES[c.clause].name, E.CLAUSES[c.clause].text)}><b>${E.CLAUSES[c.clause].name}</b></div>` : ''}
     <div class="contract-row"><span class="pts"><span class="num">${s.slain}</span> <span class="muted">/ ${c.target} points</span></span></div>
     <div class="progress ${s.slain >= c.target ? 'met' : ''}"><i style="width:${pct}%"></i></div>
   </section>`;
@@ -1452,7 +1536,7 @@ function contractHTML() {
 function peekHTML() {
   if (!s.relics.includes('lantern') || !s.draw.length) return '';
   const n = s.draw[0];
-  return `<p class="peek muted" style="margin:0">${dual(`Lantern: the next card is <b style="color:var(--bone)">${cardName(n)} (${n.kind} ${n.v})</b>.`, `Lantern, next card: <b style="color:var(--bone)">${cardName(n)} ${n.v}</b>`)}</p>`;
+  return `<p class="peek muted" style="margin:0"${tipAttr('Lantern', 'The next card in the pile.')}>${img(iconOf('lantern'))}Next: <b style="color:var(--bone)">${cardName(n)} ${n.v}</b></p>`;
 }
 const logHTML = () => tut ? '' : `<details class="rules"><summary>Log</summary><div class="log">${s.log.map(l => `<p>${esc(l)}</p>`).join('') || '<p class="muted">Your deeds will be recorded here.</p>'}</div></details>`;
 function coachHTML() {
@@ -1485,36 +1569,97 @@ function syncNote() {
   if (dbState === 'readonly') return `<p class="muted sync">Runs aren't saved automatically on this link. Use "Copy run report" at the end of a run and send it to whoever shared the game.</p>`;
   return '';
 }
-let lastHit = null; // the last monster fought, to explain a death
-function whyHTML() {
-  if (s.phase !== 'lost' || !rec) return '';
-  if (s.hp > 0) return `<div class="why"><p><b>What happened:</b> the guild took your license after 3 strikes. You get a strike for each missed contract or unpaid dues.</p><p><b>Try next time:</b> pick Safe contracts until you have a feel for it, and keep some gold for dues.</p></div>`;
-  const h = lastHit, met = s.contract && !s.contract.survival && s.slain >= s.contract.target;
-  const what = h ? `the ${esc(h.name)} (${h.v}) hit you for ${h.dmg}${h.mode === 'bare' ? ' because you fought it with fists' : ''}.` : 'your health reached 0.';
-  const tip = met ? 'You had already met your contract, so you didn\'t need that fight. Once the bar turns gold, pick the cards that cost the least health.'
-    : h && h.mode === 'bare' ? 'Fists cost a monster\'s full number in health. Pick up weapons early, use them on the biggest monsters first, and flee a room that looks too dangerous.'
-    : 'Watch your health more than your points. Drink potions when you\'re low, and flee a room that looks too dangerous.';
-  return `<div class="why"><p><b>What happened:</b> ${what}</p><p><b>Try next time:</b> ${tip}</p></div>`;
+let lastHit = null; // the last monster fought, to say what killed you
+// ---------- end of run: a short, silly epitaph for how it went ----------
+// One line is picked per run (seeded by the run, so it stays put across re-renders) from the lines for the monster
+// that killed you, how you fought it, and some for anyone. Losing your license has its own set.
+const DEATH_LINES = {
+  'Rats': ['Eaten by rats. Regular, everyday rats. The guild will not be confirming this to the press.'],
+  'Bone Spider': ['The Bone Spider had eight legs and no mercy. Mostly the no mercy.'],
+  'Zombie': ['Bitten by a Zombie. Your next shift starts Tuesday.'],
+  'Ghost': ['The Ghost got a roommate.'],
+  'Skeleton Warrior': ['Out-fought by a Skeleton Warrior, which does not even have muscles.'],
+  'Ghoul': ['The Ghoul was hungry. You were nearby. Simple maths.'],
+  'Wraith': ['The Wraith passed straight through your guard, then through you.'],
+  'Mummy': ['Wrapped up by a Mummy. The guild will bill your estate for the bandages.'],
+  'Bone Golem': ['Flattened by a Bone Golem. You are now legally a rug.'],
+  'Jailer': ['The Jailer locked you up and threw away the you.'],
+  'Banshee Matriarch': ['The Banshee Matriarch screamed. You stopped.'],
+  'Skeleton King': ['The Skeleton King knighted you, then un-knighted you, then un-everythinged you.'],
+  'Vampire Lord': ['Drained dry by the Vampire Lord, who left a polite thank-you note.'],
+  'Goblin Scavenger': ['The Goblin Scavenger is already wearing your boots.'],
+  'Cave Bat': ['Nibbled to death by a Cave Bat. The report says "misadventure". The bat says "lunch".'],
+  'Kobold Trapper': ['Walked into the Kobold Trapper\'s trap. It had a sign. The sign said "trap".'],
+  'Dire Wolf': ['The Dire Wolf wanted to play fetch. You were the stick.'],
+  'Hobgoblin': ['The Hobgoblin hit you with a chair. Then the table. Then the rest of the tavern.'],
+  'Centipede': ['Kicked a hundred times by a Centipede. Witnesses can\'t agree which leg did it.'],
+  'Bugbear': ['Hugged by a Bugbear. It was not that kind of hug.'],
+  'Owlbear': ['The Owlbear asked "who?". The answer was you.'],
+  'Cave Troll': ['The Cave Troll used you to check the ceiling height.'],
+  'Orc Warden': ['The Orc Warden checked your papers. Then your ribs.'],
+  'Spider Broodmother': ['The Spider Broodmother\'s children needed a snack, and you were snack-shaped.'],
+  'Goblin King': ['Your skull now sits in the Goblin King\'s collection, between "Bob" and "Other Bob".'],
+  'Forest Wyrm': ['Swallowed whole by the Forest Wyrm. Rated "a bit chewy".'],
+  'Dungeon Horror': ['The Dungeon Horror was, it turns out, horrible.'],
+  'Dread Dragon': ['Toasted by the Dread Dragon. Crispy outside, paperwork inside.'],
+};
+const DEATH_ANY = [
+  'The {m} did not read the contract.',
+  'Filed under "lunch" by the {m}.',
+  'The clerk has already rented out your bunk.',
+  'Last words: "I can take a {v}." You could not take a {v}.',
+  'The {m} sends its regards, and your boots.',
+  'Cause of death: {m}. Cause of the {m}: unclear.',
+];
+const DEATH_FISTS = ['Punched the {m}. The {m} punched back harder.', 'Brought fists to a {m} fight.', 'Tried to wrestle the {m}. The {m} won on points, and on everything else.'];
+const DEATH_WEAPON = ['Your weapon did its best. Its best was not enough.', 'You hit the {m} with everything you had. The {m} had more.'];
+const REVOKED = {
+  dues: ['Couldn\'t cover the guild dues. The guild accepts gold or resignation, and picked for you.', 'Dues unpaid. Your license is now a very official coaster.'],
+  contract: ['Three missed contracts. The clerk tore up your license and seemed to enjoy it.', 'Third strike. Your license has been filed under "Former".'],
+  any: ['Struck out. The guild thanks you for your service and asks for the helmet back.', 'License revoked. The monsters send their thanks.'],
+};
+const theName = n => n === 'Rats' ? 'rats' : 'the ' + n;
+function pickLine(list, seed) { let h = 0; for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return list[h % list.length]; }
+function epitaph() {
+  const seed = rec ? rec.id : String(s.floor) + s.hp;
+  if (s.hp > 0) {
+    const dues = /Couldn't pay/.test(s.lastResult || '');
+    return { kind: 'revoked', title: 'License revoked', line: pickLine([...REVOKED[dues ? 'dues' : 'contract'], ...REVOKED.any], seed) };
+  }
+  const h = lastHit;
+  if (!h) return { kind: 'dead', title: 'You fell', line: pickLine(['The clerk has already rented out your bunk.'], seed) };
+  const pool = [...(DEATH_LINES[h.name] || []), ...(DEATH_LINES[h.name] || []), ...DEATH_ANY, ...(h.mode === 'bare' ? DEATH_FISTS : DEATH_WEAPON)];
+  if (s.boss) pool.push(`${s.boss.name} watched the whole thing and took notes.`);
+  if (s.floor === 0) pool.push('Floor 1. The guild had barely learned your name. It has now stopped trying.');
+  const line = pickLine(pool, seed).replaceAll('{m}', h.name).replaceAll('{v}', h.v);
+  return { kind: 'dead', title: `Slain by ${theName(h.name)}`, line, card: h.card };
 }
 function endHTML() {
   const won = s.phase === 'won';
-  const fb = dbState === 'on' && rec ? `<label class="fb" for="fb">Anything confusing, boring or great? One line helps.</label>
+  const fb = dbState === 'on' && rec ? `<label class="fb" for="fb">Anything confusing, boring or great?</label>
       <textarea id="fb" rows="2" maxlength="600">${esc(rec.note || '')}</textarea>
       <button data-fb>${rec.note ? 'Update note' : 'Save note'}</button><span id="fbstate" class="muted"></span>` : '';
   const key = 'end-' + (rec ? rec.id : s.floor);
-  const mark = won ? stamp('paid', key) : /revokes your license/.test(s.lastResult || '') ? stamp('strike', key) : '';
-  return `<section class="end">${mark}<div class="endsum">${clerk(won ? 'pleased' : 'disapproving')}<h2>${won ? 'Ledger closed. You survived.' : 'Run over'}</h2>
-      <p style="margin:0">${esc(s.lastResult || '')}</p>${whyHTML()}
-      <p class="muted" style="margin:0">Reached floor <span class="num">${s.floor + 1}</span> · slew <span class="num">${runPoints()}</span> points · <span class="num">${s.gold}</span> gold</p>
-      </div><div class="endform">${fb}${webReports() && rec ? webFormHTML() : ''}
+  const tally = `<p class="muted tally">Floor <span class="num">${s.floor + 1}</span> · <span class="num">${runPoints()}</span> points · <span class="num">${s.gold}</span> gold</p>`;
+  let top;
+  if (won) top = `${stamp('paid', key)}<div class="endsum">${clerk('pleased')}<h2>Ledger closed. You survived.</h2><p style="margin:0">${esc(s.lastResult || '')}</p>${tally}</div>`;
+  else {
+    const ep = epitaph();
+    const pic = ep.kind === 'dead'
+      ? ep.card ? `<div class="killer ${ep.card.v >= 15 ? 'elite' : ''}"><div class="kcard">${img(cardArt(ep.card), '', cardName(ep.card))}</div><span class="rank" aria-hidden="true">${digits(ep.card.v)}</span>${img('fx/slash.webp', 'claw')}</div>` : ''
+      : `<div class="torn">${stamp('strike', key)}<div class="license"></div><div class="license"></div></div>`;
+    top = `<div class="endsum">${pic}<span class="label ending">${ep.kind === 'dead' ? 'Here lies an adventurer' : 'By order of the guild'}</span><h2>${esc(ep.title)}</h2>
+      <p class="epitaph">${esc(ep.line)}</p>${tally}</div>`;
+  }
+  return `<section class="end ${won ? 'won' : s.hp > 0 ? 'revoked' : 'dead'}">${top}<div class="endform">${fb}${webReports() && rec ? webFormHTML() : ''}
       ${dbState !== 'on' && rec && !webReports() ? `<p class="muted" style="margin:0">Playtesting? Copy this report and send it to whoever shared the game.</p>
       <textarea id="report" rows="4" readonly>${esc(runReport())}</textarea><button data-copy>Copy run report</button><span id="copystate" class="muted"></span>` : ''}
       <button class="primary" data-new>New run</button></div></section>`;
 }
 function webFormHTML() {
-  return `<label class="fb" for="pname">Your name (optional, shown on the public leaderboard)</label>
+  return `<label class="fb" for="pname">Name for Top scores (optional)</label>
       <input id="pname" maxlength="40" value="${esc(store.get('name', ''))}">
-      <label class="fb" for="wnote">Anything confusing, boring or great? One line helps.</label>
+      <label class="fb" for="wnote">Anything confusing, boring or great?</label>
       <textarea id="wnote" rows="2" maxlength="600">${esc(rec.note || '')}</textarea>
       <p class="muted" style="margin:0;font-size:13px">Your run report is sent when you tap New run.</p>`;
 }
@@ -1659,8 +1804,8 @@ function floorHTML(f) {
   const token = p.boss ? img(`portraits/${bossArt[p.boss.key]}.webp`, '', p.boss.name)
     : p.survival ? img('ui/pip-room-on.webp') : img(tierSeal(p.tiers[0]));
   const task = p.survival ? `<p class="task"><b>Survive</b> ${E.ROOMS_PER_FLOOR} rooms · pays <span class="num price">${E.SURVIVAL_PAY}</span> gold</p>`
-    : `<p class="task ask">Contract: kill this many points</p><ul class="tiers">${p.tiers.map(t => `<li>${img(tierSeal(t))}${E.TIERS[t]} <b class="num">${E.TARGETS[f][t]}</b></li>`).join('')}</ul>
-      ${p.wild ? `<p class="task">${dual('or a Wildcard, for more gold and a twist', 'or a Wildcard')}</p>` : ''}`;
+    : `<ul class="tiers"${tipAttr('Contract', 'Pick one before the floor: how many monster points you\'ll kill. Bigger targets pay more.')}>${p.tiers.map(t => `<li>${img(tierSeal(t))}${E.TIERS[t]} <b class="num">${E.TARGETS[f][t]}</b></li>`).join('')}</ul>
+      ${p.wild ? `<p class="task"${tipAttr('Wildcard', `Pays ${E.WILDCARD_MULT}× as much, with one extra rule for the floor.`)}>or a Wildcard</p>` : ''}`;
   return `<article class="floor ${p.boss ? 'bossfloor' : ''} ${done ? 'done' : f === here ? 'next' : 'later'}">
     ${mark ? `<span class="mark ${mark}">${img(`ui/stamp-${mark}.webp`)}<b>${mark.toUpperCase()}</b></span>` : ''}
     <div class="token">${token}</div>
@@ -1671,7 +1816,7 @@ function floorHTML(f) {
 // Training is one short floor before act 1, so its map shows it first and the act's floors after it.
 function trainingHTML() {
   return `<article class="floor next training"><div class="token">${clerk('neutral', '')}</div><span class="label">Before act 1</span><h3>Training floor</h3>
-    <p class="task">Get through <b>${E.TUTORIAL_ROOMS}</b> rooms while the clerk shows you how.</p><span class="state">${mapView === 'pause' ? `In progress · room ${s.roomsCleared + 1} of ${E.TUTORIAL_ROOMS}` : 'You are here'}</span></article>`;
+    <p class="task"${tipAttr('Training floor', `Get through ${E.TUTORIAL_ROOMS} rooms while the clerk shows you how.`)}>Get through <b>${E.TUTORIAL_ROOMS}</b> rooms</p><span class="state">${mapView === 'pause' ? `In progress · room ${s.roomsCleared + 1} of ${E.TUTORIAL_ROOMS}` : 'You are here'}</span></article>`;
 }
 function mapHTML() {
   const a = mapAct(), first = a * 3, here = nextFloor();
@@ -1680,7 +1825,7 @@ function mapHTML() {
   const floors = [first, first + 1, first + 2].map(floorHTML).join('');
   return `<section class="actmap" aria-label="Act map"><div class="acthead"><span class="label">Act ${a + 1} of 3</span><h2>${ACTS[a].name}</h2></div>
     <div class="floors ${tut ? 'n4' : ''}">${tut ? trainingHTML() : ''}${floors}</div>
-    <div class="mapfoot">${dues ? `<p class="dues">The guild collects <b class="num price">${E.DUES[a]}</b> gold in dues after the boss floor. You have <b class="num price">${s.gold}</b>.</p>` : ''}
+    <div class="mapfoot">${dues ? `<p class="dues"${tipAttr('Guild dues', 'Collected after the boss floor. If you can\'t pay, it\'s a strike.')}>Dues <b class="num price">${E.DUES[a]}</b> gold · you have <b class="num price">${s.gold}</b></p>` : ''}
     ${go}</div></section>`;
 }
 const pauseHTML = () => `<div class="overlay" role="dialog" aria-modal="true" aria-label="Paused"><section class="pausebox"><h2>Paused</h2>
@@ -1703,15 +1848,14 @@ function renderTitle() {
   shownScene = 'title';
   const sc = document.getElementById('scene');
   sc.style.backgroundImage = `url(${ART}backgrounds/title.webp)`; sc.className = 'title-art';
-  const modes = `<div class="mode big" role="group" aria-label="Game mode">${[['guided', 'Guided start', 'Learn as you go'], ['full', 'Full game', 'Everything at once']].map(([k, label, sub]) =>
-    `<button data-mode="${k}" aria-pressed="${gameMode() === k}"><b>${label}</b><small>${sub}</small></button>`).join('')}</div>`;
+  const modes = `<div class="mode big" role="group" aria-label="Game mode">${[['guided', 'Guided start', 'Learn as you go: new rules unlock floor by floor.'], ['full', 'Full game', 'Every rule from floor 1.']].map(([k, label, sub]) =>
+    `<button data-mode="${k}" aria-pressed="${gameMode() === k}"${tipAttr(label, sub)}><b>${label}</b></button>`).join('')}</div>`;
   app.className = 'title';
   app.innerHTML = `<section class="titlecard">
     <div class="logo">${img('icons/emblem-guild.webp', 'emblem')}<h1>Guild Ledger</h1></div>
     <p class="tagline">Sign a contract, clear the dungeon, get paid. Don't let the ledger bury you.</p>
     ${modes}
-    <button class="primary play" data-play>Play</button>
-    <p class="muted modenote">Every visit starts with a short training floor. You can skip it.</p>
+    <button class="primary play" data-play${tipAttr('Play', 'Starts with a short training floor. You can skip it.')}>Play</button>
     ${boardHTML()}
     ${syncNote()}<p class="muted version">v${VERSION}</p>
   </section>`;
@@ -1719,56 +1863,56 @@ function renderTitle() {
 let moreOpen = false; // phones: the How to play / Top scores panel
 const narrow = () => !(window.matchMedia && matchMedia('(min-width: 900px) and (min-height: 520px)').matches);
 function render() {
+  hideTip();
   if (titleOn) { renderTitle(); return; }
   if (!s) return;
   if (shownScene === 'title') document.getElementById('scene').className = '';
   setScene();
-  const menu = tut ? '' : `<div class="mode-row"><span class="muted">${gameMode() === 'full' ? 'Full game' : 'Guided start'}</span></div>`;
   if (!canPause()) { paused = false; mapView = null; }
   const pauseBtn = canPause() && !mapView ? `<button class="pause" data-pause aria-label="Pause" title="Pause (Esc)">${img('icons/hud-pause.webp')}</button>` : '';
   const more = tut ? '' : `<button class="more" data-more aria-expanded="${moreOpen}" title="How to play and top scores">${moreOpen ? 'Close' : 'More'}</button>`;
   const head = `<header><h1>${img('icons/emblem-guild.webp', 'emblem')}Guild Ledger</h1>${more}<span class="muted where">${tut ? 'Training floor' : `Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span>${pauseBtn}</header>`;
   // extras (rules, scores, footer) sit under the side column on wide screens and behind the More button on phones
-  const cols = (side, stage, extras = '') => `<div class="cols"><div class="side">${side}<div class="extras">${menu}${extras}${syncNote()}<p class="muted version">v${VERSION}</p></div></div><div class="stage">${stage}</div></div>`;
+  const cols = (side, stage, extras = '') => `<div class="cols"><div class="side">${side}<div class="extras">${extras}${syncNote()}<p class="muted version">v${VERSION}</p></div></div><div class="stage">${stage}</div></div>`;
   let body = '';
   if (mapView) {
     body = mapHTML();
   } else if (s.phase === 'bid') {
     body = cols(`${coachHTML()}${statusHTML()}`, `${bossHTML()}${duesWarning()}
-      <section class="contract board"><div class="contract-row"><h2>${s.offers.length > 1 ? 'Choose this floor\'s contract' : 'Sign this floor\'s contract'}</h2></div>
-        <p class="muted" style="margin:0">${s.offers.length > 1 ? `How many monster points can you kill across ${roomsOnFloor()} rooms? Higher targets pay more.` : `Kill this many monster points across ${roomsOnFloor()} rooms to get paid.`}</p>
+      <section class="contract board"><div class="contract-row"><h2${tipAttr('Contracts', s.offers.length > 1 ? `How many monster points can you kill across ${roomsOnFloor()} rooms? Higher targets pay more. Miss and it's a strike.` : `Kill this many monster points across ${roomsOnFloor()} rooms to get paid. Miss and it's a strike.`)}>${s.offers.length > 1 ? 'Choose this floor\'s contract' : 'Sign this floor\'s contract'}</h2></div>
         <div class="offers">${s.offers.map((o, i) => {
           const c = tut ? { target: 12, pay: 0 } : { target: E.TARGETS[s.floor][o.tier], pay: E.payout(s, o.tier, o.clause) };
-          return `<button class="offer ${o.clause ? 'clause' : ''} ${tut ? 'lit' : ''}" data-bid="${i}">
+          const tip = o.clause ? tipAttr(`Wildcard: ${E.CLAUSES[o.clause].name}`, `${E.CLAUSES[o.clause].text} Pays ${E.WILDCARD_MULT}× as much.`) : '';
+          return `<button class="offer ${o.clause ? 'clause' : ''} ${tut ? 'lit' : ''}" data-bid="${i}"${tip}>
           ${img(o.clause ? clauseSeal(o.clause) : tierSeal(o.tier), 'seal')}<span class="tier">${tut ? 'Training' : o.clause ? 'Wildcard' : E.TIERS[o.tier]}</span><span>Kill <span class="num">${c.target}</span> points</span>${tut ? '' : `<span class="muted">Pays <span class="num price">${c.pay}</span> gold</span>`}
-          ${o.clause ? `<span class="cl">${E.CLAUSES[o.clause].name}</span><span class="muted rule">${E.CLAUSES[o.clause].text}</span>` : ''}</button>`;
+          ${o.clause ? `<span class="cl">${E.CLAUSES[o.clause].name}</span>` : ''}</button>`;
         }).join('')}</div>
       </section>
       ${relicsHTML(false)}`, `${tut ? '' : rulesHTML()}${boardHTML()}${statsHTML()}`);
   } else if (s.phase === 'room') {
-    const fleeNote = s.boss && s.boss.key === 'fleeToll' ? ' (costs 4 HP)' : '';
+    const up = E.canRaise(s) && !tut && { tier: s.contract.tier + 1, target: E.TARGETS[s.floor][s.contract.tier + 1], pay: E.payout(s, s.contract.tier + 1, s.contract.clause) };
     const fleeOk = E.canFlee(s) && (!tut || !!(TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.flee));
-    body = cols(`${coachHTML()}${statusHTML()}${bossHTML()}${survival() ? '' : contractHTML()}${duesWarning()}${peekHTML()}`, `
-      ${roomHTML(true, `${E.canRaise(s) && !tut ? `<button data-raise>${img('icons/hud-raise.webp', 'bi')}${s.contract.clause ? 'Raise' : `Raise to ${E.TIERS[s.contract.tier + 1]}`}: kill ${E.TARGETS[s.floor][s.contract.tier + 1]} points, pays ${E.payout(s, s.contract.tier + 1, s.contract.clause)}</button>` : ''}
-        ${E.canRedraw(s) && !tut ? '<button data-redraw>Redraw room</button>' : ''}<button data-flee ${fleeOk ? '' : 'disabled'} class="${tut && fleeOk ? 'lit' : ''}">${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room${fleeNote}</button>`)}${relicsHTML(false)}`, `${tut ? '' : rulesHTML()}${boardHTML()}${statsHTML()}`);
+    body = cols(`${coachHTML()}${statusHTML()}${bossHTML()}${survival() ? '' : contractHTML()}${duesWarning()}`, `
+      ${roomHTML(true, `${up ? `<button data-raise${tipAttr('Raise your contract', `Kill <b>${up.target}</b> points instead, for <b>${up.pay}</b> gold. Between rooms, once per floor.`)}>${img('icons/hud-raise.webp', 'bi')}${s.contract.clause ? 'Raise' : `Raise to ${E.TIERS[up.tier]}`}</button>` : ''}
+        ${E.canRedraw(s) && !tut ? `<button data-redraw${tipAttr('Fortune Teller', 'Redraw this room. Once per floor, before you pick a card.')}>Redraw room</button>` : ''}<button data-flee ${fleeOk ? '' : 'disabled'} class="${tut && fleeOk ? 'lit' : ''}">${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room</button>`)}<div class="belt">${relicsHTML(false)}${peekHTML()}</div>`, `${tut ? '' : rulesHTML()}${boardHTML()}${statsHTML()}`);
   } else if (s.phase === 'shop') {
     // The guild hall's shop: the clerk at the counter reads out your floor, and the wares hang on a wooden board
     // as pinned notices with brass price tags. Leaving goes back to the act map.
     const full = s.relics.length >= E.MAX_RELICS;
     const ware = (k, item) => {
       const sold = !!s.shop.bought[k], short = s.gold < item.cost;
-      return `<div class="ware ${sold ? 'sold' : ''}"><div class="whead">${img(iconOf(k), 'ico')}<b>${item.name}</b></div><span class="muted desc">${item.text}</span>
+      return `<div class="ware ${sold ? 'sold' : ''}" tabindex="0"${tipAttr(item.name, item.text)}><div class="whead">${img(iconOf(k), 'ico')}<b>${item.name}</b></div>
       <div class="buyrow"><span class="tag ${short && !sold ? 'short' : ''}">${img('icons/hud-gold.webp')}<span class="num">${item.cost}</span></span>
       <button data-buy="${k}" ${sold || short || (E.RELICS[k] && full) ? 'disabled' : ''}>${sold ? 'Sold' : 'Buy'}</button></div></div>`;
     };
     body = cols(`${coachHTML()}${statusHTML()}${settleHTML()}`, `
       <section class="shop"><div class="shopsign"><h2>Guild Shop</h2><span class="purse">${img('icons/hud-gold.webp')}<b class="num">${s.gold}</b> gold</span></div>
-        ${relicsOpen() ? `<div class="shelf"><div class="label">Relics ${full ? '(slots full: drop one to buy)' : ''}</div>
+        ${relicsOpen() ? `<div class="shelf"><div class="label">Relics${full ? ' · slots full' : ''}</div>
         <div class="shopgrid relicgrid">${s.shop.relics.map(k => ware(k, E.RELICS[k])).join('') || '<p class="muted">Sold out.</p>'}</div></div>` : ''}
         <div class="shelf"><div class="label">Services</div>
         <div class="shopgrid services">${Object.entries(E.SERVICES).map(([k, v]) => ware(k, v)).join('')}</div></div>
-        ${relicsOpen() ? `<div class="label">Your relics (${s.relics.length}/${E.MAX_RELICS})</div>${relicsHTML(true)}` : ''}
-        ${duesWarning()}<div class="shopexit"><button class="primary" data-leave>Leave shop</button><span class="muted">Next: floor ${s.floor + 2}${E.BOSSES[s.floor + 1] ? ', a boss floor' : ''}</span></div>
+        ${duesWarning()}${relicsOpen() ? `<div class="label yours">Your relics (${s.relics.length}/${E.MAX_RELICS})</div>` : ''}
+        <div class="shopexit">${relicsOpen() ? relicsHTML(true) : ''}<button class="primary" data-leave>Leave shop</button></div>
       </section>`, `${rulesHTML()}${boardHTML()}${statsHTML()}`);
   } else if (s.phase === 'tutdone') {
     body = tutDoneHTML();
@@ -1777,7 +1921,8 @@ function render() {
   }
   const framed = body.startsWith('<div class="cols">');
   app.className = (framed ? 'play' : 'solo') + (moreOpen && framed ? ' more-open' : '') + (mapView ? ' map' : '');
-  app.innerHTML = head + body + (framed ? '' : syncNote() + `<p class="muted version">v${VERSION}</p>`) + (paused && !mapView ? pauseHTML() : '');
+  const endForm = (s.phase === 'won' || s.phase === 'lost') && webReports() && rec; // its own note already says the report is sent
+  app.innerHTML = head + body + (framed ? '' : (endForm ? '' : syncNote()) + `<p class="muted version">v${VERSION}</p>`) + (paused && !mapView ? pauseHTML() : '');
   if (paused && !mapView) { // only the menu takes clicks and focus while paused
     app.querySelectorAll(':scope > :not(.overlay)').forEach(el => { el.inert = true; });
     app.querySelector('.overlay [data-resume]').focus();
@@ -1836,6 +1981,46 @@ app.addEventListener('pointerout', e => { const b = actBtn(e); if (b && !b.conta
 app.addEventListener('pointerdown', e => { const b = actBtn(e); if (b) previewHP(b); });
 app.addEventListener('focusin', e => { const b = actBtn(e); if (b) previewHP(b); });
 app.addEventListener('focusout', e => { if (actBtn(e)) clearPreview(); });
+
+// ---------- hold / hover tips ----------
+// Details that don't need to sit on screen (what a relic does, a Wildcard's rule, what a raise pays) show in a small
+// tip: point at it with a mouse, focus it with the keyboard, or press and hold on a touch screen. A hold never counts
+// as a tap, so holding a card's button or a contract reads it without playing it.
+const tipEl = document.createElement('div'); tipEl.id = 'tip'; tipEl.setAttribute('role', 'tooltip'); document.body.appendChild(tipEl);
+let tipFor = null, holdTimer = 0, holdAt = null, swallowUntil = 0;
+function showTip(el) {
+  tipFor = el;
+  tipEl.innerHTML = `${el.dataset.tipTitle ? `<b>${esc(el.dataset.tipTitle)}</b>` : ''}<span>${el.dataset.tip}</span>`; // tips are the game's own text
+  tipEl.classList.add('on');
+  const r = el.getBoundingClientRect(), t = tipEl.getBoundingClientRect();
+  const left = Math.max(8, Math.min(innerWidth - t.width - 8, r.left + r.width / 2 - t.width / 2));
+  let top = r.top - t.height - 10;
+  if (top < 8) top = Math.min(innerHeight - t.height - 8, r.bottom + 10);
+  tipEl.style.left = left + 'px'; tipEl.style.top = top + 'px';
+}
+function hideTip() { tipFor = null; tipEl.classList.remove('on'); }
+const tipTarget = e => e.target && e.target.closest && e.target.closest('[data-tip]');
+document.addEventListener('pointerover', e => {
+  if (e.pointerType !== 'mouse') return;
+  const el = tipTarget(e);
+  if (el && el !== tipFor) showTip(el); else if (!el && tipFor) hideTip();
+});
+document.addEventListener('pointerout', e => { if (e.pointerType === 'mouse' && !e.relatedTarget) hideTip(); });
+document.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'mouse') return;
+  clearTimeout(holdTimer); hideTip();
+  const el = tipTarget(e); if (!el) return;
+  holdAt = { x: e.clientX, y: e.clientY };
+  holdTimer = setTimeout(() => { holdAt = null; showTip(el); swallowUntil = Infinity; }, 380);
+});
+document.addEventListener('pointermove', e => { if (holdAt && Math.hypot(e.clientX - holdAt.x, e.clientY - holdAt.y) > 10) { clearTimeout(holdTimer); holdAt = null; } });
+const endHold = () => { clearTimeout(holdTimer); holdAt = null; if (swallowUntil === Infinity) swallowUntil = Date.now() + 500; };
+document.addEventListener('pointerup', endHold); document.addEventListener('pointercancel', endHold);
+document.addEventListener('click', e => { if (Date.now() < swallowUntil) { e.preventDefault(); e.stopPropagation(); swallowUntil = 0; } }, true);
+document.addEventListener('contextmenu', e => { if (tipTarget(e) && (e.pointerType || 'touch') !== 'mouse') e.preventDefault(); });
+document.addEventListener('focusin', e => { const el = tipTarget(e); if (el && e.target.matches(':focus-visible')) showTip(el); });
+document.addEventListener('focusout', () => { if (tipFor) hideTip(); });
+window.addEventListener('scroll', () => { if (tipFor) hideTip(); }, true);
 
 // ---------- owner stats ----------
 async function loadStats() {
@@ -1899,7 +2084,7 @@ app.addEventListener('click', async e => {
       busy = true; if (name) fx(name, cardEl.getBoundingClientRect()); cardEl.classList.add('leaving');
       await new Promise(r => setTimeout(r, 260)); busy = false;
     }
-    if (c.kind === 'monster') { const w = d.act === 'weapon' && E.canUseWeapon(s, c); lastHit = { name: cardName(c), v: c.v, mode: w ? 'weapon' : 'bare', dmg: E.monsterDamage(s, c, w) }; }
+    if (c.kind === 'monster') { const w = d.act === 'weapon' && E.canUseWeapon(s, c); lastHit = { name: cardName(c), v: c.v, mode: w ? 'weapon' : 'bare', dmg: E.monsterDamage(s, c, w), card: { ...c } }; }
     if (!E.handle(s, +d.id, d.act === 'take' ? null : d.act)) { render(); return; }
   } else if ('flee' in d) {
     const at = rectOf('.room'), p = rectOf('.chamber .pile');
@@ -1965,7 +2150,15 @@ app.addEventListener('click', async e => {
   }
   render();
   if (effect) effect();
+  if (prev === 'room' && s.phase === 'lost' && !reduceMotion) deathBlow(s.hp === 0);
 });
+// The run ends with a jolt: the screen shakes and flashes red, and the killing blow lands on the end screen.
+function deathBlow(died) {
+  const flash = document.createElement('div'); flash.className = 'deathflash'; document.body.appendChild(flash);
+  flash.animate([{ opacity: died ? 1 : .6 }, { opacity: 0 }], { duration: 900, easing: 'ease-out' }).onfinish = () => flash.remove();
+  app.animate([{ transform: 'translate(0,0)' }, { transform: 'translate(-9px,4px)' }, { transform: 'translate(8px,-5px)' }, { transform: 'translate(-6px,-3px)' }, { transform: 'translate(4px,3px)' }, { transform: 'none' }], { duration: 420, easing: 'ease-out' });
+  if (!died) setTimeout(() => fx('ink', rectOf('.torn')), 300);
+}
 
 // Every visit opens on the title screen in Guided start. Play goes into the training floor, which players can skip.
 store.set('mode', 'guided');
@@ -2000,11 +2193,13 @@ render();
     const app = document.getElementById('app');
     const header = app.querySelector('header');
     const tips = { Health: 'Reach 0 and the run ends.', Gold: 'Earned on each floor. Pays for relics, services and dues.', Weapon: 'Softens monster hits. After a kill it can only hit monsters up to that size.', Strikes: 'Missed contracts and unpaid dues give a strike. 3 strikes ends the run. Dues are paid at the end of each act.' };
-    app.querySelectorAll('.status .stat').forEach(el => { const k = Object.keys(tips).find(k => el.querySelector('.label').textContent.includes(k)); el.title = k ? tips[k] : ''; });
+    const dues = E.DUES[E.act(s)];
+    if (!inTraining()) tips.Strikes = `${s.strikes} of 3. A missed contract or unpaid dues is a strike, and 3 ends the run. Dues: <b>${dues}</b> gold after floor ${E.act(s) * 3 + 3}.`;
+    app.querySelectorAll('.status .stat').forEach(el => { const k = Object.keys(tips).find(k => el.querySelector('.label').textContent.includes(k)); if (k) { el.dataset.tipTitle = k === 'Strikes' ? 'Strikes and dues' : k; el.dataset.tip = tips[k]; } });
     if (inTraining()) return;
-    if (s.phase === 'room') {
+    if (s.phase === 'room') { // a disabled button gets no pointer events in some browsers, so it keeps a plain title too
       const fb = app.querySelector('[data-flee]');
-      if (fb) fb.title = fleeReason();
+      if (fb) { fb.dataset.tipTitle = 'Flee room'; fb.dataset.tip = fleeReason(); fb.title = fb.disabled ? fleeReason() : ''; }
     }
   }
 
