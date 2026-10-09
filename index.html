@@ -113,11 +113,11 @@ details.rules ol { margin: 8px 0 4px; padding-left: 20px; display: grid; gap: 4p
 .coach.hint { border-color: var(--line); background: var(--slab); }
 .warn { margin: 0; padding: 8px 12px; border-radius: 6px; background: var(--slab); border: 1px solid var(--line); }
 .warn.short { border-color: var(--blood); }
-.goal { margin: 0; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--verdigris); background: color-mix(in srgb, var(--verdigris) 10%, var(--slab)); font-size: 16px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
-.goal .label { color: var(--verdigris); }
-.goal .pips { margin-left: auto; }
-.goal.done { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 10%, var(--slab)); }
-.goal.done .label { color: var(--gold); }
+aside.coach p.sub { font-size: 15px; line-height: 1.35; color: var(--ash); }
+aside.coach p.sub b { color: var(--bone); }
+.coach.goalonly .label { color: var(--verdigris); }
+.coach.done { border-color: var(--gold); box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 18%, transparent), 0 6px 18px rgba(0,0,0,.35); }
+.coach.done .label { color: var(--gold); }
 .why { text-align: left; max-width: 520px; margin: 0; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--slab-2); display: grid; gap: 6px; }
 .why p { margin: 0; }
 .card.lit, .offer.lit { outline: 3px solid var(--gold); outline-offset: 2px; box-shadow: 0 0 0 7px color-mix(in srgb, var(--gold) 28%, transparent); animation: focuspulse 1.3s ease-in-out infinite; }
@@ -271,6 +271,23 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 .ware .whead { display: flex; align-items: center; gap: 10px; }
 .ware .ico { width: 52px; height: 52px; flex: none; filter: drop-shadow(0 2px 2px rgba(0,0,0,.5)); }
 
+/* status: strikes and dues share one Guild cell */
+.status .stat.guild { grid-template-columns: auto 1fr; align-items: center; column-gap: 12px; }
+.stat.guild .label { grid-column: 1 / -1; }
+.stat.guild .pip { width: 16px; height: 16px; border-color: #8a94a5; }
+.stat.guild .pip.on { background: var(--blood); border-color: #f07a80; box-shadow: 0 0 6px rgba(208,84,91,.7); }
+.stat.guild .dues { font-size: 14px; color: var(--ash); }
+.stat.guild .dues b { font-size: 16px; }
+.side .status .stat.guild { grid-column: 1 / -1; }
+/* health preview: what a card would do to your health, shown on the bar while you point at its button */
+.hpbar { position: relative; }
+.hpbar .loss { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(-45deg, #f2a0a4 0 4px, #d0545b 4px 8px); animation: losspulse .9s ease-in-out infinite alternate; }
+.hpbar .gain { position: absolute; top: 0; bottom: 0; background: #6fd18a; animation: losspulse .9s ease-in-out infinite alternate; }
+@keyframes losspulse { from { opacity: 1; } to { opacity: .45; } }
+.stat.hp .num .after { margin-left: 8px; font-size: 15px; }
+.stat.hp .num .after.down { color: #f2a0a4; } .stat.hp .num .after.up { color: #6fd18a; } .stat.hp .num .after.dead { color: #ff6b6b; }
+@media (prefers-reduced-motion: reduce) { .hpbar .loss, .hpbar .gain { animation: none; } }
+
 /* effects */
 #fx { position: fixed; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
 #fx img { position: absolute; animation: fxpop .6s ease-out forwards; }
@@ -333,7 +350,8 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
 .mode button[aria-pressed="true"] { background: color-mix(in srgb, var(--gold) 22%, var(--slab-2)); color: var(--bone); }
 .cols, .side, .stage { display: grid; gap: 14px; min-width: 0; }
 .side .version { margin: 0; }
-.sm, .more, .mode-row { display: none; }
+.sm, .more { display: none; }
+.mode-row { display: flex; gap: 12px; align-items: baseline; font-size: 14px; }
 .extras { display: grid; gap: 10px; }
 /* Phones and other narrow screens: one column that fits the screen. Status and talk on top, the table below with
    the cards shrinking to the height that's left, and How to play / Top scores behind the More button. */
@@ -344,8 +362,6 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
   main:is(.play, .solo) header h1 { font-size: 0; gap: 0; } main:is(.play, .solo) h1 .emblem { width: 30px; height: 30px; }
   main.solo header .mode button { padding: 4px 8px; font-size: 12px; } main.solo header .where { font-size: 12px; margin-left: auto; }
   main.solo { gap: 8px; } main.solo .end .endform label { font-size: 14px; }
-  main.play header .mode { display: none; }
-  main.more-open .mode-row { display: grid; gap: 6px; } .mode-row .mode { justify-self: start; }
   main.play .more { display: inline-block; padding: 4px 10px; font-size: 13px; }
   main.play header .where { font-size: 12px; margin-left: auto; white-space: nowrap; }
   .cols { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
@@ -360,8 +376,10 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
   .chamber .pile { display: none; }
   .chamber-title { min-width: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; } .chamber-title h2 { font-size: 17px; } .chamber-title > span:not(.pips) { display: none; }
   .chamber-title .pips { height: auto; }
-  .side:has(.contract.paper) .goal { display: none; }
-  .chamber.preview .card .art { display: none; } .chamber.preview .card { padding: 6px 3px; }
+  .side:has(.contract.paper) .coach.goalonly { display: none; } aside.coach p.sub { font-size: 13px; }
+  .status .stat.guild { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; flex-grow: 1.2; }
+  .status .stat.guild .label { display: none; } .status .stat.guild .pip { width: 12px; height: 12px; } .status .stat.guild .pips { height: auto; gap: 4px; }
+  .stat.guild .dues { font-size: 11px; line-height: 1; } .stat.guild .dues b { font-size: 12px; }
   .chamber-actions button { padding: 6px 10px; font-size: 13px; }
   .stage div.room { flex: 0 1 auto; min-height: 0; container-type: inline-size; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); gap: 5px; padding: 0; }
   .stage .card { min-height: 0; overflow: hidden; padding: 3px 3px 4px; gap: 3px; border-width: 2px; border-radius: 8px; }
@@ -380,7 +398,6 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
   .stat .num { font-size: 15px; } .stat .num .muted { font-size: 11px !important; }
   .coach { padding: 8px 10px; column-gap: 10px; gap: 4px; } .coach > .clerk { width: 44px; height: 55px; }
   .coach p { font-size: 16px; line-height: 1.3; } .coach .ok { padding: 5px 14px; font-size: 14px; } .coach .label { font-size: 11px; }
-  .goal { padding: 6px 10px; font-size: 14px; gap: 6px; }
   .contract { padding: 8px 10px; gap: 4px; } .contract.paper h2 { font-size: 16px; } .seals img { width: 28px; height: 28px; }
   .contract.paper .stamp { width: 90px; top: -10px; } .contract.paper .stamp b { font-size: 14px; }
   .boss { padding: 6px 10px; } .boss img { width: 40px; height: 50px; }
@@ -410,7 +427,6 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
   main.solo .end .clerk { display: none; } main.solo .end h2 { font-size: 24px; } main.solo .end textarea { height: 48px; }
   main.solo .end .stamp { width: 90px; top: 4px; }
   main.solo .why { font-size: 14px; padding: 8px 10px; }
-  .goal { flex-wrap: nowrap; align-items: center; } .goal .label { display: none; }
   main.solo { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   main.solo > :not(details) { grid-column: 1 / -1; } main.solo > details { padding: 6px 10px; }
   main.solo > details[open] { grid-column: 1 / -1; }
@@ -478,7 +494,6 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
   .stage .relic b { font-size: 15px; }
   .stage .relic .muted { font-size: 12.5px !important; line-height: 1.25; }
   .side .stat { padding: 8px 10px; }
-  .side .goal { padding: 8px 12px; }
   .side .status, .side .status.n3, .side .status.n4, .side .status.n5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .side .status .stat:first-child { grid-column: 1 / -1; }
   .side .status.n2 .stat:first-child { grid-column: auto; }
@@ -488,8 +503,8 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
   .stage { display: flex; flex-direction: column; gap: 12px; min-height: 0; padding: 6px; margin: -6px; }
   .stage > * { flex: none; }
   .stage .contract.board { gap: 8px; padding: 10px 12px; }
-  .stage .offer, .stage .offer.clause { min-height: 0; padding: 14px 14% 26px; }
-  .stage .offer .seal { width: 44px; height: 44px; }
+  .stage .offer, .stage .offer.clause { min-height: 0; padding: 10px 12% 18px; }
+  .stage .offer .seal { width: 34px; height: 34px; }
   .stage section.chamber { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; }
   .stage .chamber-head { flex: none; padding: 8px 12px; }
   .stage div.room { flex: 0 1 auto; min-height: 0; container-type: inline-size; grid-template-rows: minmax(0, 1fr); max-width: 980px; width: 100%; margin: 0 auto; }
@@ -779,9 +794,9 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
     const c = s.room[i];
     const out = resolveCard(s, c, mode);
     s.room.splice(i, 1); s.handled++;
-    const name = rankLabel(c.v) + c.suit;
+    const name = `${{ monster: 'Monster', weapon: 'Weapon', potion: 'Potion' }[c.kind]} ${c.v}`;
     if (c.kind === 'monster') log(s, `${name}: took ${out.dmg} damage` + (s.hp > 0 ? `${s.contract.survival ? '' : `, +${out.points} points`}${out.heal ? `, healed ${out.heal}` : ''}${out.gold ? `, +${out.gold} gold` : ''}.` : '.'));
-    else if (c.kind === 'weapon') log(s, `Equipped a ${s.weapon.v}♦ weapon.`);
+    else if (c.kind === 'weapon') log(s, `Equipped a ${s.weapon.v} weapon.`);
     else log(s, (out.heal ? `${name}: healed ${out.heal}` : `${name}: no healing`) + (out.points ? `, +${out.points} points.` : '.'));
     if (s.hp <= 0) { s.hp = 0; s.phase = 'lost'; s.lastResult = 'You fell in the dungeon.'; return true; }
     if (s.handled === 3) {
@@ -840,10 +855,10 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
     else if (what === 'cull') {
       const ms = s.deck.filter(c => c.kind === 'monster').sort((a, b) => b.v - a.v);
       s.deck = s.deck.filter(c => c !== ms[0]);
-      log(s, `Culled a ${rankLabel(ms[0].v)}${ms[0].suit} from the dungeon.`);
+      log(s, `Culled a ${ms[0].v} monster from the dungeon.`);
     } else if (what === 'smith') {
       const v = 6 + Math.floor(s.r() * 5); s.deck.push(card('weapon', v, '♦'));
-      log(s, `The smith forged a ${v}♦.`);
+      log(s, `The smith forged a ${v} weapon.`);
     }
     s.gold -= item.cost; s.shop.bought[what] = true;
     return true;
@@ -880,14 +895,13 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.14.0';
+const VERSION = '1.15.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
 const webReports = () => !!(REPORT.url && REPORT.entry) && dbState !== 'on';
 const app = document.getElementById('app');
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-const face = { monster: 'Monster', weapon: 'Weapon', potion: 'Potion' };
 // Card names match the card art: spades are the undead, clubs the beasts and goblinkin.
 const monsterNames = {
   '♠': { 2: 'Rats', 3: 'Bone Spider', 4: 'Zombie', 5: 'Ghost', 6: 'Skeleton Warrior', 7: 'Ghoul', 8: 'Wraith', 9: 'Mummy', 10: 'Bone Golem', 11: 'Jailer', 12: 'Banshee Matriarch', 13: 'Skeleton King', 14: 'Vampire Lord' },
@@ -960,12 +974,12 @@ const TUTORIAL = [
   { focus: '.stat.hp', text: 'This is your <b>health</b>. If it reaches 0, you lose. Your only goal is to <b>stay alive</b>.' },
   { focus: '.stat.weapon', text: 'This is your <b>weapon</b>. A weapon blocks damage from monsters. You don\'t have one yet.' },
   { focus: '.chamber', text: 'This is a <b>room</b>. Each room is dealt 4 cards from the pile. You pick 3 of them, and the last one stays for the next room.' },
-  { focus: '.goal .pip.room', text: 'These circles count the <b>rooms</b> you get through. Get through 2 rooms to finish training.' },
+  { focus: '.chamber-title h2', text: 'This counts the <b>rooms</b> you get through. Get through 2 rooms to finish training.' },
   { allow: { v: 7, mode: null }, text: 'Let\'s play. Pick up the <b>Short Sword</b>.' },
   { allow: { v: 9, mode: 'weapon' }, focus: '.stat.weapon', text: 'Every card has a number. A monster\'s number is how much <b>health it takes</b>. The <b>Owlbear</b> is a 9, so it hits for 9. Your sword is a 7, so it blocks 7. You only lose <b>2</b>. Fight it with your sword.' },
   { allow: { v: 5, mode: 'weapon' }, focus: '.stat.weapon', text: 'Each fight wears your sword down. Now it can only fight monsters up to <b>9</b>, the size of the last one it beat. The <b>Ghost</b> is a 5, so your sword still works. Fight it.' },
   { allow: { flee: true }, focus: '[data-flee]', text: 'New room! These monsters are all <b>too big</b> for your sword. Fighting them would cost most of your health. Tap <b>Flee room</b> to run away.' },
-  { focus: '.goal .pip.room', text: 'You got away! The monsters went to the bottom of the pile. Fleeing <b>doesn\'t count</b> as a room, so the circles didn\'t change.' },
+  { focus: '.chamber-title h2', text: 'You got away! The monsters went to the bottom of the pile. Fleeing <b>doesn\'t count</b> as a room, so this is still room 2.' },
   { focus: '.chamber', text: 'You can flee at the start of <b>any room</b>. The only rule is you <b>can\'t flee 2 rooms in a row</b>, so you have to face this one.' },
   { allow: { v: 3, mode: 'weapon' }, focus: '.stat.weapon', text: 'The <b>Cave Bat</b> is a 3. That\'s under 5, so your sword can fight it. Hit it with your sword.' },
   { allow: { v: 10, mode: 'bare' }, focus: '.stat.hp', text: 'The <b>Bone Golem</b> is a 10. That\'s too big for your sword now, so you fight with your fists and lose the full <b>10</b> health.' },
@@ -1054,15 +1068,13 @@ function currentHint() {
   const multi = s.offers && s.offers.length > 1;
   const shopNow = s.phase === 'shop';
   const list = [
-    ['survive', s.phase === 'room' && survival() && s.floor === 0, 'Just like training, <b>stay alive</b> for 4 rooms. Pick 3 cards in each room.', '.goal'],
-    ['gold', shopNow && s.floor === 0, '<b>New! Gold.</b> The guild paid you 6 gold for surviving. Your gold shows up here.', '.stat.gold'],
-    ['shop', shopNow && s.floor === 0, 'This is the <b>shop</b>. Tap <b>Buy</b> to spend gold. A <b>Bandage</b> heals 6 health before the next floor.', '.shop .services'],
-    ['leave', shopNow && s.floor === 0, 'Done shopping? Tap <b>Descend</b> to go down to the next floor.', '[data-leave]'],
-    ['contracts', s.phase === 'bid' && !multi, '<b>New! Contracts.</b> Promise to kill this many monster points on this floor. Make it and you get gold. Miss it and you get a strike.', '.offers'],
-    ['strikes', s.phase === 'bid' && contractsOpen(), 'These are your <b>strikes</b>. Miss a contract and you get one. Three strikes ends your run.', '.stat.strikes'],
+    ['survive', s.phase === 'room' && survival() && s.floor === 0, 'Just like training, <b>stay alive</b> for 4 rooms. Pick 3 cards in each room.', null],
+    ['gold', shopNow && s.floor === 0, '<b>New! Gold.</b> The guild paid you 6 gold for surviving. Spend it here: a <b>Bandage</b> heals 6 health. Then tap <b>Descend</b>.', '.stat.gold, .shop .services'],
+    ['contracts', s.phase === 'bid' && !multi, '<b>New! Contracts.</b> Promise to kill this many monster points on this floor. Make it and you get gold. Miss it and you get a <b>strike</b>. Three strikes ends your run.', '.offers'],
+    ['strikes', s.phase === 'bid' && contractsOpen(), 'These are your <b>strikes</b>. Miss a contract and you get one. Three strikes ends your run.', '.stat.guild'],
     ['met', s.phase === 'room' && s.contract && !survival() && s.slain >= s.contract.target, '<b>Contract met!</b> Extra points only pay a little more gold, so from here on, <b>protect your health</b>. Take the smallest hits and drink potions.', '.contract'],
     ['relics', shopNow && relicsOpen() && s.shop.relics.length > 0, '<b>New! Relics.</b> Each one gives you a power for the rest of the run. You can carry 4.', '.shop .relicgrid'],
-    ['dues', shopNow && contractsOpen() && s.floor % 3 === 1, '<b>Guild dues.</b> After the next floor, the guild collects this fee. Keep enough gold, or it\'s a strike.', '.stat.dues'],
+    ['dues', shopNow && contractsOpen() && s.floor % 3 === 1, '<b>Guild dues.</b> After the next floor, the guild collects this fee. Keep enough gold, or it\'s a strike.', '.stat.guild'],
     ['tiers', s.phase === 'bid' && multi && !s.boss, '<b>New! Bold and Reckless contracts.</b> A bigger target pays more gold, but a miss is a strike. When in doubt, Safe is fine.', '.offers'],
     ['raise', s.phase === 'room' && E.canRaise(s), '<b>New! Raise.</b> If a floor is going well, you can raise your contract one step between rooms, for more gold. Once per floor.', '[data-raise]'],
     ['bossroom', s.phase === 'room' && survival() && s.boss, `<b>Boss floor!</b> ${s.boss ? esc(s.boss.name) : ''} has a special rule. ${s.boss ? esc(s.boss.rule) : ''}`, '.boss'],
@@ -1104,7 +1116,7 @@ function roomHTML(active, actions = '') {
   return `<section class="chamber ${active ? '' : 'preview'}" aria-label="Room ${s.roomsCleared + 1}">
     <div class="chamber-head"><div class="pile" aria-hidden="true">${img('cards/back.webp')}${img('cards/back.webp')}${img('cards/back.webp')}</div>
       <div class="chamber-title"><h2>Room ${s.roomsCleared + 1} <span class="muted">of ${roomsOnFloor()}</span></h2><span>${say}</span>
-        ${active ? `<span class="pips" title="Cards picked">${[0, 1, 2].map(i => `<span class="pip pick ${i < s.handled ? 'on' : ''}"></span>`).join('')}</span>` : ''}</div>
+</div>
       ${actions ? `<div class="chamber-actions">${actions}</div>` : ''}</div>
     <div class="room">${slots}</div></section>`;
 }
@@ -1139,18 +1151,18 @@ function dealIn() {
 }
 
 // ---------- goal line: what to do right now, in one sentence ----------
-function goalHTML() {
-  if (tut && s.phase !== 'room') return '';
+// It lives in the clerk's panel: the clerk's line when there's no tip, a small line under the tip when there is.
+function goal() {
   const floorsLeft = E.FLOORS - s.floor;
-  if (s.phase === 'bid') return `<p class="goal"><span class="label">Goal</span><span>Survive <b>${floorsLeft}</b> more floor${floorsLeft === 1 ? '' : 's'}. First, sign a contract for this one.</span></p>`;
+  if (s.phase === 'bid') return { text: `Survive <b>${floorsLeft}</b> more floor${floorsLeft === 1 ? '' : 's'}. First, sign a contract for this one.` };
   if (s.phase === 'room') {
     const need = s.contract.target - s.slain, left = roomsOnFloor() - s.roomsCleared;
-    if (survival()) return `<p class="goal"><span class="label">Goal</span><span>Get through <b>${left}</b> more room${left === 1 ? '' : 's'}. Don't let your health reach 0.</span><span class="pips" title="Rooms cleared">${Array.from({ length: roomsOnFloor() }, (_, i) => `<span class="pip room ${i < s.roomsCleared ? 'on' : ''}"></span>`).join('')}</span></p>`;
-    if (need <= 0) return `<p class="goal done"><span class="label">Contract met</span><span>Now just stay alive for ${left} more room${left === 1 ? '' : 's'}. Take small hits and drink potions.</span></p>`;
-    return `<p class="goal"><span class="label">Goal</span><span>Kill <b>${need}</b> more monster points in <b>${left}</b> room${left === 1 ? '' : 's'}, without your health reaching 0.</span></p>`;
+    if (survival()) return { text: `Get through <b>${left}</b> more room${left === 1 ? '' : 's'}. Don't let your health reach 0.` };
+    if (need <= 0) return { done: true, text: `Contract met! Now just stay alive for <b>${left}</b> more room${left === 1 ? '' : 's'}. Take small hits and drink potions.` };
+    return { text: `Kill <b>${need}</b> more monster points in <b>${left}</b> room${left === 1 ? '' : 's'}, without your health reaching 0.` };
   }
-  if (s.phase === 'shop') return `<p class="goal"><span class="label">Floor ${s.floor + 1} of ${E.FLOORS} done</span><span>Spend gold if you like, then head down.</span></p>`;
-  return '';
+  if (s.phase === 'shop') return { text: `Floor ${s.floor + 1} of ${E.FLOORS} done. Spend gold if you like, then head down.` };
+  return null;
 }
 
 // ---------- rendering ----------
@@ -1184,22 +1196,22 @@ function cardHTML(c, active) {
     if (E.canUseWeapon(s, c)) acts += btn('weapon', fightLabel(c, true));
     acts += btn('bare', fightLabel(c, false));
   } else if (c.kind === 'weapon') {
-    acts = btn(null, dual(`Equip${s.relics.includes('grindstone') ? ` as ${c.v + 1}♦` : ''}${s.weapon ? ` (drops ${s.weapon.v}♦)` : ''}`, 'Equip'));
+    acts = btn(null, dual(`Equip${s.relics.includes('grindstone') ? ` as ${c.v + 1}` : ''}${s.weapon ? ` (drops your ${s.weapon.v})` : ''}`, 'Equip'));
   } else acts = btn(null, potionPreview(c));
   const lit = tut && TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.v === c.v && s.phase === 'room';
   return `<article class="card ${c.kind} ${c.v >= 15 ? 'elite' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''}" data-card="${c.id}">
-    <div class="art">${img(cardArt(c))}<span class="rank">${E.rankLabel(c.v)}<small>${c.suit}</small></span></div>
-    <div class="name"><span class="face">${cardName(c)}</span><span class="kind">${c.v >= 15 ? 'Elite monster' : face[c.kind]}</span></div>
+    <div class="art">${img(cardArt(c))}<span class="rank">${c.v}</span></div>
+    <div class="name"><span class="face">${cardName(c)}</span></div>
     <div class="acts">${acts}</div></article>`;
 }
 function statusHTML() {
-  const w = s.weapon ? `${s.weapon.v}♦ <span class="muted" style="font-size:13px">${s.weapon.limit == null ? 'fresh' : 'hits ≤ ' + E.rankLabel(s.weapon.limit)}</span>` : '<span class="muted">none</span>';
+  const w = s.weapon ? `${s.weapon.v} <span class="muted" style="font-size:13px">${s.weapon.limit == null ? 'fresh' : 'hits up to ' + s.weapon.limit}</span>` : '<span class="muted">none</span>';
   const cells = [
     `<div class="stat hp"><span class="label">${img('icons/hud-hp.webp')}Health</span><span class="num">${s.hp}<span class="muted">/${s.maxHp}</span></span><div class="hpbar"><i style="width:${100 * s.hp / s.maxHp}%"></i></div></div>`,
     goldOpen() && `<div class="stat gold"><span class="label">${img('icons/hud-gold.webp')}Gold</span><span class="num price">${s.gold}</span></div>`,
     `<div class="stat weapon"><span class="label">${img('icons/hud-weapon-slot.webp')}Weapon</span><span class="num">${w}</span></div>`,
-    contractsOpen() && `<div class="stat dues"><span class="label">${img('icons/emblem-guild.webp')}Dues after floor ${E.act(s) * 3 + 3}</span><span class="num price">${E.DUES[E.act(s)]}<span class="muted" style="font-size:13px"> gold</span></span></div>`,
-    contractsOpen() && `<div class="stat strikes"><span class="label">${img('icons/hud-strike.webp')}Strikes</span><div class="pips">${[0, 1, 2].map(i => `<span class="pip ${i < s.strikes ? 'on' : ''}"></span>`).join('')}</div></div>`,
+    contractsOpen() && `<div class="stat guild"><span class="label">${img('icons/hud-strike.webp')}Strikes</span><div class="pips" title="${s.strikes} of 3 strikes">${[0, 1, 2].map(i => `<span class="pip ${i < s.strikes ? 'on' : ''}"></span>`).join('')}</div>
+      <span class="dues">${dual(`Dues <b class="num price">${E.DUES[E.act(s)]}</b> gold after floor ${E.act(s) * 3 + 3}`, `<b class="num price">${E.DUES[E.act(s)]}</b>g due`)}</span></div>`,
   ].filter(Boolean);
   return `<section class="status n${cells.length}" aria-label="Status">${cells.join('')}</section>`;
 }
@@ -1220,21 +1232,30 @@ function contractHTML() {
   return `<section class="contract paper">${s.raises ? stamp('raised', `raise-${s.floor}-${s.raises}`) : ''}
     <div class="contract-row"><h2><span class="seals">${img(tierSeal(c.tier))}${c.clause ? img(clauseSeal(c.clause)) : ''}</span>${tut ? 'Training' : E.TIERS[c.tier]} contract</h2>${tut ? '' : `<span>Pays <span class="num price">${c.pay}</span> gold + overkill</span>`}</div>
     ${c.clause ? `<div class="cline"><b>Wildcard, ${E.CLAUSES[c.clause].name}:</b> ${E.CLAUSES[c.clause].text}</div>` : ''}
-    <div class="contract-row"><span>Slain <span class="num">${s.slain}</span> of <span class="num">${c.target}</span> points</span>
-      <span class="pips" title="Rooms cleared">${Array.from({ length: roomsOnFloor() }, (_, i) => `<span class="pip room ${i < s.roomsCleared ? 'on' : ''}"></span>`).join('')}<span class="muted" style="font-size:13px">rooms</span></span></div>
+    <div class="contract-row"><span class="pts"><span class="num">${s.slain}</span> <span class="muted">/ ${c.target} points</span></span></div>
     <div class="progress ${s.slain >= c.target ? 'met' : ''}"><i style="width:${pct}%"></i></div>
   </section>`;
 }
 function peekHTML() {
   if (!s.relics.includes('lantern') || !s.draw.length) return '';
   const n = s.draw[0];
-  return `<p class="peek muted" style="margin:0">Lantern: the next card is <b style="color:var(--bone)">${E.rankLabel(n.v)}${n.suit} ${cardName(n)}</b>.</p>`;
+  return `<p class="peek muted" style="margin:0">Lantern: the next card is <b style="color:var(--bone)">${cardName(n)} (${n.kind} ${n.v})</b>.</p>`;
 }
 const logHTML = () => tut ? '' : `<details class="rules"><summary>Log</summary><div class="log">${s.log.map(l => `<p>${esc(l)}</p>`).join('') || '<p class="muted">Your deeds will be recorded here.</p>'}</div></details>`;
 function coachHTML() {
   if (tut && TUTORIAL[tut.step]) return `<aside class="coach">${clerk('neutral')}<span class="label">Training · ${tut.step + 1} of ${TUTORIAL.length}</span><p>${TUTORIAL[tut.step].text}</p><div class="tutnav">${TUTORIAL[tut.step].allow ? '' : '<button class="primary ok" data-tutnext>Next</button>'}<button class="link" data-skiptut>Skip training</button></div></aside>`;
-  const h = currentHint();
-  return h ? `<aside class="coach hint">${clerk('neutral')}<span class="label">The clerk says</span><p>${h.text}</p><button class="primary ok" data-hint="${h.key}">Got it</button></aside>` : '';
+  const h = currentHint(), g = goal();
+  shownHint = h ? h.key : null;
+  if (h) return `<aside class="coach hint">${clerk('neutral')}<span class="label">The clerk says</span><p>${h.text}</p>${g ? `<p class="sub"><b>Goal:</b> ${g.text}</p>` : ''}</aside>`;
+  return g ? `<aside class="coach goalonly ${g.done ? 'done' : ''}">${clerk(g.done ? 'pleased' : 'neutral')}<span class="label">${g.done ? 'Contract met' : 'Goal'}</span><p>${g.text}</p></aside>` : '';
+}
+// A tip stays up until your next move, then it's done. No "Got it" tap.
+let shownHint = null;
+const hintCovers = { contracts: ['strikes'] }; // tips that also teach another one
+function retireHint(key) {
+  if (!key) return;
+  [key, ...(hintCovers[key] || [])].forEach(k => { seenHints[k] = true; });
+  store.set('hints', seenHints);
 }
 const rulesHTML = () => `<details class="rules"><summary>How to play</summary><ol>
   <li><b>Goal:</b> stay alive. If your health hits 0, the run is over.</li>
@@ -1425,21 +1446,20 @@ function render() {
   if (!s) return;
   if (shownScene === 'title') document.getElementById('scene').className = '';
   setScene();
-  const mode = tut ? '' : `<div class="mode" role="group" aria-label="Game mode">${[['guided', 'Guided start'], ['full', 'Full game']].map(([k, label]) =>
-    `<button data-mode="${k}" aria-pressed="${gameMode() === k}" title="${k === 'full' ? 'Contracts, gold and relics from floor 1' : 'Starts with just health, weapons and potions, and adds the rest as you go'}">${label}</button>`).join('')}</div>`;
+  const menu = tut ? '' : `<div class="mode-row"><span class="muted">${gameMode() === 'full' ? 'Full game' : 'Guided start'}</span><button class="link" data-title>Main menu</button></div>`;
   const more = tut ? '' : `<button class="more" data-more aria-expanded="${moreOpen}" title="How to play and top scores">${moreOpen ? 'Close' : 'More'}</button>`;
-  const head = `<header><h1>${img('icons/emblem-guild.webp', 'emblem')}Guild Ledger</h1>${mode}${more}<span class="muted where">${tut ? 'Training floor' : `Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span></header>`;
+  const head = `<header><h1>${img('icons/emblem-guild.webp', 'emblem')}Guild Ledger</h1>${more}<span class="muted where">${tut ? 'Training floor' : `Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span></header>`;
   // extras (rules, scores, footer) sit under the side column on wide screens and behind the More button on phones
-  const cols = (side, stage, extras = '') => `<div class="cols"><div class="side">${side}<div class="extras">${mode ? `<div class="mode-row"><span class="label">Game mode</span>${mode}</div>` : ''}${extras}${syncNote()}<p class="muted version">v${VERSION}</p></div></div><div class="stage">${stage}</div></div>`;
+  const cols = (side, stage, extras = '') => `<div class="cols"><div class="side">${side}<div class="extras">${menu}${extras}${syncNote()}<p class="muted version">v${VERSION}</p></div></div><div class="stage">${stage}</div></div>`;
   let body = '';
   if (s.phase === 'bid') {
-    body = cols(`${coachHTML()}${goalHTML()}${statusHTML()}${bossHTML()}${duesWarning()}`, `
+    body = cols(`${coachHTML()}${statusHTML()}${bossHTML()}${duesWarning()}`, `
       <section class="contract board"><div class="contract-row"><h2>${s.offers.length > 1 ? 'Choose this floor\'s contract' : 'Sign this floor\'s contract'}</h2>${E.canRedraw(s) ? '<button data-redraw>Redraw room (Fortune Teller)</button>' : ''}</div>
         <p class="muted" style="margin:0">${s.offers.length > 1 ? `Here's the first room. How many monster points can you kill across ${roomsOnFloor()} rooms? Higher targets pay more.` : `Here's the first room. Kill this many monster points across ${roomsOnFloor()} rooms to get paid.`}</p>
         <div class="offers">${s.offers.map((o, i) => {
           const c = tut ? { target: 12, pay: 0 } : { target: E.TARGETS[s.floor][o.tier], pay: E.payout(s, o.tier, o.clause) };
           return `<button class="offer ${o.clause ? 'clause' : ''} ${tut ? 'lit' : ''}" data-bid="${i}">
-          ${o.clause ? '<span class="wild">Wildcard</span>' : ''}${img(tierSeal(o.tier), 'seal')}<span class="tier">${tut ? 'Training' : E.TIERS[o.tier]}</span><span>Slay <span class="num">${c.target}</span></span>${tut ? '' : `<span class="muted">Pays <span class="num price">${c.pay}</span> gold</span>`}
+          ${o.clause ? '<span class="wild">Wildcard</span>' : ''}${img(tierSeal(o.tier), 'seal')}<span class="tier">${tut ? 'Training' : E.TIERS[o.tier]}</span><span>Kill <span class="num">${c.target}</span> points</span>${tut ? '' : `<span class="muted">Pays <span class="num price">${c.pay}</span> gold</span>`}
           ${o.clause ? `<span class="clause-row">${img(clauseSeal(o.clause), 'seal')}<span class="cl">${E.CLAUSES[o.clause].name}</span></span><span class="muted" style="font-size:13px">${E.CLAUSES[o.clause].text}</span>` : ''}</button>`;
         }).join('')}</div>
       </section>
@@ -1447,8 +1467,8 @@ function render() {
   } else if (s.phase === 'room') {
     const fleeNote = s.boss && s.boss.key === 'fleeToll' ? ' (costs 4 HP)' : '';
     const fleeOk = E.canFlee(s) && (!tut || !!(TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.flee));
-    body = cols(`${coachHTML()}${goalHTML()}${statusHTML()}${bossHTML()}${survival() ? '' : contractHTML()}${duesWarning()}${peekHTML()}`, `
-      ${roomHTML(true, `${E.canRaise(s) && !tut ? `<button data-raise>${img('icons/hud-raise.webp', 'bi')}Raise to ${E.TIERS[s.contract.tier + 1]}: slay ${E.TARGETS[s.floor][s.contract.tier + 1]}, pays ${E.payout(s, s.contract.tier + 1, s.contract.clause)}</button>` : ''}
+    body = cols(`${coachHTML()}${statusHTML()}${bossHTML()}${survival() ? '' : contractHTML()}${duesWarning()}${peekHTML()}`, `
+      ${roomHTML(true, `${E.canRaise(s) && !tut ? `<button data-raise>${img('icons/hud-raise.webp', 'bi')}Raise to ${E.TIERS[s.contract.tier + 1]}: kill ${E.TARGETS[s.floor][s.contract.tier + 1]} points, pays ${E.payout(s, s.contract.tier + 1, s.contract.clause)}</button>` : ''}
         <button data-flee ${fleeOk ? '' : 'disabled'} class="${tut && fleeOk ? 'lit' : ''}">${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room${fleeNote}</button>`)}${relicsHTML(false)}`, `${tut ? '' : rulesHTML()}${boardHTML()}${statsHTML()}`);
   } else if (s.phase === 'shop') {
     const full = s.relics.length >= E.MAX_RELICS;
@@ -1491,6 +1511,43 @@ function showClerk() {
   if (hidden) el.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
 }
 
+// ---------- health preview ----------
+// Pointing at (or pressing) a card's button shows what it would do to your health: the lost part of the bar
+// flashes red, healing shows in green, and the number shows where you'd end up.
+function hpChange(b) {
+  const c = s && s.phase === 'room' && s.room.find(x => x.id === +b.dataset.id);
+  if (!c) return 0;
+  if (c.kind === 'monster') return -E.monsterDamage(s, c, b.dataset.act === 'weapon');
+  if (c.kind === 'potion') return Math.min(E.potionHeal(s, c), s.maxHp - s.hp);
+  return 0;
+}
+function previewHP(b) {
+  clearPreview();
+  const delta = b ? hpChange(b) : 0, cell = app.querySelector('.stat.hp');
+  if (!delta || !cell) return;
+  const after = Math.max(0, Math.min(s.maxHp, s.hp + delta)), pct = v => 100 * v / s.maxHp;
+  const bar = cell.querySelector('.hpbar'), num = cell.querySelector('.num');
+  const seg = document.createElement('b'); seg.className = 'preview ' + (delta < 0 ? 'loss' : 'gain');
+  const lo = Math.min(after, s.hp), hi = Math.max(after, s.hp);
+  seg.style.left = pct(lo) + '%'; seg.style.width = pct(hi - lo) + '%';
+  if (delta < 0) bar.querySelector('i').style.width = pct(after) + '%';
+  bar.appendChild(seg);
+  const tag = document.createElement('span');
+  tag.className = 'after preview ' + (after === 0 ? 'dead' : delta < 0 ? 'down' : 'up');
+  tag.textContent = after === 0 ? '→ 0 ☠' : `→ ${after}`;
+  num.appendChild(tag);
+}
+function clearPreview() {
+  app.querySelectorAll('.stat.hp .preview').forEach(el => el.remove());
+  const i = app.querySelector('.stat.hp .hpbar i'); if (i && s) i.style.width = 100 * s.hp / s.maxHp + '%';
+}
+const actBtn = e => e.target.closest && e.target.closest('button[data-act]:not(:disabled)');
+app.addEventListener('pointerover', e => { const b = actBtn(e); if (b) previewHP(b); });
+app.addEventListener('pointerout', e => { const b = actBtn(e); if (b && !b.contains(e.relatedTarget)) clearPreview(); });
+app.addEventListener('pointerdown', e => { const b = actBtn(e); if (b) previewHP(b); });
+app.addEventListener('focusin', e => { const b = actBtn(e); if (b) previewHP(b); });
+app.addEventListener('focusout', e => { if (actBtn(e)) clearPreview(); });
+
 // ---------- owner stats ----------
 async function loadStats() {
   const el = document.getElementById('statsbody'); if (!el) return;
@@ -1530,7 +1587,7 @@ app.addEventListener('click', async e => {
     else if ('play' in d) { titleOn = false; s = E.newTutorial(); tut = { step: 0 }; render(); }
     return;
   }
-  const d = b.dataset, prev = s.phase;
+  const d = b.dataset, prev = s.phase, hintBefore = shownHint;
   if ('more' in d) { moreOpen = !moreOpen; render(); return; }
   if (moreOpen && !e.target.closest('.extras')) moreOpen = false;
   let acted = true, effect = null;
@@ -1580,18 +1637,17 @@ app.addEventListener('click', async e => {
     sendReport(rec);
     startRun(); acted = false;
   }
-  else if (d.mode) {
-    if (d.mode === gameMode()) return;
+  else if ('title' in d) { // back to the title screen, where the game mode is picked
     const underway = rec && rec.status === 'in_progress' && (rec.floors.length > 1 || s.handled > 0 || s.roomsCleared > 0);
-    if (underway && !confirm(`Start a new run in ${d.mode === 'full' ? 'Full game' : 'Guided start'} mode? This run will end.`)) return;
-    store.set('mode', d.mode);
-    if (underway) { rec.status = 'abandoned'; save(); sendReport(rec); } // an untouched run isn't worth a report
-    startRun(); acted = false;
+    if (underway && !confirm('Go back to the main menu? This run will end.')) return;
+    readReportForm();
+    if (underway) { rec.status = 'abandoned'; save(); } // an untouched run isn't worth a report
+    if (underway || (rec && rec.status === 'finished')) sendReport(rec);
+    rec = null; moreOpen = false; titleOn = true; render(); return;
   }
   else if ('tutorial' in d) { startTutorial(); acted = false; }
   else if ('tutnext' in d) { if (tut) tut.step++; acted = false; }
   else if ('skiptut' in d) { store.set('tutorial', true); startRun(); acted = false; }
-  else if (d.hint) { seenHints[d.hint] = true; store.set('hints', seenHints); acted = false; }
   else if ('fb' in d) {
     const t = document.getElementById('fb'); if (!t || !rec) return;
     rec.note = t.value.trim().slice(0, 600);
@@ -1609,7 +1665,7 @@ app.addEventListener('click', async e => {
   }
   else return;
   if (tut && acted) { tut.step++; if (s.phase === 'tutdone') store.set('tutorial', true); }
-  if (acted) afterAction(prev);
+  if (acted) { afterAction(prev); if (!tut) retireHint(hintBefore); }
   if (prev === 'room' && s.phase === 'shop' && (s.lastResult || '').startsWith('Contract met')) {
     const last = effect; effect = () => { if (last) last(); fx('coins', rectOf('.status .stat:nth-child(2)')); };
   }
@@ -1649,7 +1705,7 @@ render();
     if (typeof s === 'undefined' || !s) return;
     const app = document.getElementById('app');
     const header = app.querySelector('header');
-    const tips = { Health: 'Reach 0 and the run ends.', Gold: 'Earned on each floor. Pays for relics, services and dues.', Weapon: 'Softens monster hits. After a kill it can only hit monsters up to that size.', Dues: "Paid at the end of each act. Can't pay: a strike.", Strikes: 'Missed contracts and unpaid dues. 3 strikes ends the run.' };
+    const tips = { Health: 'Reach 0 and the run ends.', Gold: 'Earned on each floor. Pays for relics, services and dues.', Weapon: 'Softens monster hits. After a kill it can only hit monsters up to that size.', Strikes: 'Missed contracts and unpaid dues give a strike. 3 strikes ends the run. Dues are paid at the end of each act.' };
     app.querySelectorAll('.status .stat').forEach(el => { const k = Object.keys(tips).find(k => el.querySelector('.label').textContent.includes(k)); el.title = k ? tips[k] : ''; });
     if (inTraining()) return;
     if (s.phase === 'room') {
