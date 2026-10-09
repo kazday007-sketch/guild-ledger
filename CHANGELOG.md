@@ -8,6 +8,13 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.26.0 (2026-10-09)
+Step back and forward through training.
+
+- The goat's training box has a **Back** button next to **Next**. Back returns to the previous step exactly as it was, undoing the move you made there, so you can reread a tip or try a move again.
+- After going back, **Next** replays the steps you already did, including the moves. On a step that asks you to make a move you haven't made yet, Next stays hidden until you make it.
+- Making a move after going back plays the rest of training fresh from there.
+
 ## 1.25.0 (2026-10-09)
 Tap for explanations on phones, and a payout screen that explains itself.
 

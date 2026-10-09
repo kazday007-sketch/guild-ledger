@@ -250,6 +250,7 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 .pip.tut-focus { margin: 0 4px; border-radius: 50%; outline-offset: 2px; box-shadow: 0 0 10px 4px color-mix(in srgb, var(--gold) 55%, transparent); }
 @media (prefers-reduced-motion: reduce) { .tut-focus, .card.lit, .offer.lit { animation: none; } }
 .coach .tutnav { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.coach .tutnav .back { padding: 6px 14px; } .coach .tutnav .back:disabled { opacity: .45; cursor: default; }
 /* The clerk's dialogue is the one thing a new player must read, so it is big and bright. */
 .coach { border: 2px solid var(--verdigris); box-shadow: 0 0 0 4px color-mix(in srgb, var(--verdigris) 20%, transparent), 0 6px 18px rgba(0,0,0,.35); padding: 16px 18px; row-gap: 10px; }
 .coach p { font-size: 21px; line-height: 1.35; color: var(--bone); }
@@ -1168,7 +1169,7 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.25.0';
+const VERSION = '1.26.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -1287,7 +1288,15 @@ const TUTORIAL = [
   { allow: { v: 10, mode: 'bare' }, focus: '.stat.hp', text: 'The <b>Bone Golem</b> is a 10. That\'s too big for your sword now, so you fight with your fists and lose the full <b>10</b> health.' },
   { allow: { v: 6, mode: null }, focus: '.stat.hp', text: 'Ouch. I\'d have dodged that. The <b>Tonic</b> is a 6, so it gives back 6 health. Drink it.' },
 ];
-let tut = null; // { step } while the tutorial runs
+let tut = null; // { step, snaps } while the tutorial runs
+// Back and Next on the training floor: the game as it stood when each step was first shown, so Back can return to it
+// (undoing the move made there) and Next can replay a move you already made. The deck is stacked, so it's the same game.
+const tutSnap = () => ({ ...JSON.parse(JSON.stringify(s, (k, v) => k === 'r' ? undefined : v)), r: s.r });
+function tutGo(step) {
+  const snap = tut.snaps[step]; if (!snap) return false;
+  tut.step = step; s = { ...JSON.parse(JSON.stringify(snap, (k, v) => k === 'r' ? undefined : v)), r: snap.r }; lastHit = null;
+  return true;
+}
 
 // ---------- game state and playtest record ----------
 let s;
@@ -1308,7 +1317,7 @@ function noteSurvivalFloor() { // a floor with no contract starts without a bid,
   if (f && f.floor === s.floor + 1) return;
   rec.floors.push({ floor: s.floor + 1, tier: null, survival: true, clause: null, target: 0, boss: s.boss ? s.boss.key : null, hpStart: s.hp, goldStart: s.gold, raises: 0, flees: 0 });
 }
-function startTutorial() { readReportForm(); if (rec && rec.status === 'in_progress' && rec.floors.length) { rec.status = 'abandoned'; save(); } sendReport(rec); s = E.newTutorial(); rec = null; tut = { step: 0 }; mapView = 'auto'; }
+function startTutorial() { readReportForm(); if (rec && rec.status === 'in_progress' && rec.floors.length) { rec.status = 'abandoned'; save(); } sendReport(rec); s = E.newTutorial(); rec = null; tut = { step: 0, snaps: [] }; mapView = 'auto'; }
 
 // ---------- shared playtest log (db capability) ----------
 let db = null, uid = null, owner = false, myDoc = null, saving = Promise.resolve(), dbState = 'connecting';
@@ -1555,7 +1564,8 @@ function peekHTML() {
 }
 const logHTML = () => tut ? '' : `<details class="rules"><summary>Log</summary><div class="log">${s.log.map(l => `<p>${esc(l)}</p>`).join('') || '<p class="muted">Your deeds will be recorded here.</p>'}</div></details>`;
 function coachHTML() {
-  if (tut && TUTORIAL[tut.step]) return `<aside class="coach">${clerk('neutral')}<span class="label">Training · ${tut.step + 1} of ${TUTORIAL.length}</span><p>${TUTORIAL[tut.step].text}</p><div class="tutnav">${TUTORIAL[tut.step].allow ? '' : '<button class="primary ok" data-tutnext>Next</button>'}<button class="link" data-skiptut>Skip training</button></div></aside>`;
+  if (tut && !tut.snaps) tut.snaps = [];
+  if (tut && TUTORIAL[tut.step]) return `<aside class="coach">${clerk('neutral')}<span class="label">Training · ${tut.step + 1} of ${TUTORIAL.length}</span><p>${TUTORIAL[tut.step].text}</p><div class="tutnav"><button class="back" data-tutback ${tut.step ? '' : 'disabled'}>Back</button>${TUTORIAL[tut.step].allow && !tut.snaps[tut.step + 1] ? '' : '<button class="primary ok" data-tutnext>Next</button>'}<button class="link" data-skiptut>Skip training</button></div></aside>`;
   const h = currentHint(), g = goal();
   shownHint = h ? h.key : null;
   const low = s.phase === 'room' && s.hp <= Math.max(5, s.maxHp / 4); // the clerk worries when you're nearly dead
@@ -1953,6 +1963,8 @@ function render() {
   dealIn();
   if (app.querySelector('.payout')) playPayout();
   if ((s.phase === 'won' || s.phase === 'lost') && boardState !== 'off' && boardState !== 'loading' && Date.now() - boardAt > 60000) { boardMode = null; loadBoard(); } // fresh scores on the end screen
+  if (tut && !tut.snaps) tut.snaps = [];
+  if (tut && s.phase !== 'tutdone' && !tut.snaps[tut.step]) tut.snaps[tut.step] = tutSnap();
   const focus = tut ? TUTORIAL[tut.step] && TUTORIAL[tut.step].focus : (currentHint() || {}).focus;
   if (focus && s.phase !== 'tutdone') app.querySelectorAll(focus).forEach(el => el.classList.add('tut-focus'));
   showClerk();
@@ -2160,7 +2172,7 @@ app.addEventListener('click', async e => {
     const d = b.dataset;
     if (d.mode) { store.set('mode', d.mode); boardMode = null; render(); }
     else if (d.board) { boardMode = d.board; paintBoards(); }
-    else if ('play' in d) { titleOn = false; s = E.newTutorial(); tut = { step: 0 }; mapView = 'auto'; render(); }
+    else if ('play' in d) { titleOn = false; s = E.newTutorial(); tut = { step: 0, snaps: [] }; mapView = 'auto'; render(); }
     return;
   }
   const d = b.dataset, prev = s.phase, hintBefore = shownHint;
@@ -2229,7 +2241,8 @@ app.addEventListener('click', async e => {
     rec = null; moreOpen = false; paused = false; mapView = null; titleOn = true; render(); return;
   }
   else if ('tutorial' in d) { startTutorial(); acted = false; }
-  else if ('tutnext' in d) { if (tut) tut.step++; acted = false; }
+  else if ('tutnext' in d) { if (tut && !tutGo(tut.step + 1)) tut.step++; acted = false; }
+  else if ('tutback' in d) { if (tut && tut.step) tutGo(tut.step - 1); acted = false; }
   else if ('skiptut' in d) { store.set('tutorial', true); startRun(); acted = false; }
   else if ('fb' in d) {
     const t = document.getElementById('fb'); if (!t || !rec) return;
@@ -2247,7 +2260,7 @@ app.addEventListener('click', async e => {
     return;
   }
   else return;
-  if (tut && acted) { tut.step++; if (s.phase === 'tutdone') store.set('tutorial', true); }
+  if (tut && acted) { tut.snaps.length = tut.step + 1; tut.step++; /* a new move: the steps after it are played afresh */ if (s.phase === 'tutdone') store.set('tutorial', true); }
   if (acted) { afterAction(prev); if (!tut) retireHint(hintBefore); }
   if (prev === 'room' && s.phase === 'shop') { // the floor is settled: one mark on the clerk's ledger, and coins on your gold
     const r = s.lastResult || '', last = effect;
