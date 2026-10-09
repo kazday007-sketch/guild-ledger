@@ -8,6 +8,18 @@ Guild Ledger uses a three-part version number, `MAJOR.MINOR.PATCH`:
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.15.0 (2026-10-09)
+A simpler screen.
+- The clerk and the goal share one panel. With no tip, the clerk's line is your goal. A tip shows above the goal and goes away after your next move, so there's no "Got it" button. On phones the goal panel is hidden while your contract is on screen, since the contract shows the same numbers.
+- Room progress shows in one place, "Room 2 of 4" at the top of the room. The circles on the goal line, the contract and the picked-card dots are gone.
+- Cards show plain numbers: 11 to 14 instead of J, Q, K and A, with no suit symbols and no Monster/Weapon/Potion label. The art and border colour show what each card is. The weapon box says "hits up to 9", and the end-of-run log uses plain numbers too.
+- Contracts say "Kill 28 points" instead of "Slay 28", and the signed contract shows "12 / 28 points" above its bar. The raise button uses the same wording.
+- Strikes and dues share one Guild box, with brighter strike circles. Phones show the circles and "10g due".
+- The Guided start / Full game switch is only on the title screen. During a run, How to play (or More on phones) has a **Main menu** link back to the title, which asks first if you're partway through a run.
+- Health preview: point at (or press) a card's button and the health bar shows what you'd lose in flashing red, or what you'd heal in green, with "→ 8" next to your health.
+- Contract offers are shorter on laptops, and on phones the room you're bidding on shows its card art, so you can see what you're bidding on.
+- The training and the first shop tip were reworded to match (the three first-shop tips are now one).
+
 ## 1.14.0 (2026-10-08)
 - Phones held sideways get their own layout: health, the clerk and the contract on the left, and the room on the right with the cards filling the height. Title, training, bids, rooms and the end screen fit without scrolling (tested at 667x375 to 915x412). The guild hall shop scrolls inside the right column, with the Descend button always in view.
 - Bigger cards on upright phones: the room fills the rest of the screen, and when there's space the cards go 2 by 2 with much larger art. Smaller phones keep 4 across.

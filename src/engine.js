@@ -254,9 +254,9 @@
     const c = s.room[i];
     const out = resolveCard(s, c, mode);
     s.room.splice(i, 1); s.handled++;
-    const name = rankLabel(c.v) + c.suit;
+    const name = `${{ monster: 'Monster', weapon: 'Weapon', potion: 'Potion' }[c.kind]} ${c.v}`;
     if (c.kind === 'monster') log(s, `${name}: took ${out.dmg} damage` + (s.hp > 0 ? `${s.contract.survival ? '' : `, +${out.points} points`}${out.heal ? `, healed ${out.heal}` : ''}${out.gold ? `, +${out.gold} gold` : ''}.` : '.'));
-    else if (c.kind === 'weapon') log(s, `Equipped a ${s.weapon.v}♦ weapon.`);
+    else if (c.kind === 'weapon') log(s, `Equipped a ${s.weapon.v} weapon.`);
     else log(s, (out.heal ? `${name}: healed ${out.heal}` : `${name}: no healing`) + (out.points ? `, +${out.points} points.` : '.'));
     if (s.hp <= 0) { s.hp = 0; s.phase = 'lost'; s.lastResult = 'You fell in the dungeon.'; return true; }
     if (s.handled === 3) {
@@ -315,10 +315,10 @@
     else if (what === 'cull') {
       const ms = s.deck.filter(c => c.kind === 'monster').sort((a, b) => b.v - a.v);
       s.deck = s.deck.filter(c => c !== ms[0]);
-      log(s, `Culled a ${rankLabel(ms[0].v)}${ms[0].suit} from the dungeon.`);
+      log(s, `Culled a ${ms[0].v} monster from the dungeon.`);
     } else if (what === 'smith') {
       const v = 6 + Math.floor(s.r() * 5); s.deck.push(card('weapon', v, '♦'));
-      log(s, `The smith forged a ${v}♦.`);
+      log(s, `The smith forged a ${v} weapon.`);
     }
     s.gold -= item.cost; s.shop.bought[what] = true;
     return true;
