@@ -55,7 +55,7 @@
     lantern: { name: 'Lantern', text: 'See the next card in the draw pile.', cost: 3 },
     fortune: { name: 'Fortune Teller', text: 'Once per floor, redraw a room before you pick any of its cards.', cost: 5 },
     // points
-    trophy: { name: 'Trophy Hunter', text: 'Face and elite monsters (J and up) count +3 toward contracts.', cost: 7 },
+    trophy: { name: 'Trophy Hunter', text: 'Monsters of 11 and up count +3 toward contracts.', cost: 7 },
     brawler: { name: 'Brawler', text: 'Bare-handed kills count +3 toward contracts.', cost: 6 },
     ambush: { name: 'Ambush', text: 'The first monster you kill in each room counts +2.', cost: 6 },
     berserk: { name: 'Berserker', text: 'Kills made while at 5 HP or less count +5.', cost: 5 },

@@ -8,6 +8,17 @@ Guild Ledger uses a three-part version number, `MAJOR.MINOR.PATCH`:
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.18.0 (2026-10-09)
+A cleaner screen, and a proper death.
+- **Relics are just their pictures.** Hover over one (or press and hold on a phone) to see its name and what it does. Your relics take one short row in a room, and in the shop they sit next to Leave shop.
+- **Hold or hover to read.** Details that don't need to sit on screen moved into tips: what a shop item does, a Wildcard's rule, what a raise asks and pays, why you can't flee, the room's "pick 3 of 4" reminder, what each status box means, the boss rule on very short sideways screens, and the game modes and training note on the title. On a phone, holding something only shows its tip; it never also taps it, so holding a contract or a card's button won't play it. Keyboard focus shows tips too.
+- **Less writing elsewhere.** Gone: the contract board's explanation, "+ overkill", "fresh" under Weapon, the "rooms" label, "Next: floor N" in the shop, the mode line under the side column, "Contract: kill this many points" on the map. Dues read "22g due". The dues reminder only shows when you're short. Equip buttons just say Equip, and the Lantern line reads "Next: Owlbear 9" next to your relics. Headings, card and monster names, numbers and the clerk stay.
+- **Death has its own screen.** "What happened" and "Try next time" are gone. Instead the card that killed you drops onto a blood-red tombstone panel with a claw slash, under "Slain by the Owlbear", with a short funny epitaph. Each monster has its own line, plus lines for dying bare-handed, with a weapon, on a boss floor or on floor 1, so they vary. The screen shakes and flashes red as you fall.
+- **Losing your license looks different too:** a torn license with a STRIKE stamp and its own lines (unpaid dues or missed contracts). Winning keeps the PAID ledger.
+- End screens put Top scores and Log side by side, so every ending fits without scrolling (checked on desktop, upright and sideways phones, with every epitaph).
+- Trophy Hunter now says "monsters of 11 and up", matching the card numbers.
+- Art: sheet 21 in `art/polish-art.md` (end-victory, end-died gravestone, end-revoked torn license) would replace the CSS tombstone and license when generated.
+
 ## 1.17.1 (2026-10-09)
 Bug fixes from Dude's playtest of 1.17.0.
 - **Shop prices are easy to read.** Price tags are bright gold numbers on a dark plaque, bigger than before. A price you can't afford turns red instead of greying out.
