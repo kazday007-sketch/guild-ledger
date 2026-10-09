@@ -8,6 +8,14 @@ Guild Ledger uses a three-part version number, `MAJOR.MINOR.PATCH`:
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.19.2 (2026-10-09)
+Sharper batch 3 art.
+
+- The table surfaces for each place were small tiles stretched to 360 px squares, which blurred and squashed them. They now show at the size they were painted, with no stretching.
+- The boss and training backgrounds no longer get a sharpening pass, which left halos around edges.
+- Backgrounds are saved at WebP quality 86 instead of 72, table surfaces at 90 instead of 72, and atmosphere layers at 85 instead of 70. The map medallions are kept at 240 px instead of 160 px, so they stay sharp on high-density screens.
+- Prompts for redrawing the large pieces at full size are in `art/redo-art.md`.
+
 ## 1.19.1 (2026-10-09)
 Contracts and cards sized to the screen, with no scrolling.
 - **Contracts and cards are as big as the table allows, at their own shape.** The table and the contract board take all the height that's left, and each card or contract gets the largest size that fits both the width and the height, keeping its proportions. So nothing stretches (like the tall, thin cards in the old row of 4) and nothing makes the page scroll, whatever else is on screen (a boss, a long clerk line, relics, the dues reminder).
