@@ -8,6 +8,18 @@ Guild Ledger uses a three-part version number, `MAJOR.MINOR.PATCH`:
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.19.0 (2026-10-09)
+Every place in the dungeon looks like its own place (batch 3 art).
+- **Each act has its own table.** The cards sit on crypt flagstones framed in bone and skulls in act 1, damp sewer brick in copper pipes in act 2, and a banker's green felt in gold filigree in act 3. Boss floors get scorched stone bound in chains and wax seals, the training floor straw-strewn planks lashed with rope, and the contract board a cork notice board in dark oak.
+- **Boss floors and training have their own backgrounds**: the Warden's gate hall, the Plague Hag's cistern, the Lich Auditor's vault of ledgers, and a guild training yard.
+- **Atmosphere:** fog drifts through the Crypt, mist and drips in the Sewers, dust glints in the Vault, embers rise on boss floors, candlelight flickers in the shop and on the contract board. Off when the device asks for reduced motion.
+- **Crests** for each act, boss floors and training, in the header, the room's title and over the act map.
+- **The act map** uses brass medallions for survival and contract floors, a footprint trail between floors, and shows each boss beaten once you're past them. The pause menu's Map button has a map icon.
+- **The shop** hangs its name on a carved sign, sets wares on shelf planks, puts ribbons on Relics and Services, marks sold wares with a wax seal, and shows your gold in a coin purse.
+- **Each ending has its own picture**: a closed ledger with a laurel when you win, a gravestone beside the card that killed you, a torn license when you're struck out. A medal shows how far you got: copper in act 1, bronze in act 2, silver in act 3, gold for a win.
+- **New effects** for the big moments: contract met, a strike, a boss beaten, dues paid, a raise signed, a new act starting, fleeing a room, and your old weapon breaking when you equip a new one.
+- **The clerk reacts more**: impressed when you meet a contract, worried when your health is low, counting coins when you get paid, and stamping a strike.
+
 ## 1.18.1 (2026-10-09)
 Bug fixes for phone layouts.
 - **Cards stay 2 by 2 on upright phones.** The room used to switch between a 2 by 2 grid and a row of 4 depending on how much height was left, so a long clerk line, a boss or a dues warning could flip it mid-floor. Upright phones now always use 2 by 2.

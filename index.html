@@ -850,27 +850,23 @@ main.solo:has(> .end) > details.lb { margin: 0; max-width: none; }
 @keyframes killerin { from { opacity: 0; transform: translateY(-40px) rotate(8deg) scale(1.15); } }
 @keyframes clawin { from { opacity: 0; transform: scale(.6) rotate(-12deg); } }
 .end.revoked h2 { color: #f0b46a; }
-.license { position: relative; width: 150px; height: 118px; background: url(assets/ui/contract-parchment.webp) center / 100% 100% no-repeat; transform: rotate(4deg); filter: drop-shadow(0 6px 10px rgba(0,0,0,.6)); clip-path: polygon(0 0, 54% 0, 49% 18%, 56% 34%, 47% 52%, 55% 70%, 48% 86%, 53% 100%, 0 100%); animation: killerin .6s cubic-bezier(.2,1.3,.4,1) both; }
-.license + .license { position: absolute; left: 50%; top: 0; margin-left: -66px; transform: rotate(-7deg) translate(18px, 6px); clip-path: polygon(54% 0, 100% 0, 100% 100%, 53% 100%, 48% 86%, 55% 70%, 47% 52%, 56% 34%, 49% 18%); }
 .torn { position: relative; display: grid; justify-items: center; }
-.torn .seal { position: absolute; top: 34px; width: 50px; height: 50px; filter: grayscale(.2) drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
 .torn .stamp { top: 26px; left: 50%; margin-left: -66px; }
-@media (prefers-reduced-motion: reduce) { #scene.dead::after, .killer, .killer .claw, .license { animation: none; } }
+@media (prefers-reduced-motion: reduce) { #scene.dead::after, .killer, .killer .claw { animation: none; } }
 @media not ((min-width: 900px) and (min-height: 520px)) {
   .killer { width: 84px; } .killer .rank { font-size: 15px; left: -6px; top: -6px; }
-  .license { width: 110px; height: 86px; } .license + .license { margin-left: -48px; } .torn .seal { top: 24px; width: 36px; height: 36px; }
   .end.dead h2, main.solo .end.dead h2 { font-size: 26px; } .end .epitaph { font-size: 17px; }
 }
 @media (min-width: 900px) and (max-height: 820px) {
   .killer { width: 112px; } .end.dead h2 { font-size: 32px; } .end .epitaph { font-size: 19px; }
 }
 @media (max-width: 620px) and (max-height: 760px) {
-  .killer { width: 62px; } .license { width: 84px; height: 66px; } .license + .license { margin-left: -38px; } .torn .seal { top: 16px; width: 28px; height: 28px; }
+  .killer { width: 62px; }
   .end .label.ending { display: none; } main.solo .end h2::after { display: none; } .end .epitaph { font-size: 15px; line-height: 1.25; }
   main.solo .end .stamp { width: 76px; top: 4px; } main.solo .end { padding-block: 10px; gap: 6px; }
 }
 @media (max-height: 519px) and (orientation: landscape) {
-  .killer { width: 64px; } .license { width: 90px; height: 70px; } .license + .license { margin-left: -40px; }
+  .killer { width: 64px; }
   .end.dead h2, main.solo .end.dead h2 { font-size: 22px; } .end .epitaph { font-size: 15px; } .end .label.ending { display: none; }
   .end h2::after { display: none; }
 }
@@ -879,9 +875,71 @@ main.solo:has(> .end) > details.lb { margin: 0; max-width: none; }
   .side .coach p { font-size: 13px; line-height: 1.22; } .side .coach { padding: 5px 8px; } main.solo:has(> .end) > .version { display: none; }
 }
 .deathflash { position: fixed; inset: 0; z-index: 45; pointer-events: none; background: radial-gradient(ellipse, rgba(200,30,40,.15), rgba(140,10,18,.75)); }
+
+/* ---------- places (batch 3 art): each act, boss floors, training and the contract board have their own table ----------
+   The place is set on <main data-place>. The table surface tiles; the frame is a 9-slice border drawn over the edge. */
+#ambient { position: fixed; inset: -4%; z-index: 0; pointer-events: none; background: center / cover no-repeat; opacity: 0; transition: opacity .8s; }
+#ambient.on { opacity: .55; animation: drift 38s ease-in-out infinite alternate; }
+#ambient.candle.on { opacity: .7; animation: flicker 6s ease-in-out infinite alternate; }
+@keyframes drift { from { transform: translate(-2%, 0); } to { transform: translate(2%, -1%); } }
+@keyframes flicker { 0%, 100% { opacity: .7; } 40% { opacity: .58; } 70% { opacity: .66; } }
+@media (prefers-reduced-motion: reduce) { #ambient.on, #ambient.candle.on { animation: none; } }
+main[data-place] section.chamber, main[data-place] .contract.board { --frame: 34px; border: 14px solid transparent; border-radius: 0; padding: 12px; background: var(--surface) 0 0 / 360px; border-image: var(--edge) 22% / var(--frame) / 8px stretch; box-shadow: inset 0 0 50px rgba(0,0,0,.6), 0 4px 18px rgba(0,0,0,.45); background-clip: padding-box; }
+main[data-place] .contract.board { background: var(--surface) 0 0 / 360px; }
+main[data-place] .chamber-head { background: rgba(12,9,6,.66); }
+main[data-place=crypt] { --surface: #3d4148 url(assets/ui/table-crypt.webp); --edge: url(assets/ui/frame-crypt.webp); }
+main[data-place=sewers] { --surface: #24302a url(assets/ui/table-sewers.webp); --edge: url(assets/ui/frame-sewers.webp); }
+main[data-place=vault] { --surface: #1f3a26 url(assets/ui/table-vault.webp); --edge: url(assets/ui/frame-vault.webp); }
+main[data-place=boss] { --surface: #1d1a1c url(assets/ui/table-boss.webp); --edge: url(assets/ui/frame-boss.webp); }
+main[data-place=training] { --surface: #8d7a58 url(assets/ui/table-training.webp); --edge: url(assets/ui/frame-training.webp); }
+main[data-place=contracts] { --surface: #4b3b29 url(assets/ui/table-contracts.webp); --edge: url(assets/ui/frame-contracts.webp); }
+main[data-place=boss] section.chamber, main[data-place=contracts] .contract.board { border-image-repeat: round; }
+main[data-place=vault] section.chamber { --frame: 30px; }
+main[data-place=contracts] .contract.board > .contract-row h2 { display: inline-block; padding: 4px 14px; background: rgba(12,9,6,.66); border-radius: 6px; }
+@media not ((min-width: 900px) and (min-height: 520px)) {
+  main[data-place] section.chamber, main[data-place] .contract.board { --frame: 20px; border-width: 8px; padding: 6px; border-image-outset: 4px; background-size: 240px; }
+  main[data-place=vault] section.chamber { --frame: 18px; }
+}
+/* the place's crest: in the header, the room's title and over the act map */
+.crest { width: 28px; height: 28px; vertical-align: -8px; margin-right: 6px; filter: drop-shadow(0 2px 3px rgba(0,0,0,.6)); }
+.chamber-title h2 .crest { width: 30px; height: 30px; }
+.acthead .crest { width: 72px; height: 72px; margin: 0 0 2px; }
+@media not ((min-width: 900px) and (min-height: 520px)) { .chamber-title h2 .crest { display: none; } .acthead .crest { width: 44px; height: 44px; } header .where .crest { width: 20px; height: 20px; vertical-align: -5px; margin-right: 4px; } }
+@media (max-height: 519px) and (orientation: landscape) { .acthead .crest { display: none; } }
+/* the act map: brass medallions, a footprint trail between floors, beaten bosses */
+.floors::before { border-top: 0; height: 26px; margin-top: -13px; background: url(assets/ui/map-path.webp) center / auto 100% repeat-x; opacity: .7; }
+.floor .token.medal { background: none; box-shadow: none; border-radius: 50%; }
+.floor .token.medal img { width: 100%; height: 100%; }
+.floor.next .token.medal { box-shadow: 0 0 22px rgba(224,180,80,.55); }
+@media (max-width: 620px) { .floors::before { height: auto; margin: 0; background: none; opacity: 1; } } /* stacked floors keep the dashed line: the trail runs sideways */
+.pausebox button img.bi { margin-right: 0; }
+/* the shop: a hanging sign, shelf planks under the wares, a ribbon on each shelf's label */
+.shopsign { padding: 0 16px 6px; background: rgba(12,9,6,.5); }
+.shopsign h2 { padding: 30px 34px 12px; margin-top: -6px; background: url(assets/ui/shop-sign.webp) center top / 100% 100% no-repeat; color: #f1d488; text-shadow: 0 2px 3px #000, 0 0 10px rgba(0,0,0,.8); } /* the name hangs on the carved sign */
+.purse img { width: 34px; height: 30px; object-fit: contain; }
+.shelf { box-shadow: none; padding-bottom: 22px; background: url(assets/ui/shop-shelf.webp) center bottom / 100% 34px no-repeat, rgba(12,9,6,.22); }
+.shelf > .label { justify-self: start; padding: 5px 30px 8px; background: url(assets/ui/ribbon.webp) center / 100% 100% no-repeat; color: #f1e3bf; letter-spacing: .14em; }
+.shop .ware.sold { opacity: 1; } .shop .ware.sold > * { opacity: .55; }
+.shop .ware.sold::after { content: ''; position: absolute; right: 8px; top: 8px; width: 46px; height: 46px; background: url(assets/ui/seal-sold.webp) center / contain no-repeat; transform: rotate(-12deg); filter: drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
+.shop .ware { position: relative; }
+@media not ((min-width: 900px) and (min-height: 520px)) {
+  .shelf { padding-bottom: 12px; background-size: 100% 18px, auto; } .shelf > .label { padding: 2px 18px 4px; }
+  .shop .ware.sold::after { width: 26px; height: 26px; right: 4px; top: 4px; }
+}
+/* end of run: a picture for each ending, and a medal for how far you got */
+.endart { width: 150px; height: 150px; object-fit: contain; filter: drop-shadow(0 6px 12px rgba(0,0,0,.65)); animation: killerin .6s cubic-bezier(.2,1.3,.4,1) both; }
+.grave { display: flex; align-items: end; justify-content: center; gap: 0; }
+.grave .endart { width: 132px; height: 132px; margin-left: -26px; z-index: 0; }
+.grave .killer { z-index: 1; }
+.torn .endart { width: 170px; height: 150px; }
+.tally .medal { width: 30px; height: 40px; object-fit: contain; vertical-align: -12px; margin-right: 6px; filter: drop-shadow(0 2px 3px rgba(0,0,0,.6)); }
+@media not ((min-width: 900px) and (min-height: 520px)) { .endart { width: 96px; height: 96px; } .grave .endart { width: 84px; height: 84px; } .torn .endart { width: 110px; height: 96px; } }
+@media (max-width: 620px) and (max-height: 760px), (max-height: 519px) and (orientation: landscape) { .endart, .torn .endart { width: 70px; height: 64px; } .grave .endart { width: 60px; height: 60px; margin-left: -16px; } }
+@media (prefers-reduced-motion: reduce) { .endart { animation: none; } }
 </style>
 
 <div id="scene" aria-hidden="true"></div>
+<div id="ambient" aria-hidden="true"></div>
 <main id="app"></main>
 <div id="fx" aria-hidden="true"></div>
 
@@ -1242,7 +1300,7 @@ main.solo:has(> .end) > details.lb { margin: 0; max-width: none; }
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.18.1';
+const VERSION = '1.19.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
@@ -1279,10 +1337,30 @@ const stamp = (kind, key) => {
   const fresh = !stamped.has(key); stamped.add(key);
   return `<span class="stamp ${kind} ${fresh ? 'fresh' : ''}">${img(`ui/stamp-${kind}.webp`)}<b>${kind.toUpperCase()}</b></span>`;
 };
+// Where you are sets the table, its frame, the crest and the atmosphere: each act, boss floors, training,
+// the contract board and the shop look different.
+const ACT_PLACES = ['crypt', 'sewers', 'vault'];
+function place() {
+  if (titleOn || !s) return null;
+  if (mapView) return tut ? 'training' : ACT_PLACES[mapAct()];
+  if (s.phase === 'bid') return 'contracts';
+  if (s.phase === 'room') return tut ? 'training' : s.boss ? 'boss' : ACT_PLACES[Math.min(2, E.act(s))];
+  if (s.phase === 'shop') return 'shop';
+  return null;
+}
+const crestOf = p => `ui/crest-${['crypt', 'sewers', 'vault', 'boss', 'training'].includes(p) ? p : tut ? 'training' : ACT_PLACES[Math.min(2, E.act(s))]}.webp`;
+const AMBIENT = { crypt: 'crypt', sewers: 'sewers', vault: 'vault', boss: 'boss', training: 'training', shop: 'candle', contracts: 'candle' };
+function setAmbient(p) {
+  const el = document.getElementById('ambient'), a = AMBIENT[p] || '';
+  if (el.dataset.a === a) return;
+  el.dataset.a = a;
+  if (a) el.style.backgroundImage = `url(${ART}ui/ambient-${a}.webp)`;
+  el.className = a ? `${a} on` : '';
+}
 function scene() {
-  if (mapView) return ACTS[mapAct()].scene;
+  if (mapView) return tut ? 'training' : ACTS[mapAct()].scene;
   if (s.phase === 'bid') return 'contract-board';
-  if (s.phase === 'room') return ['act1-crypt', 'act2-sewers', 'act3-vault'][Math.min(2, E.act(s))];
+  if (s.phase === 'room') return tut ? 'training' : (s.boss ? ['boss-crypt', 'boss-sewers', 'boss-vault'] : ['act1-crypt', 'act2-sewers', 'act3-vault'])[Math.min(2, E.act(s))];
   if (s.phase === 'shop') return 'guild-hall';
   if (s.phase === 'tutdone') return 'title';
   return s.phase === 'won' ? 'victory' : 'defeat';
@@ -1293,7 +1371,7 @@ function setScene() {
   shownScene = sc;
   const el = document.getElementById('scene');
   el.style.backgroundImage = `url(${ART}backgrounds/${sc}.webp)`;
-  el.classList.toggle('dim', sc === 'act2-sewers'); // the sewer art is busy behind cards
+  el.classList.toggle('dim', /sewers/.test(sc)); // the sewer art is busy behind cards
   el.classList.toggle('dead', sc === 'defeat');
 }
 // Effects: a one-shot sprite over a spot on screen. Skipped for reduced motion.
@@ -1464,7 +1542,7 @@ function roomHTML(active, actions = '') {
   }).join('');
   return `<section class="chamber ${active ? '' : 'preview'}" aria-label="Room ${s.roomsCleared + 1}">
     <div class="chamber-head"><div class="pile" aria-hidden="true">${img('cards/back.webp')}${img('cards/back.webp')}${img('cards/back.webp')}</div>
-      <div class="chamber-title"${tipAttr(`Room ${s.roomsCleared + 1} of ${roomsOnFloor()}`, say)}><h2>Room ${s.roomsCleared + 1} <span class="muted">of ${roomsOnFloor()}</span></h2></div>
+      <div class="chamber-title"${tipAttr(`Room ${s.roomsCleared + 1} of ${roomsOnFloor()}`, say)}><h2>${img(crestOf(place()), 'crest')}Room ${s.roomsCleared + 1} <span class="muted">of ${roomsOnFloor()}</span></h2></div>
       ${actions ? `<div class="chamber-actions">${actions}</div>` : ''}</div>
     <div class="room">${slots}</div></section>`;
 }
@@ -1599,8 +1677,9 @@ function coachHTML() {
   if (tut && TUTORIAL[tut.step]) return `<aside class="coach">${clerk('neutral')}<span class="label">Training · ${tut.step + 1} of ${TUTORIAL.length}</span><p>${TUTORIAL[tut.step].text}</p><div class="tutnav">${TUTORIAL[tut.step].allow ? '' : '<button class="primary ok" data-tutnext>Next</button>'}<button class="link" data-skiptut>Skip training</button></div></aside>`;
   const h = currentHint(), g = goal();
   shownHint = h ? h.key : null;
-  if (h) return `<aside class="coach hint">${clerk('neutral')}<span class="label">The clerk says</span><p>${h.text}</p>${g ? `<p class="sub"><b>Goal:</b> ${g.text}</p>` : ''}</aside>`;
-  return g ? `<aside class="coach goalonly ${g.done ? 'done' : ''}">${clerk(g.done ? 'pleased' : 'neutral')}<span class="label">${g.done ? 'Contract met' : 'Goal'}</span><p>${g.text}</p></aside>` : '';
+  const low = s.phase === 'room' && s.hp <= Math.max(5, s.maxHp / 4); // the clerk worries when you're nearly dead
+  if (h) return `<aside class="coach hint">${clerk(low ? 'worried' : 'neutral')}<span class="label">The clerk says</span><p>${h.text}</p>${g ? `<p class="sub"><b>Goal:</b> ${g.text}</p>` : ''}</aside>`;
+  return g ? `<aside class="coach goalonly ${g.done ? 'done' : ''}">${clerk(g.done ? 'impressed' : low ? 'worried' : 'neutral')}<span class="label">${g.done ? 'Contract met' : 'Goal'}</span><p>${g.text}</p></aside>` : '';
 }
 // A tip stays up until your next move, then it's done. No "Got it" tap.
 let shownHint = null;
@@ -1696,14 +1775,15 @@ function endHTML() {
       <textarea id="fb" rows="2" maxlength="600">${esc(rec.note || '')}</textarea>
       <button data-fb>${rec.note ? 'Update note' : 'Save note'}</button><span id="fbstate" class="muted"></span>` : '';
   const key = 'end-' + (rec ? rec.id : s.floor);
-  const tally = `<p class="muted tally">Floor <span class="num">${s.floor + 1}</span> · <span class="num">${runPoints()}</span> points · <span class="num">${s.gold}</span> gold</p>`;
+  const medal = won ? 'gold' : s.floor >= 6 ? 'silver' : s.floor >= 3 ? 'bronze' : 'copper'; // how far you got: act 1, 2, 3 or the end
+  const tally = `<p class="muted tally">${img(`ui/medal-${medal}.webp`, 'medal', `${medal[0].toUpperCase() + medal.slice(1)} medal`)}Floor <span class="num">${s.floor + 1}</span> · <span class="num">${runPoints()}</span> points · <span class="num">${s.gold}</span> gold</p>`;
   let top;
-  if (won) top = `${stamp('paid', key)}<div class="endsum">${clerk('pleased')}<h2>Ledger closed. You survived.</h2><p style="margin:0">${esc(s.lastResult || '')}</p>${tally}</div>`;
+  if (won) top = `${stamp('paid', key)}<div class="endsum">${img('ui/end-victory.webp', 'endart', 'The ledger, closed')}<h2>Ledger closed. You survived.</h2><p style="margin:0">${esc(s.lastResult || '')}</p>${tally}</div>`;
   else {
     const ep = epitaph();
     const pic = ep.kind === 'dead'
-      ? ep.card ? `<div class="killer ${ep.card.v >= 15 ? 'elite' : ''}"><div class="kcard">${img(cardArt(ep.card), '', cardName(ep.card))}</div><span class="rank" aria-hidden="true">${digits(ep.card.v)}</span>${img('fx/slash.webp', 'claw')}</div>` : ''
-      : `<div class="torn">${stamp('strike', key)}<div class="license"></div><div class="license"></div></div>`;
+      ? `<div class="grave">${ep.card ? `<div class="killer ${ep.card.v >= 15 ? 'elite' : ''}"><div class="kcard">${img(cardArt(ep.card), '', cardName(ep.card))}</div><span class="rank" aria-hidden="true">${digits(ep.card.v)}</span>${img('fx/slash.webp', 'claw')}</div>` : ''}${img('ui/end-died.webp', 'endart')}</div>`
+      : `<div class="torn">${stamp('strike', key)}${img('ui/end-revoked.webp', 'endart', 'Your license, torn')}</div>`;
     top = `<div class="endsum">${pic}<span class="label ending">${ep.kind === 'dead' ? 'Here lies an adventurer' : 'By order of the guild'}</span><h2>${esc(ep.title)}</h2>
       <p class="epitaph">${esc(ep.line)}</p>${tally}</div>`;
   }
@@ -1828,7 +1908,7 @@ function statsHTML() {
 function settleHTML() {
   const r = s.lastResult || '';
   const strike = /strike \d of 3/i.test(r), met = r.startsWith('Contract met');
-  const mood = strike ? 'disapproving' : met ? 'pleased' : 'neutral';
+  const mood = strike ? 'stamping' : met || /pays you/.test(r) ? 'counting' : 'neutral';
   const mark = strike ? stamp('strike', 'floor-' + s.floor) : met ? stamp('paid', 'floor-' + s.floor) : '';
   return `<section class="settle ${mark ? 'stamped' : ''}">${mark}${clerk(mood)}<div class="say"><span class="label">The clerk's ledger</span><p class="result">${esc(r)}</p></div></section>`;
 }
@@ -1857,14 +1937,14 @@ function floorHTML(f) {
   const mark = !r ? '' : r.survival ? '' : r.met ? 'paid' : r.met === false ? 'strike' : '';
   const state = done ? (r && r.survival ? 'Survived' : r && r.met ? 'Contract met' : r && r.met === false ? 'Contract missed' : 'Cleared')
     : now ? `In progress · room ${s.roomsCleared + 1} of ${E.ROOMS_PER_FLOOR}` : f === here ? 'You are here' : 'Ahead';
-  const token = p.boss ? img(`portraits/${bossArt[p.boss.key]}.webp`, '', p.boss.name)
-    : p.survival ? img('ui/pip-room-on.webp') : img(tierSeal(p.tiers[0]));
+  const token = p.boss ? img(`portraits/${bossArt[p.boss.key]}${done ? '-beaten' : ''}.webp`, '', p.boss.name)
+    : img(`ui/map-floor-${p.survival ? 'survival' : 'contract'}.webp`, '', p.survival ? 'Survival floor' : 'Contract floor');
   const task = p.survival ? `<p class="task"><b>Survive</b> ${E.ROOMS_PER_FLOOR} rooms · pays <span class="num price">${E.SURVIVAL_PAY}</span> gold</p>`
     : `<ul class="tiers"${tipAttr('Contract', 'Pick one before the floor: how many monster points you\'ll kill. Bigger targets pay more.')}>${p.tiers.map(t => `<li>${img(tierSeal(t))}${E.TIERS[t]} <b class="num">${E.TARGETS[f][t]}</b></li>`).join('')}</ul>
       ${p.wild ? `<p class="task"${tipAttr('Wildcard', `Pays ${E.WILDCARD_MULT}× as much, with one extra rule for the floor.`)}>or a Wildcard</p>` : ''}`;
   return `<article class="floor ${p.boss ? 'bossfloor' : ''} ${done ? 'done' : f === here ? 'next' : 'later'}">
     ${mark ? `<span class="mark ${mark}">${img(`ui/stamp-${mark}.webp`)}<b>${mark.toUpperCase()}</b></span>` : ''}
-    <div class="token">${token}</div>
+    <div class="token ${p.boss ? '' : 'medal'}">${token}</div>
     <span class="label">${p.boss ? `Boss · floor ${f + 1}` : `Floor ${f + 1}`}</span>
     ${p.boss ? `<h3>${p.boss.name}</h3><p class="rule">${p.boss.rule}</p>` : ''}
     ${task}<span class="state">${state}</span></article>`;
@@ -1879,14 +1959,14 @@ function mapHTML() {
   const dues = !tut && !(s.guided && first + 2 < E.UNLOCK.contracts);
   const go = mapView === 'auto' ? `<button class="primary go" data-mapgo>${tut ? 'Start training' : `Start floor ${here + 1}`}</button>` : '<button class="go" data-mapback>Back</button>';
   const floors = [first, first + 1, first + 2].map(floorHTML).join('');
-  return `<section class="actmap" aria-label="Act map"><div class="acthead"><span class="label">Act ${a + 1} of 3</span><h2>${ACTS[a].name}</h2></div>
+  return `<section class="actmap" aria-label="Act map"><div class="acthead">${img(`ui/crest-${tut ? 'training' : ACT_PLACES[a]}.webp`, 'crest')}<span class="label">Act ${a + 1} of 3</span><h2>${ACTS[a].name}</h2></div>
     <div class="floors ${tut ? 'n4' : ''}">${tut ? trainingHTML() : ''}${floors}</div>
     <div class="mapfoot">${dues ? `<p class="dues"${tipAttr('Guild dues', 'Collected after the boss floor. If you can\'t pay, it\'s a strike.')}>Dues <b class="num price">${E.DUES[a]}</b> gold · you have <b class="num price">${s.gold}</b></p>` : ''}
     ${go}</div></section>`;
 }
 const pauseHTML = () => `<div class="overlay" role="dialog" aria-modal="true" aria-label="Paused"><section class="pausebox"><h2>Paused</h2>
   <button class="primary" data-resume>Resume</button>
-  <button data-map>Map</button>
+  <button data-map>${img('ui/icon-map.webp', 'bi')}Map</button>
   <button data-title>Main menu</button>
   <p class="muted">${gameMode() === 'full' ? 'Full game' : 'Guided start'}${tut ? ' · training' : ''}</p></section></div>`;
 document.addEventListener('keydown', e => {
@@ -1906,7 +1986,7 @@ function renderTitle() {
   sc.style.backgroundImage = `url(${ART}backgrounds/title.webp)`; sc.className = 'title-art';
   const modes = `<div class="mode big" role="group" aria-label="Game mode">${[['guided', 'Guided start', 'Learn as you go: new rules unlock floor by floor.'], ['full', 'Full game', 'Every rule from floor 1.']].map(([k, label, sub]) =>
     `<button data-mode="${k}" aria-pressed="${gameMode() === k}"${tipAttr(label, sub)}><b>${label}</b></button>`).join('')}</div>`;
-  app.className = 'title';
+  app.className = 'title'; delete app.dataset.place; setAmbient(null);
   app.innerHTML = `<section class="titlecard">
     <div class="logo">${img('icons/emblem-guild.webp', 'emblem')}<h1>Guild Ledger</h1></div>
     <p class="tagline">Sign a contract, clear the dungeon, get paid. Don't let the ledger bury you.</p>
@@ -1923,11 +2003,13 @@ function render() {
   if (titleOn) { renderTitle(); return; }
   if (!s) return;
   if (shownScene === 'title') document.getElementById('scene').className = '';
-  setScene();
   if (!canPause()) { paused = false; mapView = null; }
+  setScene();
+  const where = place(); setAmbient(where);
+  if (where) app.dataset.place = where; else delete app.dataset.place;
   const pauseBtn = canPause() && !mapView ? `<button class="pause" data-pause aria-label="Pause" title="Pause (Esc)">${img('icons/hud-pause.webp')}</button>` : '';
   const more = tut ? '' : `<button class="more" data-more aria-expanded="${moreOpen}" title="How to play and top scores">${moreOpen ? 'Close' : 'More'}</button>`;
-  const head = `<header><h1>${img('icons/emblem-guild.webp', 'emblem')}Guild Ledger</h1>${more}<span class="muted where">${tut ? 'Training floor' : `Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span>${pauseBtn}</header>`;
+  const head = `<header><h1>${img('icons/emblem-guild.webp', 'emblem')}Guild Ledger</h1>${more}<span class="muted where">${img(crestOf(where), 'crest')}${tut ? 'Training floor' : `Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span>${pauseBtn}</header>`;
   // extras (rules, scores, footer) sit under the side column on wide screens and behind the More button on phones
   const cols = (side, stage, extras = '') => `<div class="cols"><div class="side">${side}<div class="extras">${extras}${syncNote()}<p class="muted version">v${VERSION}</p></div></div><div class="stage">${stage}</div></div>`;
   let body = '';
@@ -1962,7 +2044,7 @@ function render() {
       <button data-buy="${k}" ${sold || short || (E.RELICS[k] && full) ? 'disabled' : ''}>${sold ? 'Sold' : 'Buy'}</button></div></div>`;
     };
     body = cols(`${coachHTML()}${statusHTML()}${settleHTML()}`, `
-      <section class="shop"><div class="shopsign"><h2>Guild Shop</h2><span class="purse">${img('icons/hud-gold.webp')}<b class="num">${s.gold}</b> gold</span></div>
+      <section class="shop"><div class="shopsign"><h2>Guild Shop</h2><span class="purse">${img('ui/shop-purse.webp')}<b class="num">${s.gold}</b> gold</span></div>
         ${relicsOpen() ? `<div class="shelf"><div class="label">Relics${full ? ' · slots full' : ''}</div>
         <div class="shopgrid relicgrid">${s.shop.relics.map(k => ware(k, E.RELICS[k])).join('') || '<p class="muted">Sold out.</p>'}</div></div>` : ''}
         <div class="shelf"><div class="label">Services</div>
@@ -2140,6 +2222,7 @@ app.addEventListener('click', async e => {
       busy = true; if (name) fx(name, cardEl.getBoundingClientRect()); cardEl.classList.add('leaving');
       await new Promise(r => setTimeout(r, 260)); busy = false;
     }
+    if (c.kind === 'weapon' && s.weapon) { const at = rectOf('.stat.weapon'); effect = () => fx('weapon-break', at); } // the old weapon is dropped
     if (c.kind === 'monster') { const w = d.act === 'weapon' && E.canUseWeapon(s, c); lastHit = { name: cardName(c), v: c.v, mode: w ? 'weapon' : 'bare', dmg: E.monsterDamage(s, c, w), card: { ...c } }; }
     if (!E.handle(s, +d.id, d.act === 'take' ? null : d.act)) { render(); return; }
   } else if ('flee' in d) {
@@ -2154,10 +2237,10 @@ app.addEventListener('click', async e => {
       await new Promise(r => setTimeout(r, 480)); busy = false;
     }
     if (E.flee(s) && curFloor()) curFloor().flees++;
-    effect = () => fx('smoke', at);
+    effect = () => fx('flee', at);
   }
   else if ('raise' in d) {
-    if (E.raise(s) && curFloor()) { const f = curFloor(); f.raises++; f.target = s.contract.target; f.tier = s.contract.tier; f.raisedAtRoom = s.roomsCleared + 1; }
+    if (E.raise(s) && curFloor()) { const f = curFloor(); f.raises++; f.target = s.contract.target; f.tier = s.contract.tier; f.raisedAtRoom = s.roomsCleared + 1; effect = () => fx('raise', rectOf('.contract.paper')); }
   }
   else if ('redraw' in d) E.redraw(s);
   else if (d.buy) {
@@ -2165,7 +2248,7 @@ app.addEventListener('click', async e => {
     if (E.buy(s, d.buy)) { effect = () => fx('coins', at); if (rec && rec.shops.length) rec.shops[rec.shops.length - 1].bought.push(d.buy); }
   }
   else if (d.drop) E.dropRelic(s, d.drop);
-  else if ('leave' in d) { E.leaveShop(s); mapView = 'auto'; }
+  else if ('leave' in d) { E.leaveShop(s); mapView = 'auto'; if (s.floor % 3 === 0) effect = () => fx('act', rectOf('.acthead')); } // a new act begins
   else if ('new' in d) {
     readReportForm();
     if (rec && rec.status === 'in_progress' && rec.floors.length) { rec.status = 'abandoned'; save(); }
@@ -2201,8 +2284,11 @@ app.addEventListener('click', async e => {
   else return;
   if (tut && acted) { tut.step++; if (s.phase === 'tutdone') store.set('tutorial', true); }
   if (acted) { afterAction(prev); if (!tut) retireHint(hintBefore); }
-  if (prev === 'room' && s.phase === 'shop' && (s.lastResult || '').startsWith('Contract met')) {
-    const last = effect; effect = () => { if (last) last(); fx('coins', rectOf('.status .stat:nth-child(2)')); };
+  if (prev === 'room' && s.phase === 'shop') { // the floor is settled: one mark on the clerk's ledger, and coins on your gold
+    const r = s.lastResult || '', last = effect;
+    const mark = /strike \d of 3/i.test(r) ? 'strike' : E.BOSSES[s.floor] ? 'boss-beaten' : r.startsWith('Contract met') ? 'contract-met' : null;
+    const gold = /Paid \d+ gold in guild dues/.test(r) ? 'dues' : r.startsWith('Contract met') ? 'coins' : null;
+    effect = () => { if (last) last(); if (mark) fx(mark, rectOf('.settle')); if (gold) fx(gold, rectOf('.status .stat.gold')); };
   }
   render();
   if (effect) effect();
