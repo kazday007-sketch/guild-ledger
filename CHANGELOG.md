@@ -1,12 +1,22 @@
 # Changelog
 
-Guild Ledger uses a three-part version number, `MAJOR.MINOR.PATCH`:
+Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number, `MAJOR.MINOR.PATCH`:
 
 - **MAJOR**: a complete overhaul or redesign of the game.
 - **MINOR**: an update (new content, balance changes, new features). Resets PATCH to 0.
 - **PATCH**: bug fixes only.
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
+
+## 1.20.0 (2026-10-09)
+The game is now called **Scapegrace**, and an old goat replaces the guild clerk.
+
+- **New name and logo.** Scapegrace (an old word for a reckless rogue, and a nod to Scoundrel, the card game this one grew from). The title screen shows the new logo, the goat over the name, and the book crest in the header and browser tab is now a goat crest.
+- **The goat.** Years ago the guild threw a goat into the dungeon to take the blame. It never died. Now it knows the place inside out and shows each new recruit (you) the way. It takes over every place the clerk was: the tips panel, the training, the floor results and the shop, with the same moods (calm, smug, unimpressed, a bit concerned for you, impressed, counting coins, stamping).
+- **Its voice.** The training opens with the goat introducing itself, and a few tips get a dry remark from it. Every instruction says the same thing as before. The panel labels read "The goat says" and "The goat's tally".
+- **New title, victory, defeat and guild hall backgrounds**, each with the goat in it.
+- The guild, contracts, dues, strikes, bosses, monsters, relics, shop and map are unchanged. Run reports now start with "Scapegrace v1.20.0".
+- Upright phones: the title background shifts left so the painted goat doesn't sit behind the logo goat.
 
 ## 1.19.2 (2026-10-09)
 Sharper batch 3 art, with the large pieces redrawn.

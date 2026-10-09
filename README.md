@@ -1,4 +1,6 @@
-# Guild Ledger
+# Scapegrace
+
+(Formerly Guild Ledger. The repository and GitHub Pages address keep the old name.)
 
 A dungeon-solitaire roguelike. Each floor you sign a contract (Safe, Bold or Reckless) promising how many monster points you'll slay, then deal with rooms of four cards: monsters hurt you, weapons soften hits, potions heal. Meet the contract for gold, buy rule-bending relics, pay the guild's dues at the end of each act, and survive nine floors.
 

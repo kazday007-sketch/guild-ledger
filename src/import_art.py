@@ -56,14 +56,18 @@ save(Image.open(os.path.join(src, 'cards/card-back.png')).convert('RGBA'), 'card
 # Icons (relics, services, emblem, HUD) and wax seals, cut out of their slate squares.
 # Shown small, so 128px is plenty for 2x screens.
 for f in each('icons/*.png') + each('icons/hud/*.png'):
+    if f.endswith('emblem-goat.png'): continue  # already transparent, saved below
     save(cut_out(f), f'icons/{strip(f, "")}.webp', (128, 128))
 for f in each('ui/seal-*.png'):
     save(cut_out(f), f'ui/{strip(f, "")}.webp', (128, 128))
 # Effects are already transparent.
 for f in each('effects/*.png'):
     save(Image.open(f).convert('RGBA'), f'fx/{strip(f, "fx-")}.webp', (192, 192))
-emblem = cut_out(os.path.join(src, 'icons/emblem-guild.png'))
+emblem = Image.open(os.path.join(src, 'icons/emblem-goat.png')).convert('RGBA')  # the goat crest (1.20.0), already cut out
 emblem.resize((64, 64), Image.LANCZOS).save(os.path.join(out, 'icons', 'favicon.png'))
+save(emblem.copy(), 'icons/emblem-goat.webp', (128, 128))
+# Scapegrace logo (1.20.0): the goat over the name, already cut out. Shown up to 380px wide on the title screen.
+save(Image.open(os.path.join(src, 'logo/logo-scapegrace.png')).convert('RGBA'), 'ui/logo.webp', (760, 760), 88)
 
 # Stamps keep their transparency; the word (PAID, STRIKE, RAISED) is set in code.
 for f in each('ui/stamp-*.png'):
