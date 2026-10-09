@@ -51,7 +51,6 @@ function playRun(seed, bot, opts = {}) {
   while (s.phase !== 'won' && s.phase !== 'lost') {
     if (++steps > 3000) { s.stalled = true; s.phase = 'lost'; break; }
     if (s.phase === 'bid') {
-      if (E.canRedraw(s) && plan(s, bot.greed).v < s.hp - 8) { E.redraw(s); continue; }
       const est = (avg / n) * bot.margin + (s.hp - 14) * 0.4;
       let pick = 0, bestPay = -1;
       s.offers.forEach((o, i) => {
@@ -66,6 +65,7 @@ function playRun(seed, bot, opts = {}) {
         if (proj >= E.TARGETS[s.floor][s.contract.tier + 1] * bot.raiseAt) { E.raise(s); continue; }
       }
       const p = plan(s, bot.greed);
+      if (E.canRedraw(s) && p.v < s.hp - 8) { E.redraw(s); continue; }
       if (s.handled === 0 && E.canFlee(s) && p.v < s.hp - 8) { E.flee(s); continue; }
       E.handle(s, p.steps[0][0], p.steps[0][1]);
       if (s.phase !== 'room' && s.contract && s.hp > 0) { avg += s.slain; n++; }

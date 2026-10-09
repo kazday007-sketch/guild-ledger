@@ -53,7 +53,7 @@
     secondwind: { name: 'Second Wind', text: 'You may flee two rooms in a row (not three).', cost: 5 },
     scout: { name: 'Scout', text: 'You may flee after dealing with 1 card of a room.', cost: 6 },
     lantern: { name: 'Lantern', text: 'See the next card in the draw pile.', cost: 3 },
-    fortune: { name: 'Fortune Teller', text: 'Once per floor, before bidding, redraw the first room.', cost: 5 },
+    fortune: { name: 'Fortune Teller', text: 'Once per floor, redraw a room before you pick any of its cards.', cost: 5 },
     // points
     trophy: { name: 'Trophy Hunter', text: 'Face and elite monsters (J and up) count +3 toward contracts.', cost: 7 },
     brawler: { name: 'Brawler', text: 'Bare-handed kills count +3 toward contracts.', cost: 6 },
@@ -211,15 +211,15 @@
     const o = s.offers[i];
     if (s.phase !== 'bid' || !o) return false;
     s.contract = makeContract(s, o.tier, o.clause);
-    log(s, `Signed a ${TIERS[o.tier]}${o.clause ? ` Wildcard (${CLAUSES[o.clause].name})` : ''} contract: slay ${s.contract.target} for ${s.contract.pay} gold.`);
+    log(s, `Signed a ${o.clause ? `Wildcard (${CLAUSES[o.clause].name})` : TIERS[o.tier]} contract: slay ${s.contract.target} for ${s.contract.pay} gold.`);
     s.phase = 'room';
     return true;
   }
-  function canRedraw(s) { return s.phase === 'bid' && has(s, 'fortune') && !s.fortuneUsed; }
+  function canRedraw(s) { return s.phase === 'room' && s.handled === 0 && has(s, 'fortune') && !s.fortuneUsed; }
   function redraw(s) {
     if (!canRedraw(s)) return false;
     s.draw.push(...s.room); s.room = s.draw.splice(0, 4); s.fortuneUsed = true;
-    log(s, 'The fortune teller redraws the first room.');
+    log(s, 'The fortune teller redraws the room.');
     return true;
   }
   // Raise: between rooms, move your contract up one tier. Its clause stays.
@@ -231,7 +231,7 @@
     if (!canRaise(s)) return false;
     s.contract = makeContract(s, s.contract.tier + 1, s.contract.clause);
     s.raises++;
-    log(s, `Raised to ${TIERS[s.contract.tier]}: slay ${s.contract.target} for ${s.contract.pay} gold.`);
+    log(s, `Raised ${s.contract.clause ? 'the Wildcard' : `to ${TIERS[s.contract.tier]}`}: slay ${s.contract.target} for ${s.contract.pay} gold.`);
     return true;
   }
   function canFlee(s) {
