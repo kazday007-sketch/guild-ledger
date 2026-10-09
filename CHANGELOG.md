@@ -19,12 +19,13 @@ The game is now called **Scapegrace**, and an old goat replaces the guild clerk.
 - Upright phones: the title background shifts left so the painted goat doesn't sit behind the logo goat.
 
 ## 1.19.2 (2026-10-09)
-Sharper batch 3 art.
+Sharper batch 3 art, with the large pieces redrawn.
 
 - The table surfaces for each place were small tiles stretched to 360 px squares, which blurred and squashed them. They now show at the size they were painted, with no stretching.
 - The boss and training backgrounds no longer get a sharpening pass, which left halos around edges.
 - Backgrounds are saved at WebP quality 86 instead of 72, table surfaces at 90 instead of 72, and atmosphere layers at 85 instead of 70. The map medallions are kept at 240 px instead of 160 px, so they stay sharp on high-density screens.
-- Prompts for redrawing the large pieces at full size are in `art/redo-art.md`.
+- The boss and training backgrounds and all six table surfaces are redrawn at full size: each background is its own 1376x768 painting, and each surface is about 600-690 px, shown without stretching.
+- The Crypt's fog layer is redrawn larger. The other atmosphere layers are unchanged.
 
 ## 1.19.1 (2026-10-09)
 Contracts and cards sized to the screen, with no scrolling.
