@@ -82,3 +82,19 @@ for f in each('backgrounds/*.jpg'):
 n = sum(len(fs) for _, _, fs in os.walk(out))
 kb = sum(os.path.getsize(os.path.join(d, x)) for d, _, fs in os.walk(out) for x in fs) // 1024
 print(f'wrote {n} files to assets/ ({kb} KB)')
+
+# Batch 2 UI art (2026-10-09): numerals, symbols, buttons, bars, panels, pips, card frames. Already cut out.
+# Card numerals are black masks the code tints. Each is trimmed to its own width on a shared height so
+# two-digit numbers sit together; the widths (as aspect ratios) are listed in DIGIT_W in ui.html.
+for f in each('ui/numerals/num-*.png'):
+    im = Image.open(f).convert('RGBA'); a = im.getchannel('A')
+    l, _, r, _ = a.getbbox(); im = im.crop((l, 22, r, 234))
+    save(im, f'ui/{strip(f, "")}.webp', (200, 64), 90)
+for f in each('ui/symbols/*.png'):
+    save(Image.open(f).convert('RGBA'), f'ui/{strip(f, "")}.webp', (96, 96), 85)
+for f in each('ui/buttons/*.png'):
+    save(Image.open(f).convert('RGBA'), f'ui/{strip(f, "")}.webp', None, 85)
+for f in each('ui/panels/*.png'):
+    save(Image.open(f).convert('RGBA'), f'ui/{strip(f, "")}.webp', (320, 320), 85)
+for f in each('cards/frames/*.png'):
+    save(Image.open(f).convert('RGBA'), f'cards/{strip(f, "card-")}.webp', None, 85)

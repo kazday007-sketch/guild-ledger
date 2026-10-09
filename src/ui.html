@@ -531,6 +531,76 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
   main.solo .end { padding: 18px 20px; grid-template-columns: 1.1fr 1fr; align-items: center; column-gap: 28px; text-align: center; }
   main.solo .end .endform { align-content: center; }
 }
+
+/* ---------- painted UI (batch 2 art): buttons, panels, bars, pips, card frames and numbers ----------
+   Buttons and panels are 9-slice images (border-image), so they stretch to any size; the words stay in code. */
+button:not(.link):not(.offer) { border: 1px solid transparent; border-radius: 0; background: none; border-image: url(assets/ui/btn-secondary.webp) 34 44 fill / 10px 13px stretch; }
+button:not(.link):not(.offer):hover:not(:disabled) { border-color: transparent; border-image-source: url(assets/ui/btn-secondary-hover.webp); }
+button:not(.link):not(.offer):disabled { opacity: .75; color: #3b3b3b; border-image-source: url(assets/ui/btn-disabled.webp); }
+button.primary:not(.link):not(.offer), button.primary:not(.link):not(.offer):hover:not(:disabled) { background: none; border-color: transparent; border-image: url(assets/ui/btn-primary.webp) 34 44 fill / 10px 13px stretch; color: #2a1d05; }
+button.primary:not(.link):not(.offer):hover:not(:disabled) { filter: brightness(1.1) drop-shadow(0 0 6px rgba(240,200,110,.45)); }
+button.primary:not(.link):not(.offer):active:not(:disabled) { border-image-source: url(assets/ui/btn-primary-pressed.webp); color: #f1e3bf; filter: none; }
+.card .acts button:not(.link) { background: none; color: var(--bone); border-color: transparent; border-image: url(assets/ui/btn-action.webp) 30 40 fill / 8px 11px stretch; }
+.card .acts button:hover:not(:disabled) { border-image-source: url(assets/ui/btn-action-hover.webp); }
+.card .acts button.fatal:not(:disabled) { border-image: url(assets/ui/btn-danger.webp) 38 48 fill / 9px 12px stretch; }
+.card .acts button:disabled { color: #3b3b3b; border-image: url(assets/ui/btn-disabled.webp) 34 44 fill / 8px 11px stretch; }
+.mode { border: 0; background: none; gap: 6px; overflow: visible; }
+.mode button + button { border-left: 1px solid transparent; }
+.mode button:not(.link), .mode button:not(.link):hover:not(:disabled) { color: var(--bone); border-image: url(assets/ui/btn-toggle-off.webp) 22 60 fill / 8px 16px stretch; }
+.mode button[aria-pressed="true"]:not(.link), .mode button[aria-pressed="true"]:not(.link):hover { background: none; color: #2a1d05; border-image: url(assets/ui/btn-primary.webp) 34 44 fill / 10px 13px stretch; }
+.titlecard .mode.big button small { color: #d8cdb4; } .titlecard .mode.big button[aria-pressed="true"] small { color: #4a3510; }
+.skull { display: inline-block; width: 1.15em; height: 1.15em; vertical-align: -.25em; margin: 0 .3em 0 0; background: url(assets/ui/icon-skull.webp) center / contain no-repeat; }
+.sm .skull { margin: 0 0 0 .2em; }
+
+/* panels */
+.status, details.rules, .shop, .end, .contract.board, .ware, .relic, .settle { background: none; border-color: transparent; border-radius: 0; border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; }
+.status { gap: 0; } .status .stat { background: transparent; }
+.relic.empty { border-style: solid; }
+.coach, .coach.hint, .coach.done { background: none; border-color: transparent; border-radius: 0; box-shadow: 0 6px 18px rgba(0,0,0,.35); border-image: url(assets/ui/panel-gold.webp) 40 fill / 14px stretch; }
+.coach.done .label::before { content: ''; display: inline-block; width: 1.4em; height: 1.4em; vertical-align: -.4em; margin-right: 4px; background: url(assets/ui/icon-check.webp) center / contain no-repeat; }
+textarea, input#pname { background: none; border-color: transparent; border-radius: 0; border-image: url(assets/ui/input-field.webp) 24 fill / 8px stretch; }
+summary { list-style: none; display: flex; align-items: center; gap: 8px; }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: ''; flex: none; width: 10px; height: 14px; background: url(assets/ui/icon-chevron.webp) center / contain no-repeat; transition: transform .15s; }
+details[open] > summary::before { transform: rotate(90deg); }
+.end h2::after, .titlecard .logo::after { content: ''; display: block; width: 220px; height: 36px; margin: 4px auto 0; background: url(assets/ui/divider.webp) center / contain no-repeat; }
+.titlecard .logo::after { width: 260px; margin: 2px 0 0; }
+
+/* bars: an empty brass casing, with the full painted bar shown up to the fill width */
+.hpbar, .progress, .contract.paper .progress { height: 14px; border-radius: 0; overflow: hidden; box-shadow: none; container-type: inline-size; background: url(assets/ui/bar-frame.webp) center / 100% 100% no-repeat; }
+.hpbar i { background: url(assets/ui/bar-fill-health.webp) left center / 100cqw 100% no-repeat; }
+.progress i, .contract.paper .progress i { background: url(assets/ui/bar-fill-contract.webp) left center / 100cqw 100% no-repeat; }
+.progress.met i, .contract.paper .progress.met i { filter: sepia(1) saturate(2.2) brightness(1.15); }
+.hpbar .loss, .hpbar .gain { top: 4px; bottom: 4px; }
+
+/* pips: wax seals for strikes, candles for rooms */
+.pip, .stat.guild .pip, .contract.paper .pip { border: 0; border-radius: 0; box-shadow: none; background: url(assets/ui/pip-strike-off.webp) center / contain no-repeat; }
+.pip:not(.room):not(.on) { filter: grayscale(.7) brightness(.8); opacity: .6; }
+.pip.on, .stat.guild .pip.on { background-image: url(assets/ui/pip-strike-on.webp); box-shadow: none; }
+.pip.room, .contract.paper .pip.room { background: url(assets/ui/pip-room-off.webp) center / contain no-repeat; }
+.pip.room.on, .contract.paper .pip.room.on { background: url(assets/ui/pip-room-on.webp) center / contain no-repeat; }
+.stat.guild .pip { width: 20px; height: 20px; }
+.contract.paper .pip { width: 18px; height: 18px; }
+
+/* cards: painted frames, number on an enamel plate */
+.card.monster, .card.weapon, .card.potion { border-color: transparent; background: none; padding: 9px 9px 11px; }
+.card.monster { border-image: url(assets/cards/frame-monster.webp) 60 fill / 16px stretch; }
+.card.weapon { border-image: url(assets/cards/frame-weapon.webp) 60 fill / 16px stretch; }
+.card.potion { border-image: url(assets/cards/frame-potion.webp) 60 fill / 16px stretch; }
+.card.elite { border-color: transparent; background: #e9e2d0 url(assets/ui/texture-parchment.webp) 0 0 / 220px; border-image: url(assets/cards/frame-elite.webp) 48 / 14px stretch; }
+.card .rank, .card.elite .rank { display: flex; align-items: center; justify-content: center; gap: .02em; width: 2em; height: 2em; min-width: 0; padding: 0; border-radius: 50%; box-shadow: none; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); background: url(assets/ui/rank-plate-monster.webp) center / contain no-repeat; color: #2a2622; }
+.card.weapon .rank { background-image: url(assets/ui/rank-plate-weapon.webp); color: #24507f; }
+.card.potion .rank { background-image: url(assets/ui/rank-plate-potion.webp); color: #8e2a31; }
+.card.elite .rank { background-image: url(assets/ui/rank-plate-elite.webp); color: #4a3105; }
+.dg { display: block; flex: none; height: 1.05em; background: currentColor; -webkit-mask: var(--g) center / 100% 100% no-repeat; mask: var(--g) center / 100% 100% no-repeat; }
+.slot { border: 0; border-radius: 0; background: url(assets/ui/slot-picked.webp) center / contain no-repeat; opacity: .8; align-content: end; padding-bottom: 6px; }
+.slot small { background: rgba(12,9,6,.7); padding: 1px 6px; border-radius: 4px; }
+@media not ((min-width: 900px) and (min-height: 520px)) {
+  .stage .card.monster, .stage .card.weapon, .stage .card.potion, .stage .card.elite { padding: 5px 5px 6px; border-image-width: 9px; }
+  .stat.guild .pip { width: 15px; height: 15px; }
+  .hpbar, .progress, .contract.paper .progress { height: 11px; }
+  .coach, .coach.hint, .coach.done { border-image-width: 10px; }
+}
 </style>
 
 <div id="scene" aria-hidden="true"></div>
@@ -543,7 +613,7 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.15.0';
+const VERSION = '1.16.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -759,7 +829,7 @@ function roomHTML(active, actions = '') {
     : `Pick <b>${left}</b> more card${left === 1 ? '' : 's'}.`;
   const slots = roomSlots.map(id => {
     const c = id != null && s.room.find(x => x.id === id);
-    return c ? cardHTML(c, active) : '<div class="slot"><b>✓</b><small>Picked</small></div>';
+    return c ? cardHTML(c, active) : '<div class="slot"><small>Picked</small></div>';
   }).join('');
   return `<section class="chamber ${active ? '' : 'preview'}" aria-label="Room ${s.roomsCleared + 1}">
     <div class="chamber-head"><div class="pile" aria-hidden="true">${img('cards/back.webp')}${img('cards/back.webp')}${img('cards/back.webp')}</div>
@@ -821,9 +891,13 @@ function cardName(c) {
 }
 // Button text comes in two lengths: the full wording, and a short one for the narrow cards on phones.
 const dual = (long, short) => `<span class="lg">${long}</span><span class="sm">${short}</span>`;
+// Card numbers are painted digits (black masks, tinted by the card's colour). Widths are each digit's aspect ratio.
+const DIGIT_W = [.91, .45, .8, .8, .89, .81, .84, .81, .81, .83];
+const digits = v => String(v).split('').map(d => `<i class="dg" style="--g:url(${ART}ui/num-${d}.webp);width:${DIGIT_W[d]}em"></i>`).join('');
+const skull = '<i class="skull" aria-label="fatal"></i>';
 function fightLabel(c, weapon) {
   const d = E.monsterDamage(s, c, weapon), w = weapon ? 'Weapon' : 'Fists';
-  if (d >= s.hp) return dual(`${w}: lose ${d} (fatal)`, `${w} −${d} ☠`);
+  if (d >= s.hp) return dual(`${skull}${w}: lose ${d} (fatal)`, `${w} −${d} ${skull}`);
   return dual(`${w}: lose ${d} health`, `${w} −${d}`);
 }
 function potionPreview(c) {
@@ -838,7 +912,7 @@ function allowed(c, mode) {
   return !!a && a.v === c.v && a.mode === mode;
 }
 function cardHTML(c, active) {
-  const btn = (mode, label) => `<button data-act="${mode || 'take'}" data-id="${c.id}" ${allowed(c, mode) ? '' : 'disabled'}>${label}</button>`;
+  const btn = (mode, label) => `<button data-act="${mode || 'take'}" data-id="${c.id}" ${allowed(c, mode) ? '' : 'disabled'}${c.kind === 'monster' && E.monsterDamage(s, c, mode === 'weapon') >= s.hp ? ' class="fatal"' : ''}>${label}</button>`;
   let acts = '';
   if (c.kind === 'monster') {
     if (E.canUseWeapon(s, c)) acts += btn('weapon', fightLabel(c, true));
@@ -848,7 +922,7 @@ function cardHTML(c, active) {
   } else acts = btn(null, potionPreview(c));
   const lit = tut && TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.v === c.v && s.phase === 'room';
   return `<article class="card ${c.kind} ${c.v >= 15 ? 'elite' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''}" data-card="${c.id}">
-    <div class="art">${img(cardArt(c))}<span class="rank">${c.v}</span></div>
+    <div class="art">${img(cardArt(c))}<span class="rank" role="img" aria-label="${c.v}">${digits(c.v)}</span></div>
     <div class="name"><span class="face">${cardName(c)}</span></div>
     <div class="acts">${acts}</div></article>`;
 }
