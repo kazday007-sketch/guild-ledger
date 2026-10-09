@@ -834,6 +834,7 @@ main.solo.map { max-width: 980px; }
 
 /* ---------- hold / hover tips: the details that don't need to sit on screen ---------- */
 [data-tip], [data-tip] img { -webkit-touch-callout: none; }
+@media (hover: none) { body { -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; } input, textarea { -webkit-user-select: text; user-select: text; } [data-tip] { cursor: pointer; } }
 @media (hover: none) { [data-tip] { -webkit-user-select: none; user-select: none; } [data-tip], [data-tip] img { -webkit-touch-callout: none; } } /* a hold shows the tip, not iOS's image menu */
 #tip { position: fixed; z-index: 40; left: 0; top: 0; max-width: min(280px, calc(100vw - 24px)); padding: 9px 13px 11px; display: none; gap: 3px; pointer-events: none; color: var(--bone); font-size: 14px; line-height: 1.35; text-align: left; border: 1px solid transparent; border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; filter: drop-shadow(0 8px 16px rgba(0,0,0,.7)); }
 #tip.on { display: grid; animation: tipin .12s ease-out; }
@@ -1134,7 +1135,10 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
 .plines { list-style: none; margin: 0; padding: 10px 14px; display: grid; gap: 6px; background: rgba(8,10,14,.35); border-radius: 6px; }
 .pline { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 10px; font-size: 18px; opacity: 0; transform: translateX(-12px); transition: opacity .25s, transform .25s; }
 .pline.on, .pline.none, .pline.carry { opacity: 1; transform: none; }
-.pline.carry { color: var(--ash); } .pline.carry b { color: var(--bone); }
+.pline.carry { color: var(--ash); }
+.pline[data-tip] { cursor: help; border-radius: 4px; } .pline[data-tip]:hover { background: rgba(255,255,255,.05); }
+.payout .plines::after { content: 'Tap or point at a line to see what it means.'; display: block; font-size: 12px; color: var(--ash); text-align: center; margin-top: 2px; }
+@media (hover: hover) { .payout .plines::after { content: 'Point at a line to see what it means.'; } } .pline.carry b { color: var(--bone); }
 .pline .pico { width: 28px; height: 28px; object-fit: contain; }
 .pline b { font-size: 22px; color: #f1d488; } .pline.neg b { color: #ff8a7a; }
 .pline.none { grid-template-columns: 1fr; color: var(--ash); }
@@ -1571,7 +1575,7 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.24.0';
+const VERSION = '1.25.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
@@ -2377,6 +2381,21 @@ function showClerk() {
 // interest, and anything taken (the loan shark, guild dues). Continue goes on to the shop.
 let payoutView = false, payoutPlayed = null;
 const payIcon = { contract: 'icons/hud-gold.webp', overkill: 'icons/hud-overkill.webp', interest: 'icons/hud-interest.webp', dues: 'icons/hud-strike.webp', loanshark: 'icons/relic-loanshark.webp', bloodpact: 'icons/relic-bloodpact.webp' };
+// What each payout line means, for its tap / hover tip.
+function payTip(p, l) {
+  const has = k => s.relics.includes(k), g = Math.abs(l.gold), over = p.slain - p.target;
+  const tips = {
+    contract: p.survival ? ['Survival pay', `No contract on this floor, so the guild pays <b>${g}</b> gold just for getting through.`]
+      : ['Contract', `You killed <b>${p.slain}</b> of the <b>${p.target}</b> points you signed for, so the guild pays the contract's <b>${g}</b> gold.`],
+    overkill: ['Overkill', `Every <b>${has('taxman') ? 2 : 5}</b> points past the target pays 1 extra gold${has('taxman') ? ' (the Taxman)' : ''}. You went <b>${over}</b> over.`],
+    interest: ['Interest', `The guild pays 1 gold for every 5 you hold when a floor ends, up to <b>${has('tithe') ? 6 : 3}</b>${has('tithe') ? ' (the Tithe Box)' : ''}. Saving gold earns more.`],
+    dues: l.label.includes('strike') ? ['Guild dues', `Dues are collected at the end of each act. You couldn't pay, so it's a strike and the guild took what you had (<b>${g}</b>).`]
+      : ['Guild dues', `Dues are collected at the end of each act, after the boss floor. You paid <b>${g}</b>.`],
+    loanshark: ['Loan Shark', `Your Loan Shark gives 4 gold at the start of each floor, but a missed contract costs 8. It took <b>${g}</b>.`],
+    bloodpact: ['Blood Pact', 'Meeting a contract gives +2 max health and heals 2.'],
+  }[l.key];
+  return tips ? tipAttr(...tips) : '';
+}
 function payoutHTML() {
   const p = s.payout, key = 'payout-' + p.floor;
   const head = { met: 'Contract met', missed: 'Contract missed', covered: 'Missed, but covered', survived: 'Floor survived' }[p.outcome] || 'Floor done';
@@ -2384,10 +2403,10 @@ function payoutHTML() {
   const mood = p.outcome === 'missed' ? 'stamping' : p.outcome === 'met' ? 'counting' : 'neutral';
   const kills = p.survival ? '<p class="pkills">No contract this floor. The guild pays you for getting through.</p>'
     : `<p class="pkills">Killed <b class="num">${p.slain}</b> of <b class="num">${p.target}</b> points${p.outcome === 'missed' ? ` · strike <b class="num">${p.strikesAfter}</b> of 3` : p.outcome === 'covered' ? ' · the Insurance Seal takes the strike' : ''}</p>`;
-  const lines = p.lines.map(l => `<li class="pline ${l.gold < 0 ? 'neg' : l.gold > 0 ? 'pos' : ''}" data-key="${l.key}" data-gold="${l.gold}">${img(payIcon[l.key] || 'icons/hud-gold.webp', 'pico')}<span>${esc(l.label)}</span><b class="num">${l.gold > 0 ? '+' : l.gold < 0 ? '−' : ''}${l.gold ? Math.abs(l.gold) : ''}</b></li>`).join('')
+  const lines = p.lines.map(l => `<li class="pline ${l.gold < 0 ? 'neg' : l.gold > 0 ? 'pos' : ''}" data-key="${l.key}" data-gold="${l.gold}"${payTip(p, l)}>${img(payIcon[l.key] || 'icons/hud-gold.webp', 'pico')}<span>${esc(l.label)}</span><b class="num">${l.gold > 0 ? '+' : l.gold < 0 ? '−' : ''}${l.gold ? Math.abs(l.gold) : ''}</b></li>`).join('')
     || '<li class="pline none"><span>Nothing earned this floor.</span></li>';
   return `<section class="payout ${p.outcome}">${mark}<div class="phead">${clerk(mood)}<div><span class="label">Floor <span class="num">${p.floor + 1}</span> settled</span><h2>${head}</h2>${kills}</div></div>
-    <ol class="plines">${p.start ? `<li class="pline carry">${img('icons/hud-gold.webp', 'pico')}<span>Gold you had</span><b class="num">${p.start}</b></li>` : ''}${lines}</ol>
+    <ol class="plines">${p.start ? `<li class="pline carry"${tipAttr('Gold you had', 'What you carried into this floor. Everything below is added to it, or taken from it.')}>${img('icons/hud-gold.webp', 'pico')}<span>Gold you had</span><b class="num">${p.start}</b></li>` : ''}${lines}</ol>
     <div class="ptotal">${img('icons/hud-gold.webp', 'pgold')}<b class="num" data-to="${p.end}">${p.start}</b><span>gold</span></div>
     <button class="primary" data-payok>To the shop</button></section>`;
 }
@@ -2456,12 +2475,14 @@ app.addEventListener('pointerdown', e => { const b = actBtn(e); if (b) previewHP
 app.addEventListener('focusin', e => { const b = actBtn(e); if (b) previewHP(b); });
 app.addEventListener('focusout', e => { if (actBtn(e)) clearPreview(); });
 
-// ---------- hold / hover tips ----------
+// ---------- tap / hover tips ----------
 // Details that don't need to sit on screen (what a relic does, a Wildcard's rule, what a raise pays) show in a small
-// tip: point at it with a mouse, focus it with the keyboard, or press and hold on a touch screen. A hold never counts
-// as a tap, so holding a card's button or a contract reads it without playing it.
+// tip: point at it with a mouse, focus it with the keyboard, or tap it on a touch screen (tap again, or anywhere else,
+// to close it). Buttons do their job when tapped, so a button's tip (a contract, Raise, Flee) shows on a press and
+// hold instead, and a hold never counts as a tap, so it never plays a card or signs a contract.
 const tipEl = document.createElement('div'); tipEl.id = 'tip'; tipEl.setAttribute('role', 'tooltip'); document.body.appendChild(tipEl);
-let tipFor = null, holdTimer = 0, holdAt = null, swallowUntil = 0;
+let tipFor = null, holdTimer = 0, holdAt = null, swallowUntil = 0, tapAt = null;
+const actionOf = e => e.target && e.target.closest && e.target.closest('button, a, input, textarea, select, summary, label');
 function showTip(el) {
   tipFor = el;
   tipEl.innerHTML = `${el.dataset.tipTitle ? `<b>${esc(el.dataset.tipTitle)}</b>` : ''}<span>${el.dataset.tip}</span>`; // tips are the game's own text
@@ -2482,18 +2503,32 @@ document.addEventListener('pointerover', e => {
 document.addEventListener('pointerout', e => { if (e.pointerType === 'mouse' && !e.relatedTarget) hideTip(); });
 document.addEventListener('pointerdown', e => {
   if (e.pointerType === 'mouse') return;
-  clearTimeout(holdTimer); hideTip();
-  const el = tipTarget(e); if (!el) return;
-  holdAt = { x: e.clientX, y: e.clientY };
-  holdTimer = setTimeout(() => { holdAt = null; showTip(el); swallowUntil = Infinity; }, 380);
+  clearTimeout(holdTimer); tapAt = null;
+  const el = tipTarget(e);
+  if (!el || actionOf(e)) { // a button (or nothing with a tip): close any open tip; a button with a tip can still be held
+    hideTip(); if (!el) return;
+    holdAt = { x: e.clientX, y: e.clientY };
+    holdTimer = setTimeout(() => { holdAt = null; showTip(el); swallowUntil = Infinity; }, 380);
+    return;
+  }
+  tapAt = { x: e.clientX, y: e.clientY, el }; // plain info (a relic, a stat, a payout line): a tap opens its tip
 });
-document.addEventListener('pointermove', e => { if (holdAt && Math.hypot(e.clientX - holdAt.x, e.clientY - holdAt.y) > 10) { clearTimeout(holdTimer); holdAt = null; } });
+document.addEventListener('pointermove', e => {
+  if (holdAt && Math.hypot(e.clientX - holdAt.x, e.clientY - holdAt.y) > 10) { clearTimeout(holdTimer); holdAt = null; }
+  if (tapAt && Math.hypot(e.clientX - tapAt.x, e.clientY - tapAt.y) > 10) tapAt = null;
+});
 const endHold = () => { clearTimeout(holdTimer); holdAt = null; if (swallowUntil === Infinity) swallowUntil = Date.now() + 500; };
-document.addEventListener('pointerup', endHold); document.addEventListener('pointercancel', endHold);
+document.addEventListener('pointerup', e => {
+  endHold();
+  if (e.pointerType === 'mouse' || !tapAt) return;
+  const el = tapAt.el; tapAt = null;
+  if (tipFor === el) hideTip(); else showTip(el);
+});
+document.addEventListener('pointercancel', () => { endHold(); tapAt = null; });
 document.addEventListener('click', e => { if (Date.now() < swallowUntil) { e.preventDefault(); e.stopPropagation(); swallowUntil = 0; } }, true);
 document.addEventListener('contextmenu', e => { if (tipTarget(e) && (e.pointerType || 'touch') !== 'mouse') e.preventDefault(); });
 document.addEventListener('focusin', e => { const el = tipTarget(e); if (el && e.target.matches(':focus-visible')) showTip(el); });
-document.addEventListener('focusout', () => { if (tipFor) hideTip(); });
+document.addEventListener('focusout', e => { if (tipFor && !(tapAt && tapAt.el === tipFor) && !tipFor.contains(e.relatedTarget)) hideTip(); });
 window.addEventListener('scroll', () => { if (tipFor) hideTip(); }, true);
 
 // ---------- owner stats ----------
