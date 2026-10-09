@@ -1114,6 +1114,44 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
 .shop .warn.dueswarn.ok, .shop .warn.dueswarn.ok b { color: var(--gold); }
 .shop .warn.dueswarn.short, .shop .warn.dueswarn.short b { color: #f08a8f; }
 @media (max-height: 400px) and (orientation: landscape) { .shop .warn.dueswarn { padding: 2px 8px; font-size: 12px; } }
+/* ---------- 1.24.0: payout screen ---------- */
+.payout { position: relative; display: grid; gap: 14px; justify-items: stretch; width: min(560px, 100%); justify-self: center; box-sizing: border-box; padding: 22px 26px 24px;
+  border: 1px solid transparent; border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+@media (min-width: 900px) and (min-height: 700px) {
+  .payout { width: min(680px, 100%); padding: 30px 36px 32px; gap: 18px; }
+  .payout .phead .clerk { width: 104px; height: 104px; } .payout h2 { font-size: 40px; } .payout .pkills { font-size: 19px; }
+  .payout .stamp { width: 170px; top: 18px; right: 24px; }
+  .pline { font-size: 22px; grid-template-columns: 38px 1fr auto; } .pline .pico { width: 36px; height: 36px; } .pline b { font-size: 28px; } .plines { padding: 14px 20px; gap: 10px; }
+  .ptotal { font-size: 28px; } .ptotal .pgold { width: 54px; height: 54px; } .ptotal .num { font-size: 64px; }
+  .payout [data-payok] { font-size: 23px; padding: 12px 54px; }
+}
+.payout .phead { display: flex; gap: 14px; align-items: center; }
+.payout .phead .clerk { width: 76px; height: 76px; flex: none; border-radius: 8px; object-fit: cover; }
+.payout h2 { margin: 2px 0; font-size: 30px; line-height: 1.05; }
+.payout.met h2 { color: #f1d488; } .payout.missed h2 { color: #ff8a7a; }
+.payout .pkills { margin: 0; color: var(--bone); }
+.payout .stamp { right: 18px; top: 12px; width: 140px; }
+.plines { list-style: none; margin: 0; padding: 10px 14px; display: grid; gap: 6px; background: rgba(8,10,14,.35); border-radius: 6px; }
+.pline { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 10px; font-size: 18px; opacity: 0; transform: translateX(-12px); transition: opacity .25s, transform .25s; }
+.pline.on, .pline.none, .pline.carry { opacity: 1; transform: none; }
+.pline.carry { color: var(--ash); } .pline.carry b { color: var(--bone); }
+.pline .pico { width: 28px; height: 28px; object-fit: contain; }
+.pline b { font-size: 22px; color: #f1d488; } .pline.neg b { color: #ff8a7a; }
+.pline.none { grid-template-columns: 1fr; color: var(--ash); }
+.ptotal { display: flex; align-items: center; justify-content: center; gap: 10px; font-family: var(--display); font-size: 22px; color: var(--bone); }
+.ptotal .pgold { width: 40px; height: 40px; } .ptotal .num { font-size: 46px; color: #f1d488; min-width: 2.2ch; text-align: center; text-shadow: 0 2px 8px rgba(0,0,0,.6); }
+.ptotal.pop .num { animation: ppop .45s ease-out; }
+@keyframes ppop { 0% { transform: scale(1); } 40% { transform: scale(1.25); filter: brightness(1.3); } 100% { transform: scale(1); } }
+.payout [data-payok] { justify-self: center; font-size: 20px; padding: 10px 40px; }
+@media (max-height: 519px) and (orientation: landscape) {
+  .payout { width: min(640px, 100%); grid-template-columns: 1fr 1fr; align-items: center; gap: 8px 18px; padding: 12px 16px; }
+  .payout .phead { grid-column: 1 / -1; } .payout .phead .clerk { width: 48px; height: 48px; } .payout h2 { font-size: 22px; }
+  .payout .stamp { width: 96px; top: 6px; } .pline { font-size: 15px; } .pline b { font-size: 17px; } .plines { padding: 6px 10px; gap: 3px; }
+  .ptotal { flex-wrap: wrap; } .ptotal .num { font-size: 34px; } .payout [data-payok] { grid-column: 2; font-size: 17px; padding: 7px 24px; }
+  .payout .plines { grid-row: span 2; } .pline { gap: 6px; grid-template-columns: 22px 1fr auto; } .pline .pico { width: 20px; height: 20px; }
+  main.solo:has(> .payout) > :is(.sync, .version) { display: none; }
+}
+@media (max-width: 560px) { .payout { padding: 16px 16px 18px; } .payout .stamp { width: 100px; right: 8px; top: 6px; } .payout h2 { font-size: 25px; } .payout .phead .clerk { width: 60px; height: 60px; } }
 </style>
 
 <div id="scene" aria-hidden="true"></div>
@@ -1393,28 +1431,33 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
     const c = s.contract; s.totalSlain += s.slain;
     if (s.tutorial) { s.phase = 'tutdone'; s.lastResult = `You made it through with ${s.hp} health left.`; return; }
     let msg;
+    // The payout screen counts these up line by line: what the contract paid, the extras, and what was taken.
+    const pay = s.payout = { floor: s.floor, slain: s.slain, target: c.target, survival: !!c.survival, outcome: null, start: s.gold, lines: [], strikes: s.strikes };
+    const line = (key, label, gold) => pay.lines.push({ key, label, gold });
     if (c.survival) {
+      pay.outcome = 'survived'; line('contract', 'Survival pay', c.pay);
       s.gold += c.pay;
       msg = `Floor survived. The guild pays you ${c.pay} gold.`;
     } else if (s.slain >= c.target) {
       const over = Math.floor((s.slain - c.target) / (has(s, 'taxman') ? 2 : 5));
       s.gold += c.pay + over;
+      pay.outcome = 'met'; line('contract', 'Contract', c.pay); if (over) line('overkill', 'Overkill', over);
       msg = `Contract met: ${s.slain}/${c.target}. +${c.pay} gold` + (over ? `, +${over} overkill.` : '.');
-      if (has(s, 'bloodpact')) { s.maxHp += 2; s.hp += 2; msg += ' Blood Pact: +2 max HP.'; }
+      if (has(s, 'bloodpact')) { s.maxHp += 2; s.hp += 2; msg += ' Blood Pact: +2 max HP.'; line('bloodpact', 'Blood Pact: +2 max health', 0); }
     } else {
-      if (has(s, 'seal') && !s.sealUsed) { s.sealUsed = true; msg = `Contract missed (${s.slain}/${c.target}), but the Insurance Seal covers it.`; }
-      else { s.strikes++; msg = `Contract missed: ${s.slain}/${c.target}. Strike ${s.strikes} of 3.`; }
-      if (has(s, 'loanshark')) { s.gold = Math.max(0, s.gold - 8); msg += ' The loan shark takes 8 gold.'; }
+      if (has(s, 'seal') && !s.sealUsed) { s.sealUsed = true; pay.outcome = 'covered'; msg = `Contract missed (${s.slain}/${c.target}), but the Insurance Seal covers it.`; }
+      else { s.strikes++; pay.outcome = 'missed'; msg = `Contract missed: ${s.slain}/${c.target}. Strike ${s.strikes} of 3.`; }
+      if (has(s, 'loanshark')) { line('loanshark', 'Loan shark', -Math.min(8, s.gold)); s.gold = Math.max(0, s.gold - 8); msg += ' The loan shark takes 8 gold.'; }
     }
     const interest = c.survival ? 0 : Math.min(has(s, 'tithe') ? 6 : 3, Math.floor(s.gold / 5));
     s.gold += interest;
-    if (interest) msg += ` Interest +${interest}.`;
+    if (interest) { msg += ` Interest +${interest}.`; line('interest', 'Interest', interest); }
     if (s.floor % 3 === 2 && !locked(s, 'contracts')) { // no dues before contracts begin
       const due = DUES[act(s)];
-      if (s.gold >= due) { s.gold -= due; msg += ` Paid ${due} gold in guild dues.`; }
-      else { s.strikes++; s.gold = 0; msg += ` Couldn't pay ${due} gold in dues: strike ${s.strikes} of 3, and the guild takes what you have.`; }
+      if (s.gold >= due) { s.gold -= due; msg += ` Paid ${due} gold in guild dues.`; line('dues', 'Guild dues', -due); }
+      else { line('dues', `Guild dues (${due} owed, strike)`, -s.gold); s.strikes++; s.gold = 0; msg += ` Couldn't pay ${due} gold in dues: strike ${s.strikes} of 3, and the guild takes what you have.`; }
     }
-    log(s, msg); s.lastResult = msg;
+    log(s, msg); s.lastResult = msg; pay.end = s.gold; pay.strikesAfter = s.strikes;
     if (s.strikes >= 3) { s.phase = 'lost'; s.lastResult = msg + ' The guild revokes your license.'; return; }
     if (s.floor === FLOORS - 1) { s.phase = 'won'; return; }
     s.phase = 'shop';
@@ -1528,7 +1571,7 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.23.0';
+const VERSION = '1.24.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
@@ -2246,6 +2289,7 @@ function render() {
   if (!s) return;
   if (shownScene === 'title') document.getElementById('scene').className = '';
   if (!canPause()) { paused = false; mapView = null; }
+  if (s.phase !== 'shop') payoutView = false;
   setScene();
   const where = place(); setAmbient(where);
   if (where) app.dataset.place = where; else delete app.dataset.place;
@@ -2275,6 +2319,8 @@ function render() {
     body = cols(`${coachHTML()}${statusHTML()}${bossHTML()}${survival() ? '' : contractHTML()}${duesWarning()}`, `
       ${roomHTML(true, `${up ? `<button data-raise${tipAttr('Raise your contract', `Kill <b>${up.target}</b> points instead, for <b>${up.pay}</b> gold. Between rooms, ${s.relics.includes('loaded') ? 'twice' : 'once'} per floor.`)}>${img('icons/hud-raise.webp', 'bi')}${s.contract.clause ? 'Raise' : `Raise to ${E.TIERS[up.tier]}`}</button>` : ''}
         ${E.canRedraw(s) && !tut ? `<button data-redraw${tipAttr('Fortune Teller', 'Redraw this room. Once per floor, before you pick a card.')}>Redraw room</button>` : ''}<button data-flee ${fleeOk ? '' : 'disabled'} class="${tut && fleeOk ? 'lit' : ''}">${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room</button>`)}<div class="belt">${relicsHTML(false)}${peekHTML()}</div>`, `${tut ? '' : rulesHTML()}${boardHTML()}${statsHTML()}`);
+  } else if (s.phase === 'shop' && payoutView && s.payout) {
+    body = payoutHTML();
   } else if (s.phase === 'shop') {
     // The guild hall's shop: the clerk at the counter reads out your floor, and the wares hang on a wooden board
     // as pinned notices with brass price tags. Leaving goes back to the act map.
@@ -2308,6 +2354,7 @@ function render() {
     app.querySelector('.overlay [data-resume]').focus();
   }
   dealIn();
+  if (app.querySelector('.payout')) playPayout();
   if ((s.phase === 'won' || s.phase === 'lost') && boardState !== 'off' && boardState !== 'loading' && Date.now() - boardAt > 60000) { boardMode = null; loadBoard(); } // fresh scores on the end screen
   const focus = tut ? TUTORIAL[tut.step] && TUTORIAL[tut.step].focus : (currentHint() || {}).focus;
   if (focus && s.phase !== 'tutdone') app.querySelectorAll(focus).forEach(el => el.classList.add('tut-focus'));
@@ -2323,6 +2370,53 @@ function showClerk() {
   const r = el.getBoundingClientRect(), side = el.closest('.side');
   const hidden = r.top < 0 || r.bottom > innerHeight || (side && el.offsetTop - side.offsetTop < side.scrollTop);
   if (hidden) el.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+}
+
+// ---------- payout (after each floor, before the shop) ----------
+// The goat stamps the contract paid or missed, then counts your gold up line by line: the contract's pay, overkill,
+// interest, and anything taken (the loan shark, guild dues). Continue goes on to the shop.
+let payoutView = false, payoutPlayed = null;
+const payIcon = { contract: 'icons/hud-gold.webp', overkill: 'icons/hud-overkill.webp', interest: 'icons/hud-interest.webp', dues: 'icons/hud-strike.webp', loanshark: 'icons/relic-loanshark.webp', bloodpact: 'icons/relic-bloodpact.webp' };
+function payoutHTML() {
+  const p = s.payout, key = 'payout-' + p.floor;
+  const head = { met: 'Contract met', missed: 'Contract missed', covered: 'Missed, but covered', survived: 'Floor survived' }[p.outcome] || 'Floor done';
+  const mark = p.outcome === 'met' ? stamp('paid', key) : p.outcome === 'missed' ? stamp('strike', key) : '';
+  const mood = p.outcome === 'missed' ? 'stamping' : p.outcome === 'met' ? 'counting' : 'neutral';
+  const kills = p.survival ? '<p class="pkills">No contract this floor. The guild pays you for getting through.</p>'
+    : `<p class="pkills">Killed <b class="num">${p.slain}</b> of <b class="num">${p.target}</b> points${p.outcome === 'missed' ? ` · strike <b class="num">${p.strikesAfter}</b> of 3` : p.outcome === 'covered' ? ' · the Insurance Seal takes the strike' : ''}</p>`;
+  const lines = p.lines.map(l => `<li class="pline ${l.gold < 0 ? 'neg' : l.gold > 0 ? 'pos' : ''}" data-key="${l.key}" data-gold="${l.gold}">${img(payIcon[l.key] || 'icons/hud-gold.webp', 'pico')}<span>${esc(l.label)}</span><b class="num">${l.gold > 0 ? '+' : l.gold < 0 ? '−' : ''}${l.gold ? Math.abs(l.gold) : ''}</b></li>`).join('')
+    || '<li class="pline none"><span>Nothing earned this floor.</span></li>';
+  return `<section class="payout ${p.outcome}">${mark}<div class="phead">${clerk(mood)}<div><span class="label">Floor <span class="num">${p.floor + 1}</span> settled</span><h2>${head}</h2>${kills}</div></div>
+    <ol class="plines">${p.start ? `<li class="pline carry">${img('icons/hud-gold.webp', 'pico')}<span>Gold you had</span><b class="num">${p.start}</b></li>` : ''}${lines}</ol>
+    <div class="ptotal">${img('icons/hud-gold.webp', 'pgold')}<b class="num" data-to="${p.end}">${p.start}</b><span>gold</span></div>
+    <button class="primary" data-payok>To the shop</button></section>`;
+}
+function playPayout() {
+  const p = s.payout, box = app.querySelector('.payout'), total = box.querySelector('.ptotal .num'), rows = [...box.querySelectorAll('.pline:not(.carry)')];
+  const done = () => { rows.forEach(r => r.classList.add('on')); total.textContent = p.end; box.classList.add('settled'); };
+  if (reduceMotion || payoutPlayed === p) { done(); return; } // already counted (a re-render): show the result
+  payoutPlayed = p;
+  let gold = p.start, i = 0;
+  const count = (to, ms) => new Promise(res => {
+    const from = gold, t0 = performance.now();
+    const step = now => {
+      if (!box.isConnected) return res();
+      const k = Math.min(1, (now - t0) / ms); gold = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3)));
+      total.textContent = gold; if (k < 1) requestAnimationFrame(step); else res();
+    };
+    requestAnimationFrame(step);
+  });
+  const mark = box.querySelector('.stamp');
+  if (mark && p.outcome === 'missed') setTimeout(() => fx('strike', mark.getBoundingClientRect()), 250);
+  const next = async () => {
+    if (!box.isConnected) return;
+    if (i >= rows.length) { box.classList.add('settled'); total.parentElement.classList.add('pop'); return; }
+    const r = rows[i++], g = +r.dataset.gold || 0; r.classList.add('on');
+    if (g > 0) fx('coins', total.getBoundingClientRect()); else if (r.dataset.key === 'dues') fx('dues', r.getBoundingClientRect());
+    if (g) await count(gold + g, Math.min(900, 300 + Math.abs(g) * 45));
+    setTimeout(next, 260);
+  };
+  setTimeout(next, 650);
 }
 
 // ---------- health preview ----------
@@ -2446,6 +2540,7 @@ app.addEventListener('click', async e => {
   if ('pause' in d) { paused = true; moreOpen = false; render(); return; }
   if ('resume' in d) { paused = false; render(); return; }
   if ('map' in d) { mapView = 'pause'; render(); return; }
+  if ('payok' in d) { payoutView = false; payoutPlayed = null; render(); return; } // on to the shop
   if ('mapback' in d) { mapView = null; render(); return; } // back to the pause menu
   if ('mapgo' in d) { mapView = null; paused = false; render(); return; }
   if (moreOpen && !e.target.closest('.extras')) moreOpen = false;
@@ -2531,6 +2626,7 @@ app.addEventListener('click', async e => {
     const mark = /strike \d of 3/i.test(r) ? 'strike' : E.BOSSES[s.floor] ? 'boss-beaten' : r.startsWith('Contract met') ? 'contract-met' : null;
     const gold = /Paid \d+ gold in guild dues/.test(r) ? 'dues' : r.startsWith('Contract met') ? 'coins' : null;
     effect = () => { if (last) last(); if (mark) fx(mark, rectOf('.settle')); if (gold) fx(gold, rectOf('.status .stat.gold')); };
+    if (s.payout) { payoutView = true; effect = last; } // the payout screen comes first and plays its own marks and coins
   }
   render();
   if (effect) effect();
@@ -2664,7 +2760,7 @@ render();
     meet: () => { ensureRun(); if (s.phase === 'bid') E.bid(s, 0); if (s.contract) s.slain = Math.max(s.slain, s.contract.target); done(); },
     end: () => {
       ensureRun(); const prev = s.phase;
-      if (E.devEndFloor(s)) { if (prev !== 'shop') afterAction('room'); }
+      if (E.devEndFloor(s)) { if (prev !== 'shop') afterAction('room'); if (s.phase === 'shop' && typeof payoutView !== 'undefined') { payoutView = true; payoutPlayed = null; } } // shows the payout count-up
       done();
     },
     shop: () => { ensureRun(); if (s.phase !== 'shop') E.devEndFloor(s); if (s.phase === 'shop') s.shop.relics = Object.keys(E.RELICS).filter(k => !s.relics.includes(k)); done(); },
