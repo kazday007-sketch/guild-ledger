@@ -1564,6 +1564,7 @@ function peekHTML() {
 }
 const logHTML = () => tut ? '' : `<details class="rules"><summary>Log</summary><div class="log">${s.log.map(l => `<p>${esc(l)}</p>`).join('') || '<p class="muted">Your deeds will be recorded here.</p>'}</div></details>`;
 function coachHTML() {
+  if (tut && !tut.snaps) tut.snaps = [];
   if (tut && TUTORIAL[tut.step]) return `<aside class="coach">${clerk('neutral')}<span class="label">Training · ${tut.step + 1} of ${TUTORIAL.length}</span><p>${TUTORIAL[tut.step].text}</p><div class="tutnav"><button class="back" data-tutback ${tut.step ? '' : 'disabled'}>Back</button>${TUTORIAL[tut.step].allow && !tut.snaps[tut.step + 1] ? '' : '<button class="primary ok" data-tutnext>Next</button>'}<button class="link" data-skiptut>Skip training</button></div></aside>`;
   const h = currentHint(), g = goal();
   shownHint = h ? h.key : null;
@@ -1962,6 +1963,7 @@ function render() {
   dealIn();
   if (app.querySelector('.payout')) playPayout();
   if ((s.phase === 'won' || s.phase === 'lost') && boardState !== 'off' && boardState !== 'loading' && Date.now() - boardAt > 60000) { boardMode = null; loadBoard(); } // fresh scores on the end screen
+  if (tut && !tut.snaps) tut.snaps = [];
   if (tut && s.phase !== 'tutdone' && !tut.snaps[tut.step]) tut.snaps[tut.step] = tutSnap();
   const focus = tut ? TUTORIAL[tut.step] && TUTORIAL[tut.step].focus : (currentHint() || {}).focus;
   if (focus && s.phase !== 'tutdone') app.querySelectorAll(focus).forEach(el => el.classList.add('tut-focus'));
