@@ -194,10 +194,8 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 .offer .tier { font: 400 20px var(--display); }
 .offer .muted { color: var(--paper-muted); }
 .offer .price { color: var(--paper-gold); font-weight: 700; }
-.offer .clause-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
-.offer .clause-row .seal { width: 34px; height: 34px; margin: 0; }
-.offer .cl { color: var(--paper-red); }
-.offer .wild { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--paper-red); }
+.offer .cl { color: var(--paper-red); margin-top: 6px; }
+.offer .rule { font-size: 13px; }
 .contract.paper { position: relative; background: #e3d8bd url(assets/ui/texture-parchment.webp) 0 0 / 320px; color: var(--paper-ink); border: 1px solid #8b7a5a; box-shadow: 0 4px 14px rgba(0,0,0,.45); }
 .contract.paper .price { color: var(--paper-gold); font-weight: 700; }
 .contract.paper .muted, .paper .lh { color: var(--paper-muted); }
@@ -277,6 +275,7 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 .stat.guild .pip.on { background: var(--blood); border-color: #f07a80; box-shadow: 0 0 6px rgba(208,84,91,.7); }
 .stat.guild .dues { font-size: 14px; color: var(--ash); }
 .stat.guild .dues b { font-size: 16px; }
+.stat.guild .dues.short, .stat.guild .dues.short b { color: #f08a8f; } /* not enough gold for dues yet */
 .side .status .stat.guild { grid-column: 1 / -1; }
 /* health preview: what a card would do to your health, shown on the bar while you point at its button */
 .hpbar { position: relative; }
@@ -341,6 +340,7 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
   .titlecard .tagline, .titlecard .modenote, .titlecard .version, .titlecard .sync { text-align: left; margin: 0; }
   .titlecard .tagline br, .titlecard .sync { display: none; } body:has(main.title) { padding-block: 10px; }
   .titlecard .play { padding: 10px 40px; }
+  .titlecard .logo h1 { white-space: nowrap; } main .titlecard .logo::after { display: none; } /* one line, so it all fits sideways */
 }
 /* game mode switch in the header */
 .mode { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--slab); }
@@ -404,11 +404,10 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
   .stage .relic .ico { width: 24px; height: 24px; } .stage .relic b { font-size: 12px; } .stage .relic .rbody > .muted { display: none; }
   .stage .relic.empty .muted { font-size: 11px; }
   .contract.board { padding: 8px; gap: 6px; } .contract.board h2 { font-size: 16px; } .contract.board > p { font-size: 12px; }
-  .offers { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+  .offers { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 25%); justify-content: center; gap: 4px; }
   .offer, .offer.clause { min-height: 0; padding: 10px 9% 16px; font-size: 12px; gap: 1px; }
   .offer .seal { width: 28px; height: 28px; } .offer .tier { font-size: 14px; } .offer .num { font-size: 13px; }
-  .offer .clause-row { margin-top: 2px; gap: 3px; } .offer .clause-row .seal { width: 18px; height: 18px; } .offer .cl { font-size: 11px; }
-  .offer .clause-row + .muted { display: none; } .offer .wild { font-size: 9px; }
+  .offer .cl { margin-top: 2px; font-size: 11px; } .offer .rule { display: none; }
   .shop { padding: 8px; gap: 6px; } .shop h2 { font-size: 17px; } .shopgrid, .shopgrid.services { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
   .shop .boss { padding: 4px 8px; } .shop .boss img { width: 30px; height: 38px; } .shop .boss b { font-size: 15px; }
   .stage .shop .relic .ico { display: none; } .stage .shop .relic .row { display: grid; gap: 0; } .stage .shop .relic .link { font-size: 11px; justify-self: start; }
@@ -459,6 +458,15 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
   .contract.board > p { display: none; } .offer .seal { width: 22px; height: 22px; }
   .offer, .offer.clause { padding: 5px 8% 8px; } .offer .tier { font-size: 13px; }
   .shop .boss span:not(.label) { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+  /* the full shop fits sideways: tighter wares, and the labels the layout already explains are dropped */
+  .stage .shop .ware { padding: 7px 7px 5px; gap: 2px; } .stage .shop .ware .ico { width: 18px; height: 18px; }
+  .shop .shelf { padding-bottom: 8px; } .shop .services + .label, .shelf:has(.services) > .label, .shop > .label { display: none; }
+  .shop > div:has(> [data-leave]) { padding-top: 2px; } .shop [data-leave] { padding: 5px 14px; }
+  .stage .shop .ware .desc { line-height: 1.15; } .shop .shelf { gap: 2px; padding-top: 3px; } .shop .shelf > .label { line-height: 1.1; }
+  .side .boss { padding: 4px 10px; } .side .boss img { width: 32px; height: 40px; } .side .boss .who .label { display: none; } .side .boss b { font-size: 15px; } .side .boss span:not(.label) { font-size: 13px; line-height: 1.2; }
+  .side .contract.paper { padding: 6px 10px; gap: 2px; } .side .contract.paper .seals img { width: 22px; height: 22px; }
+  .side .warn { display: none; } /* sideways there's no room for it; the Guild box shows the dues in red when you're short */
+  .stage > .boss { padding: 4px 10px; } .stage > .boss img { width: 32px; height: 40px; } .stage > .boss .who .label { display: none; } .stage > .boss b { font-size: 15px; }
   main.solo .end { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; padding: 10px 12px; gap: 6px 16px; }
   main.solo .end h2 { font-size: 20px; } main.solo .endform { gap: 5px; } main.solo .endsum { gap: 6px; }
   main.solo .end .stamp { width: 76px; }
@@ -468,6 +476,10 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
   main.solo > details { padding: 4px 10px; } main.solo { gap: 6px; }
 }
 @media (max-height: 400px) and (orientation: landscape) {
+  /* the shortest sideways screens (a phone browser with its toolbars showing): the Guild box carries the dues alone */
+  .stage .warn, .shop .warn { display: none; } .stage .shop .ware .desc { -webkit-line-clamp: 1; }
+  .actmap h2 { font-size: 20px; } .actmap .acthead .label { font-size: 11px; }
+  .side .contract.paper .progress { height: 9px; } .side .status .stat:first-child .hpbar { height: 9px; }
   main.solo .endform > p.muted { display: none; } main.solo .end { gap: 4px 14px; padding-block: 6px; } main.solo .endsum .muted { font-size: 13px; }
   .titlecard { gap: 6px; } .titlecard .logo h1 { font-size: 32px; } .titlecard .logo .emblem { width: 44px; height: 44px; }
 }
@@ -515,6 +527,10 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
   main.solo { max-width: 760px; }
 }
 @media (min-width: 900px) and (min-height: 520px) and (max-height: 820px) {
+  .side:has(.contract.paper) .coach.goalonly { display: none; } /* the contract shows the same target */
+  .side .boss { padding: 6px 12px; } .side .boss img { width: 44px; height: 55px; } .side .boss .who .label { display: none; }
+  .side .extras { display: none; } main.play .more { display: inline-block; padding: 5px 12px; font-size: 14px; }
+  main.more-open .side .extras { display: grid; position: fixed; z-index: 20; top: 60px; left: 16px; width: 380px; max-height: calc(100vh - 80px); overflow-y: auto; padding: 12px; background: var(--stone); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.7); }
   .side .coach p { font-size: 18px; line-height: 1.3; }
   .side .coach .ok { font-size: 15px; padding: 6px 16px; }
   .side .coach > .clerk { width: 52px; height: 65px; }
@@ -522,7 +538,7 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
   .side .stat .num { font-size: 17px; } .side .stat { gap: 2px; padding: 6px 10px; }
   .side .contract { padding: 10px 12px; gap: 6px; }
   .side details.rules { padding: 6px 12px; }
-  .stage .ware { padding: 8px; gap: 4px; } .stage .ware .ico { width: 38px; height: 38px; } .stage .ware .muted { font-size: 13px !important; line-height: 1.25; }
+  .stage .ware, .stage .shop .ware { padding: 14px 12px 10px; gap: 4px; } .stage .ware .ico { width: 38px; height: 38px; } .stage .ware .muted { font-size: 13px !important; line-height: 1.25; }
   .stage .ware button { padding: 6px 10px; }
   .stage .shop { padding: 10px 12px; gap: 8px; }
   .stage .shop .relic .muted { display: none; } .stage .shop .relic { align-items: center; }
@@ -612,17 +628,21 @@ header .pause img { width: 24px; height: 24px; }
 .pausebox .muted { margin: 0; font-size: 13px; }
 /* The act map: the act's three floors side by side, boss last, like a road you walk left to right. */
 main.solo.map { max-width: 980px; }
-.actmap { display: grid; gap: 14px; justify-items: center; text-align: center; }
-.actmap > .label { color: var(--gold); }
+.actmap { --tok: clamp(64px, 12vh, 120px); display: grid; gap: 14px; justify-items: center; text-align: center; }
+.acthead { display: grid; justify-items: center; gap: 4px; }
+.actmap .acthead .label { color: var(--gold); }
+.mapfoot { display: grid; gap: 14px; justify-items: center; }
 .actmap h2 { font-size: 34px; text-shadow: 0 2px 8px rgba(0,0,0,.8); }
 .actmap h2::after { content: ''; display: block; width: 240px; height: 34px; margin: 2px auto 0; background: url(assets/ui/divider.webp) center / contain no-repeat; }
 .floors { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; width: 100%; }
-.floors::before { content: ''; position: absolute; left: 16%; right: 16%; top: 96px; border-top: 3px dashed rgba(224,180,80,.45); z-index: 0; }
+.floors::before { content: ''; position: absolute; left: 16%; right: 16%; top: calc(16px + var(--tok) / 2); border-top: 3px dashed rgba(224,180,80,.45); z-index: 0; }
 .floor { position: relative; z-index: 1; display: grid; gap: 6px; justify-items: center; align-content: start; padding: 16px 12px 18px; border: 1px solid transparent; border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; }
-.floor.bossfloor { border-image-source: url(assets/ui/panel-gold.webp); border-image-slice: 40 fill; border-image-width: 14px; }
-.floor .token { width: 120px; height: 120px; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle, rgba(60,45,25,.85), rgba(20,16,12,.95) 70%); box-shadow: inset 0 0 0 3px #6b4e33, inset 0 0 0 6px rgba(0,0,0,.5), 0 4px 12px rgba(0,0,0,.6); }
-.floor .token img { width: 74px; height: 74px; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0,0,0,.6)); }
-.floor.bossfloor .token { border-radius: 10px; width: 112px; height: 140px; background: #151a21; box-shadow: inset 0 0 0 3px #a37b2c, 0 0 18px rgba(208,84,91,.45), 0 4px 12px rgba(0,0,0,.6); overflow: hidden; }
+/* Gold marks where you are (the next floor). The boss floor is marked in red, so it never reads as your position. */
+.floor.next { border-image: url(assets/ui/panel-gold.webp) 40 fill / 14px stretch; }
+.floor.bossfloor { outline: 2px solid rgba(208,84,91,.6); outline-offset: -7px; }
+.floor .token { width: var(--tok); height: var(--tok); display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle, rgba(60,45,25,.85), rgba(20,16,12,.95) 70%); box-shadow: inset 0 0 0 3px #6b4e33, inset 0 0 0 6px rgba(0,0,0,.5), 0 4px 12px rgba(0,0,0,.6); }
+.floor .token img { width: 62%; height: 62%; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0,0,0,.6)); }
+.floor.bossfloor .token { border-radius: 10px; width: calc(var(--tok) * .8); height: var(--tok); background: #151a21; box-shadow: inset 0 0 0 3px #8f2f35, 0 0 18px rgba(208,84,91,.45), 0 4px 12px rgba(0,0,0,.6); overflow: hidden; }
 .floor.bossfloor .token img { width: 100%; height: 100%; object-fit: cover; }
 .floor h3 { margin: 4px 0 0; font: 400 22px/1.1 var(--display); }
 .floor.bossfloor h3 { color: #f08a8f; }
@@ -637,40 +657,48 @@ main.solo.map { max-width: 980px; }
 .floor.next .state { color: #2a1d05; background: #c9a24a url(assets/ui/texture-brass.webp) center / cover; padding: 3px 12px; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,.5); }
 .floor.next .token { box-shadow: inset 0 0 0 3px #e0b450, inset 0 0 0 6px rgba(0,0,0,.5), 0 0 22px rgba(224,180,80,.55); }
 .floor.done > :not(.mark) { filter: saturate(.55) brightness(.8); }
-.floor .mark { position: absolute; z-index: 2; top: 54px; left: 50%; width: 132px; margin-left: -66px; aspect-ratio: 512 / 232; display: grid; place-items: center; pointer-events: none; transform: rotate(-8deg); }
+.floor .mark { position: absolute; z-index: 2; top: calc(var(--tok) / 2 - 14px); left: 50%; width: 132px; margin-left: -66px; aspect-ratio: 512 / 232; display: grid; place-items: center; pointer-events: none; transform: rotate(-8deg); }
 .floor .mark img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .floor .mark b { position: relative; font: 700 18px/1 var(--mono); letter-spacing: .12em; }
 .floor .mark.paid b { color: #2f8f3e; } .floor .mark.strike b { color: #c8312f; }
 .actmap .dues { margin: 0; padding: 8px 14px; font-size: 15px; border: 1px solid transparent; border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; }
 .actmap .go { font-size: 20px; padding: 12px 44px; font-family: var(--display); font-weight: 400; letter-spacing: .04em; }
 @media (prefers-reduced-motion: reduce) { .floor.next { transform: none; } }
+/* Shorter desktop windows: a smaller title so the act fits without scrolling. */
+@media (min-width: 621px) and (max-height: 820px) {
+  .actmap { gap: 10px; } .actmap h2 { font-size: 28px; } .actmap h2::after { height: 24px; width: 180px; }
+  .floor { padding: 12px 12px 14px; gap: 4px; } .mapfoot { gap: 10px; }
+  main.map > .sync { display: none; }
+}
 /* Phones held upright: the floors stack top to bottom, each a row with its token on the left. */
 @media (max-width: 620px) {
-  .actmap { gap: 10px; } .actmap h2 { font-size: 26px; } .actmap h2::after { height: 26px; }
-  .floors { grid-template-columns: 1fr; gap: 8px; }
-  .floors::before { left: 50px; right: auto; top: 30px; bottom: 30px; border-top: 0; border-left: 3px dashed rgba(224,180,80,.45); }
-  .floor { grid-template-columns: auto 1fr; justify-items: start; text-align: left; column-gap: 12px; row-gap: 2px; padding: 10px 12px; }
+  .actmap { --tok: 56px; gap: 8px; } .actmap h2 { font-size: 24px; } .actmap h2::after { height: 20px; width: 160px; }
+  .floors { grid-template-columns: 1fr; gap: 6px; }
+  .floors::before { left: 40px; right: auto; top: 30px; bottom: 30px; border-top: 0; border-left: 3px dashed rgba(224,180,80,.45); }
+  .floor { grid-template-columns: auto 1fr; justify-items: start; text-align: left; column-gap: 12px; row-gap: 1px; padding: 8px 12px; }
   .floor > :not(.token):not(.mark) { grid-column: 2; }
-  .floor .token { grid-row: span 5; width: 72px; height: 72px; align-self: center; } .floor .token img { width: 46px; height: 46px; }
-  .floor.bossfloor .token { width: 72px; height: 90px; }
+  .floor .token { grid-row: span 6; align-self: center; }
+  .floor .ask { display: none; } .mapfoot { gap: 8px; } main.map > .sync { display: none; }
   .floor h3 { font-size: 18px; margin: 0; } .floor .rule, .floor .task { font-size: 13.5px; } .floor .tiers { justify-content: flex-start; font-size: 13px; }
-  .floor .tiers img { width: 20px; height: 20px; }
-  .floor.next { transform: none; } .floor .state { margin-top: 2px; font-size: 11px; }
+  .floor .tiers img { width: 18px; height: 18px; } .floor .tiers { gap: 6px; }
+  .floor.next { transform: none; } .floor .state { margin-top: 1px; font-size: 11px; } .floor.next .state { padding: 1px 10px; }
   .floor .mark { top: 50%; left: auto; right: 8px; margin: -24px 0 0; width: 100px; } .floor .mark b { font-size: 14px; }
-  .actmap .dues { font-size: 13px; } .actmap .go { font-size: 18px; padding: 10px 36px; }
+  .actmap .dues { font-size: 13px; padding: 6px 10px; } .actmap .go { font-size: 18px; padding: 9px 36px; }
 }
 /* Phones held sideways: three short columns. */
 @media (max-height: 519px) and (orientation: landscape) {
-  .actmap { gap: 6px; } .actmap h2 { font-size: 22px; } .actmap h2::after { display: none; }
-  .floor { padding: 8px 10px; gap: 3px; } .floor .token { width: 64px; height: 64px; } .floor .token img { width: 40px; height: 40px; }
-  .floor.bossfloor .token { width: 56px; height: 70px; } .floors::before { top: 40px; }
+  .actmap { --tok: 48px; gap: 6px; } .actmap h2 { font-size: 22px; } .actmap h2::after { display: none; }
+  .acthead { display: flex; align-items: baseline; gap: 10px; }
+  .floor { padding: 6px 8px; gap: 2px; } .floors::before { top: calc(6px + var(--tok) / 2); } .floor.next { transform: none; }
+  .mapfoot { display: flex; align-items: center; gap: 12px; } main.map > .sync { display: none; } main.map > .version { margin: 0; }
+  .floor .tiers img { display: none; } .floor .rule { line-height: 1.25; }
   .floor h3 { font-size: 17px; } .floor .rule, .floor .task { font-size: 13px; } .floor .mark { top: 20px; width: 100px; margin-left: -50px; }
   .actmap .dues { padding: 4px 10px; font-size: 13px; } .actmap .go { padding: 8px 32px; font-size: 17px; }
-  .floor .ask { display: none; } .floor .tiers { gap: 6px; font-size: 12.5px; flex-wrap: nowrap; } .floor .tiers img { width: 18px; height: 18px; }
+  .floor .ask { display: none; } .floor .tiers { gap: 2px 8px; font-size: 12.5px; }
   .floor .mark { width: 90px; margin-left: -45px; } .floor .mark b { font-size: 13px; } .floor .state { margin-top: 0; }
 }
 .floors.n4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.floor.training .token { border-radius: 10px; width: 100px; height: 125px; overflow: hidden; background: #151a21; }
+.floor.training .token { border-radius: 10px; width: calc(var(--tok) * .8); height: var(--tok); overflow: hidden; background: #151a21; }
 .floor.training .token img { width: 100%; height: 100%; object-fit: cover; }
 /* ---------- the shop: wares pinned to a wooden board, with brass price tags ---------- */
 .stage .shop, .shop { background: #3a2a1d url(assets/ui/texture-wood.webp) 0 0 / 256px; border: 2px solid #6b4e33; border-image: none; border-radius: 14px; box-shadow: inset 0 0 50px rgba(0,0,0,.6), 0 4px 18px rgba(0,0,0,.45); }
@@ -689,22 +717,26 @@ main.solo.map { max-width: 980px; }
 .shop .ware .ico { filter: drop-shadow(0 2px 2px rgba(0,0,0,.4)); }
 .shop .ware.sold { opacity: .6; }
 .buyrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; }
-.tag { display: inline-flex; align-items: center; gap: 3px; padding: 3px 10px 3px 6px; border-radius: 4px 12px 12px 4px; background: #c9a24a url(assets/ui/texture-brass.webp) center / cover; color: #2a1d05; font-weight: 700; font-size: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.5); }
-.tag img { width: 18px; height: 18px; } .tag.short { filter: grayscale(.8) brightness(.8); }
+/* Price tags: bright gold numbers on a dark plaque, so they read at a glance on the parchment. */
+.tag { display: inline-flex; align-items: center; gap: 5px; padding: 3px 12px 3px 6px; border-radius: 6px; background: #1c140b; border: 1.5px solid #e0b450; color: #ffd76a; font-weight: 700; font-size: 20px; line-height: 1.1; box-shadow: 0 2px 4px rgba(0,0,0,.45); }
+.tag .num { font-weight: 700; }
+.tag img { width: 20px; height: 20px; }
+.tag.short { color: #f0a19a; border-color: #b0544f; } /* can't afford: still readable, in red */
 .buyrow button { padding: 6px 16px; }
 .shopexit { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .shopexit .muted { color: #d8cdb4; font-size: 14px; }
 .shop .relic { border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; }
 .shop .warn { border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; }
 @media not ((min-width: 900px) and (min-height: 520px)) {
-  .shopsign { padding: 4px 10px; } .shopsign h2 { font-size: 18px; } .purse b { font-size: 16px; } .purse img { width: 18px; height: 18px; }
+  .shopsign { display: none; } /* gold is in the status bar right above */
+  .side:has(.settle) .coach.hint .sub, .side:has(.settle) .coach.hint .label { display: none; } /* in the shop the tip says enough; the goal returns after */
   .shelf { padding: 4px 5px 10px; gap: 3px; box-shadow: inset 0 -7px 0 #4a3322, inset 0 -9px 0 rgba(0,0,0,.5); }
   .shop .ware { padding: 12px 7px 8px; } .shop .ware .desc { font-size: 11px; }
-  .buyrow { flex-wrap: wrap; gap: 3px; } .tag { font-size: 12px; padding: 1px 6px 1px 3px; } .tag img { width: 13px; height: 13px; }
+  .buyrow { flex-wrap: wrap; gap: 3px; } .tag { font-size: 15px; gap: 3px; padding: 1px 7px 1px 3px; border-width: 1px; } .tag img { width: 14px; height: 14px; }
   .buyrow button { padding: 4px 8px; font-size: 12px; } .shopexit .muted { font-size: 12px; }
 }
-@media (max-width: 620px) { .floors.n4 { grid-template-columns: 1fr; } .floor.training .token { width: 72px; height: 90px; } }
-@media (max-height: 519px) and (orientation: landscape) { .floor.training .token { width: 56px; height: 70px; } }
+@media (max-width: 620px) { .floors.n4 { grid-template-columns: 1fr; } }
+@media (max-height: 360px) and (orientation: landscape) { .floor .rule { -webkit-line-clamp: 1; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; } }
 </style>
 
 <div id="scene" aria-hidden="true"></div>
@@ -717,7 +749,7 @@ main.solo.map { max-width: 980px; }
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.17.0';
+const VERSION = '1.17.1';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -914,7 +946,9 @@ function duesWarning() {
   if (!lastOfAct) return '';
   const due = E.DUES[s.phase === 'shop' ? E.act({ floor: s.floor + 1 }) : E.act(s)];
   const short = s.gold < due;
-  return `<p class="warn ${short ? 'short' : ''}">Guild dues of <b class="num">${due}</b> gold are due after ${s.phase === 'shop' ? 'the next floor' : 'this floor'}. You have <b class="num">${s.gold}</b>.${short ? ' Miss them and it\'s a strike.' : ''}</p>`;
+  if (!short && s.phase === 'room') return '';
+  return `<p class="warn ${short ? 'short' : ''}">${dual(`Guild dues of <b class="num">${due}</b> gold are due after ${s.phase === 'shop' ? 'the next floor' : 'this floor'}. You have <b class="num">${s.gold}</b>.${short ? ' Miss them and it\'s a strike.' : ''}`,
+    `Dues: <b class="num">${due}</b> gold after ${s.phase === 'shop' ? 'next floor' : 'this floor'}. You have <b class="num">${s.gold}</b>.${short ? ' Can\'t pay = strike.' : ''}`)}</p>`;
 }
 
 const survival = () => !!(tut || (s.contract && s.contract.survival));
@@ -1038,7 +1072,7 @@ function statusHTML() {
     goldOpen() && `<div class="stat gold"><span class="label">${img('icons/hud-gold.webp')}Gold</span><span class="num price">${s.gold}</span></div>`,
     `<div class="stat weapon"><span class="label">${img('icons/hud-weapon-slot.webp')}Weapon</span><span class="num">${w}</span></div>`,
     contractsOpen() && `<div class="stat guild"><span class="label">${img('icons/hud-strike.webp')}Strikes</span><div class="pips" title="${s.strikes} of 3 strikes">${[0, 1, 2].map(i => `<span class="pip ${i < s.strikes ? 'on' : ''}"></span>`).join('')}</div>
-      <span class="dues">${dual(`Dues <b class="num price">${E.DUES[E.act(s)]}</b> gold after floor ${E.act(s) * 3 + 3}`, `<b class="num price">${E.DUES[E.act(s)]}</b>g due`)}</span></div>`,
+      <span class="dues ${s.gold < E.DUES[E.act(s)] ? 'short' : ''}">${dual(`Dues <b class="num price">${E.DUES[E.act(s)]}</b> gold after floor ${E.act(s) * 3 + 3}`, `<b class="num price">${E.DUES[E.act(s)]}</b>g due`)}</span></div>`,
   ].filter(Boolean);
   return `<section class="status n${cells.length}" aria-label="Status">${cells.join('')}</section>`;
 }
@@ -1057,8 +1091,8 @@ function contractHTML() {
       <span class="pips" title="Rooms cleared">${Array.from({ length: roomsOnFloor() }, (_, i) => `<span class="pip room ${i < s.roomsCleared ? 'on' : ''}"></span>`).join('')}<span class="muted" style="font-size:13px">rooms</span></span></div></section>`;
   const pct = Math.min(100, 100 * s.slain / c.target);
   return `<section class="contract paper">${s.raises ? stamp('raised', `raise-${s.floor}-${s.raises}`) : ''}
-    <div class="contract-row"><h2><span class="seals">${img(tierSeal(c.tier))}${c.clause ? img(clauseSeal(c.clause)) : ''}</span>${tut ? 'Training' : E.TIERS[c.tier]} contract</h2>${tut ? '' : `<span>Pays <span class="num price">${c.pay}</span> gold + overkill</span>`}</div>
-    ${c.clause ? `<div class="cline"><b>Wildcard, ${E.CLAUSES[c.clause].name}:</b> ${E.CLAUSES[c.clause].text}</div>` : ''}
+    <div class="contract-row"><h2><span class="seals">${img(c.clause ? clauseSeal(c.clause) : tierSeal(c.tier))}</span>${tut ? 'Training' : c.clause ? 'Wildcard' : E.TIERS[c.tier]} contract</h2>${tut ? '' : `<span>Pays <span class="num price">${c.pay}</span> gold + overkill</span>`}</div>
+    ${c.clause ? `<div class="cline"><b>${E.CLAUSES[c.clause].name}:</b> ${E.CLAUSES[c.clause].text}</div>` : ''}
     <div class="contract-row"><span class="pts"><span class="num">${s.slain}</span> <span class="muted">/ ${c.target} points</span></span></div>
     <div class="progress ${s.slain >= c.target ? 'met' : ''}"><i style="width:${pct}%"></i></div>
   </section>`;
@@ -1066,7 +1100,7 @@ function contractHTML() {
 function peekHTML() {
   if (!s.relics.includes('lantern') || !s.draw.length) return '';
   const n = s.draw[0];
-  return `<p class="peek muted" style="margin:0">Lantern: the next card is <b style="color:var(--bone)">${cardName(n)} (${n.kind} ${n.v})</b>.</p>`;
+  return `<p class="peek muted" style="margin:0">${dual(`Lantern: the next card is <b style="color:var(--bone)">${cardName(n)} (${n.kind} ${n.v})</b>.`, `Lantern, next card: <b style="color:var(--bone)">${cardName(n)} ${n.v}</b>`)}</p>`;
 }
 const logHTML = () => tut ? '' : `<details class="rules"><summary>Log</summary><div class="log">${s.log.map(l => `<p>${esc(l)}</p>`).join('') || '<p class="muted">Your deeds will be recorded here.</p>'}</div></details>`;
 function coachHTML() {
@@ -1269,12 +1303,12 @@ function floorHTML(f) {
   const r = done && rec && rec.floors.find(x => x.floor === f + 1);
   const mark = !r ? '' : r.survival ? '' : r.met ? 'paid' : r.met === false ? 'strike' : '';
   const state = done ? (r && r.survival ? 'Survived' : r && r.met ? 'Contract met' : r && r.met === false ? 'Contract missed' : 'Cleared')
-    : now ? `In progress · room ${s.roomsCleared + 1} of ${E.ROOMS_PER_FLOOR}` : f === here ? 'Up next' : 'Ahead';
+    : now ? `In progress · room ${s.roomsCleared + 1} of ${E.ROOMS_PER_FLOOR}` : f === here ? 'You are here' : 'Ahead';
   const token = p.boss ? img(`portraits/${bossArt[p.boss.key]}.webp`, '', p.boss.name)
     : p.survival ? img('ui/pip-room-on.webp') : img(tierSeal(p.tiers[0]));
   const task = p.survival ? `<p class="task"><b>Survive</b> ${E.ROOMS_PER_FLOOR} rooms · pays <span class="num price">${E.SURVIVAL_PAY}</span> gold</p>`
     : `<p class="task ask">Contract: kill this many points</p><ul class="tiers">${p.tiers.map(t => `<li>${img(tierSeal(t))}${E.TIERS[t]} <b class="num">${E.TARGETS[f][t]}</b></li>`).join('')}</ul>
-      ${p.wild ? '<p class="task">or a Wildcard, for more gold and a twist</p>' : ''}`;
+      ${p.wild ? `<p class="task">${dual('or a Wildcard, for more gold and a twist', 'or a Wildcard')}</p>` : ''}`;
   return `<article class="floor ${p.boss ? 'bossfloor' : ''} ${done ? 'done' : f === here ? 'next' : 'later'}">
     ${mark ? `<span class="mark ${mark}">${img(`ui/stamp-${mark}.webp`)}<b>${mark.toUpperCase()}</b></span>` : ''}
     <div class="token">${token}</div>
@@ -1285,17 +1319,17 @@ function floorHTML(f) {
 // Training is one short floor before act 1, so its map shows it first and the act's floors after it.
 function trainingHTML() {
   return `<article class="floor next training"><div class="token">${clerk('neutral', '')}</div><span class="label">Before act 1</span><h3>Training floor</h3>
-    <p class="task">Get through <b>${E.TUTORIAL_ROOMS}</b> rooms while the clerk shows you how.</p><span class="state">${mapView === 'pause' ? `In progress · room ${s.roomsCleared + 1} of ${E.TUTORIAL_ROOMS}` : 'Up next'}</span></article>`;
+    <p class="task">Get through <b>${E.TUTORIAL_ROOMS}</b> rooms while the clerk shows you how.</p><span class="state">${mapView === 'pause' ? `In progress · room ${s.roomsCleared + 1} of ${E.TUTORIAL_ROOMS}` : 'You are here'}</span></article>`;
 }
 function mapHTML() {
   const a = mapAct(), first = a * 3, here = nextFloor();
   const dues = !tut && !(s.guided && first + 2 < E.UNLOCK.contracts);
   const go = mapView === 'auto' ? `<button class="primary go" data-mapgo>${tut ? 'Start training' : `Start floor ${here + 1}`}</button>` : '<button class="go" data-mapback>Back</button>';
   const floors = [first, first + 1, first + 2].map(floorHTML).join('');
-  return `<section class="actmap" aria-label="Act map"><span class="label">Act ${a + 1} of 3</span><h2>${ACTS[a].name}</h2>
+  return `<section class="actmap" aria-label="Act map"><div class="acthead"><span class="label">Act ${a + 1} of 3</span><h2>${ACTS[a].name}</h2></div>
     <div class="floors ${tut ? 'n4' : ''}">${tut ? trainingHTML() : ''}${floors}</div>
-    ${dues ? `<p class="dues">The guild collects <b class="num price">${E.DUES[a]}</b> gold in dues after the boss floor. You have <b class="num price">${s.gold}</b>.</p>` : ''}
-    ${go}</section>`;
+    <div class="mapfoot">${dues ? `<p class="dues">The guild collects <b class="num price">${E.DUES[a]}</b> gold in dues after the boss floor. You have <b class="num price">${s.gold}</b>.</p>` : ''}
+    ${go}</div></section>`;
 }
 const pauseHTML = () => `<div class="overlay" role="dialog" aria-modal="true" aria-label="Paused"><section class="pausebox"><h2>Paused</h2>
   <button class="primary" data-resume>Resume</button>
@@ -1348,23 +1382,23 @@ function render() {
   if (mapView) {
     body = mapHTML();
   } else if (s.phase === 'bid') {
-    body = cols(`${coachHTML()}${statusHTML()}${bossHTML()}${duesWarning()}`, `
-      <section class="contract board"><div class="contract-row"><h2>${s.offers.length > 1 ? 'Choose this floor\'s contract' : 'Sign this floor\'s contract'}</h2>${E.canRedraw(s) ? '<button data-redraw>Redraw room (Fortune Teller)</button>' : ''}</div>
-        <p class="muted" style="margin:0">${s.offers.length > 1 ? `Here's the first room. How many monster points can you kill across ${roomsOnFloor()} rooms? Higher targets pay more.` : `Here's the first room. Kill this many monster points across ${roomsOnFloor()} rooms to get paid.`}</p>
+    body = cols(`${coachHTML()}${statusHTML()}`, `${bossHTML()}${duesWarning()}
+      <section class="contract board"><div class="contract-row"><h2>${s.offers.length > 1 ? 'Choose this floor\'s contract' : 'Sign this floor\'s contract'}</h2></div>
+        <p class="muted" style="margin:0">${s.offers.length > 1 ? `How many monster points can you kill across ${roomsOnFloor()} rooms? Higher targets pay more.` : `Kill this many monster points across ${roomsOnFloor()} rooms to get paid.`}</p>
         <div class="offers">${s.offers.map((o, i) => {
           const c = tut ? { target: 12, pay: 0 } : { target: E.TARGETS[s.floor][o.tier], pay: E.payout(s, o.tier, o.clause) };
           return `<button class="offer ${o.clause ? 'clause' : ''} ${tut ? 'lit' : ''}" data-bid="${i}">
-          ${o.clause ? '<span class="wild">Wildcard</span>' : ''}${img(tierSeal(o.tier), 'seal')}<span class="tier">${tut ? 'Training' : E.TIERS[o.tier]}</span><span>Kill <span class="num">${c.target}</span> points</span>${tut ? '' : `<span class="muted">Pays <span class="num price">${c.pay}</span> gold</span>`}
-          ${o.clause ? `<span class="clause-row">${img(clauseSeal(o.clause), 'seal')}<span class="cl">${E.CLAUSES[o.clause].name}</span></span><span class="muted" style="font-size:13px">${E.CLAUSES[o.clause].text}</span>` : ''}</button>`;
+          ${img(o.clause ? clauseSeal(o.clause) : tierSeal(o.tier), 'seal')}<span class="tier">${tut ? 'Training' : o.clause ? 'Wildcard' : E.TIERS[o.tier]}</span><span>Kill <span class="num">${c.target}</span> points</span>${tut ? '' : `<span class="muted">Pays <span class="num price">${c.pay}</span> gold</span>`}
+          ${o.clause ? `<span class="cl">${E.CLAUSES[o.clause].name}</span><span class="muted rule">${E.CLAUSES[o.clause].text}</span>` : ''}</button>`;
         }).join('')}</div>
       </section>
-      ${roomHTML(false)}${relicsHTML(false)}`, `${tut ? '' : rulesHTML()}${boardHTML()}${statsHTML()}`);
+      ${relicsHTML(false)}`, `${tut ? '' : rulesHTML()}${boardHTML()}${statsHTML()}`);
   } else if (s.phase === 'room') {
     const fleeNote = s.boss && s.boss.key === 'fleeToll' ? ' (costs 4 HP)' : '';
     const fleeOk = E.canFlee(s) && (!tut || !!(TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.flee));
     body = cols(`${coachHTML()}${statusHTML()}${bossHTML()}${survival() ? '' : contractHTML()}${duesWarning()}${peekHTML()}`, `
-      ${roomHTML(true, `${E.canRaise(s) && !tut ? `<button data-raise>${img('icons/hud-raise.webp', 'bi')}Raise to ${E.TIERS[s.contract.tier + 1]}: kill ${E.TARGETS[s.floor][s.contract.tier + 1]} points, pays ${E.payout(s, s.contract.tier + 1, s.contract.clause)}</button>` : ''}
-        <button data-flee ${fleeOk ? '' : 'disabled'} class="${tut && fleeOk ? 'lit' : ''}">${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room${fleeNote}</button>`)}${relicsHTML(false)}`, `${tut ? '' : rulesHTML()}${boardHTML()}${statsHTML()}`);
+      ${roomHTML(true, `${E.canRaise(s) && !tut ? `<button data-raise>${img('icons/hud-raise.webp', 'bi')}${s.contract.clause ? 'Raise' : `Raise to ${E.TIERS[s.contract.tier + 1]}`}: kill ${E.TARGETS[s.floor][s.contract.tier + 1]} points, pays ${E.payout(s, s.contract.tier + 1, s.contract.clause)}</button>` : ''}
+        ${E.canRedraw(s) && !tut ? '<button data-redraw>Redraw room</button>' : ''}<button data-flee ${fleeOk ? '' : 'disabled'} class="${tut && fleeOk ? 'lit' : ''}">${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room${fleeNote}</button>`)}${relicsHTML(false)}`, `${tut ? '' : rulesHTML()}${boardHTML()}${statsHTML()}`);
   } else if (s.phase === 'shop') {
     // The guild hall's shop: the clerk at the counter reads out your floor, and the wares hang on a wooden board
     // as pinned notices with brass price tags. Leaving goes back to the act map.
@@ -1375,9 +1409,8 @@ function render() {
       <div class="buyrow"><span class="tag ${short && !sold ? 'short' : ''}">${img('icons/hud-gold.webp')}<span class="num">${item.cost}</span></span>
       <button data-buy="${k}" ${sold || short || (E.RELICS[k] && full) ? 'disabled' : ''}>${sold ? 'Sold' : 'Buy'}</button></div></div>`;
     };
-    body = cols(`${coachHTML()}${statusHTML()}`, `
+    body = cols(`${coachHTML()}${statusHTML()}${settleHTML()}`, `
       <section class="shop"><div class="shopsign"><h2>Guild Shop</h2><span class="purse">${img('icons/hud-gold.webp')}<b class="num">${s.gold}</b> gold</span></div>
-        ${settleHTML()}
         ${relicsOpen() ? `<div class="shelf"><div class="label">Relics ${full ? '(slots full: drop one to buy)' : ''}</div>
         <div class="shopgrid relicgrid">${s.shop.relics.map(k => ware(k, E.RELICS[k])).join('') || '<p class="muted">Sold out.</p>'}</div></div>` : ''}
         <div class="shelf"><div class="label">Services</div>

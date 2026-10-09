@@ -8,6 +8,20 @@ Guild Ledger uses a three-part version number, `MAJOR.MINOR.PATCH`:
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.17.1 (2026-10-09)
+Bug fixes from Dude's playtest of 1.17.0.
+- **Shop prices are easy to read.** Price tags are bright gold numbers on a dark plaque, bigger than before. A price you can't afford turns red instead of greying out.
+- **The map's gold outline marks where you are.** The next floor gets the gold frame and a "You are here" tag. The boss floor is marked in red (red frame line, red portrait ring), so it no longer looks like your position.
+- **A Wildcard just says Wildcard.** The contract choice, the signed contract, the raise button and the log no longer name the Safe/Bold/Reckless tier a Wildcard is built on. Its own seal and rule show instead.
+- **Choosing a contract no longer shows the first room.** You sign first, then see the room. The boss card and the dues warning move into the space it left, so nothing gets squashed.
+- **Fortune Teller** used to redraw that first room before you signed, so it now works in play instead: once per floor, redraw a room before you pick any of its cards. (Sim: Fortune Teller now adds about 8 points of win rate, mid-pack among relics; it added about 1.)
+- **No scrolling on any screen** at desktop (1280x800, 1366x680, 1280x720), upright phone (390x844, 390x664, 375x667, 360x640) and sideways phone (844x390, 844x340, 667x375), checked in a headless browser on the title, training, map, contract choice with tips and a boss, rooms (Wildcard, boss floor, raise, lantern), full shop, first relic shop, pause, map from pause, and end screens. To get there:
+  - The map scales its medallions to the screen height, stacks tighter on upright phones, and puts the title on one line and the dues next to Start on sideways phones.
+  - The clerk's floor summary moved from the shop to the side column. On phones the shop sign is gone (your gold is in the status bar) and a shop tip hides the goal line until it retires.
+  - On shorter desktop windows, How to play and Top scores sit behind the More button, as on phones, and the goal box hides while a contract shows the same target.
+  - The dues reminder only shows in a room when you're short, and the Guild box shows the dues in red when you are. Sideways, wares, the boss card and the contract are tighter.
+  - The title screen fits sideways phones (the name stays on one line).
+
 ## 1.17.0 (2026-10-09)
 Act map, pause menu, a real shop, and one loop from screen to screen: **map, floor, shop, map**.
 - **Act map.** Shows the floors of the current act side by side, like Balatro's blind select: the two regular floors and the boss floor, with the boss's portrait, name and rule. Each floor shows what it asks of you (survive 4 rooms, or the Safe/Bold/Reckless contract targets and whether a Wildcard can turn up), and whether it's done (stamped PAID or STRIKE), in progress, up next or ahead. The act's guild dues are shown underneath. On phones held upright the floors stack top to bottom.
