@@ -100,6 +100,18 @@ for f in each('ui/buttons/*.png'):
     save(Image.open(f).convert('RGBA'), f'ui/{strip(f, "")}.webp', None, 85)
 for f in each('ui/panels/*.png'):
     save(Image.open(f).convert('RGBA'), f'ui/{strip(f, "")}.webp', (320, 320), 85)
+# The shop's notices: the pinned parchment split into a pinless sheet (drawn as a 9-slice, so its torn edges are never
+# stretched) and the brass pin on its own, which sits on top at its own shape.
+def split_pin(path):
+    from PIL import ImageDraw, ImageChops
+    im = Image.open(path).convert('RGBA'); sheet = im.copy()
+    sheet.paste(im.crop((166, 0, 202, 52)), (124, 0))  # plain top edge over the pin
+    m = Image.new('L', (im.width * 4, im.height * 4), 0); d = ImageDraw.Draw(m)
+    d.ellipse((125.5 * 4, .5 * 4, 156.5 * 4, 31.5 * 4), fill=255); d.ellipse((129 * 4, 28 * 4, 140 * 4, 41 * 4), fill=255)
+    pin = im.copy(); pin.putalpha(ImageChops.multiply(m.resize(im.size, Image.LANCZOS), im.split()[-1]))
+    return sheet, pin.crop((124, 0, 158, 44))
+sheet, pin = split_pin(os.path.join(src, 'ui/panels/panel-parchment.png'))
+save(sheet, 'ui/ware-parchment.webp', None, 90); save(pin, 'ui/ware-pin.webp', None, 90)
 for f in each('cards/frames/*.png'):
     save(Image.open(f).convert('RGBA'), f'cards/{strip(f, "card-")}.webp', None, 85)
 
