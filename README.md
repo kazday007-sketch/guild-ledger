@@ -17,6 +17,12 @@ A dungeon-solitaire roguelike. Each floor you sign a contract (Safe, Bold or Rec
 
 Rebuild after any change with `python3 src/build.py`.
 
+## Developer mode
+Open the game with `?dev=1` (https://kazday007-sketch.github.io/guild-ledger/?dev=1) for a panel that jumps to any floor or room, deals chosen cards, grants relics, and sets health, gold, strikes and weapon. Dev runs never send reports or reach the leaderboard.
+
+## Tests
+`node src/test.js` checks every relic, the guild dues and the dev helpers against the engine.
+
 ## Versions
 The game uses `MAJOR.MINOR.PATCH` (overhaul or redesign / update / bug fix). Bump `VERSION` in `src/ui.html` with each change and add an entry to `CHANGELOG.md`.
 

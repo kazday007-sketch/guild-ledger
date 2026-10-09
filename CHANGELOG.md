@@ -8,6 +8,16 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.23.0 (2026-10-09)
+A developer mode, clearer guild dues, and every relic checked.
+
+- **Developer mode**: open the game with `?dev=1` (https://kazday007-sketch.github.io/guild-ledger/?dev=1). A DEV button opens a panel to start a guided or full run, jump to any floor (bosses included) or room, meet the contract, end the floor at once (pays the contract, interest and dues, then opens the shop), open a shop with every relic on sale, set health, max health, gold, strikes and weapon, deal any cards into the room or onto the pile, and give or take away any relic. Dev runs never send run reports, save, or reach the leaderboard.
+- **Dues were being collected, but the screen said otherwise**: right after the guild took its dues, the Guild box in the shop still showed the dues you had just paid ("10g due" after paying 10). It now shows the next act's dues, and nothing once the last dues are paid. The Strikes tip names the right amount and floor too.
+- **Shop dues warning**: in the shop right before the dues floor, a notice now always says how much the guild will take and how much you have ("Dues 22g after the next floor · you have 37, so keep 22"). It turns red when you're short and shows on every screen size, including the shortest sideways phones.
+- **Keen Edge and Whetstone**: the weapon's "hits up to" number now counts them, so a 5-limit weapon with Keen Edge shows 7. Before, the number ignored the relic, so it looked like it did nothing.
+- **Loaded Dice**: the Raise tip says twice per floor instead of once.
+- `node src/test.js` checks every relic's rule, the dues in both modes and the dev helpers.
+
 ## 1.22.1 (2026-10-09)
 The shop shows its wares off.
 
