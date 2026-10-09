@@ -350,6 +350,7 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
 .cols, .side, .stage { display: grid; gap: 14px; min-width: 0; }
 .side .version { margin: 0; }
 .sm, .more { display: none; }
+.stat .lim { font-size: 13px; }
 .mode-row { display: flex; gap: 12px; align-items: baseline; font-size: 14px; }
 .extras { display: grid; gap: 10px; }
 /* Phones and other narrow screens: one column that fits the screen. Status and talk on top, the table below with
@@ -394,7 +395,8 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
   .stat .label { font-size: 0; gap: 0; } .stat .label img { width: 18px; height: 18px; }
   .status .stat { grid-template-columns: auto 1fr; align-items: center; column-gap: 5px; }
   .status .stat .hpbar { grid-column: 1 / -1; }
-  .stat .num { font-size: 15px; } .stat .num .muted { font-size: 11px !important; }
+  .stat .num { font-size: 15px; } .stat .num .muted { font-size: 11px !important; } .stat .num { white-space: nowrap; }
+  .status .stat.weapon { min-width: min-content; } /* never narrower than "7 max 12", so it can't run into the strikes */
   .coach { padding: 8px 10px; column-gap: 10px; gap: 4px; } .coach > .clerk { width: 44px; height: 55px; }
   .coach p { font-size: 16px; line-height: 1.3; } .coach .ok { padding: 5px 14px; font-size: 14px; } .coach .label { font-size: 11px; }
   .contract { padding: 8px 10px; gap: 4px; } .contract.paper h2 { font-size: 16px; } .seals img { width: 28px; height: 28px; }
@@ -442,6 +444,52 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
     .card .acts button { padding: 8px 4px; font-size: 14px; }
     .stage .slot b { font-size: 28px; } .stage .slot small { font-size: 13px; }
   }
+}
+/* Phones held upright: always 2 by 2, for the room and the contract offers. Going by the height that's left made
+   the cards flip to a row of 4 whenever a long clerk line, a boss or a dues warning took some of it. */
+@media (max-width: 899px) and (orientation: portrait) {
+  .stage div.room { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .stage .card { grid-template-rows: minmax(0, 1fr) auto auto; padding: 5px 5px 6px; gap: 4px; }
+  .stage .card .art { height: auto; }
+  .card .rank { font-size: 17px; padding: 3px 5px; } .card .rank small { font-size: 14px; }
+  .card .face { font-size: 15px; } .card .kind { font-size: 10px; }
+  .card .acts button { padding: 8px 4px; font-size: 14px; }
+  .stage .card .acts:has(> :nth-child(2)) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; } /* Weapon and Fists side by side, so the art keeps its height */
+  .stage .card .acts:has(> :nth-child(2)) button { padding: 8px 0; font-size: 12px; white-space: nowrap; overflow: hidden; }
+  .stage .slot b { font-size: 28px; } .stage .slot small { font-size: 13px; }
+  .offers { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-columns: auto; gap: 8px 10px; }
+  .offers > .offer:last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc(50% - 5px); }
+  .offer, .offer.clause { padding: 14px 12% 20px; font-size: 14px; gap: 2px; }
+  .offer .seal { width: 40px; height: 40px; } .offer .tier { font-size: 18px; } .offer .num { font-size: 16px; } .offer .cl { font-size: 13px; }
+}
+@media (max-width: 899px) and (orientation: portrait) and (max-height: 760px) {
+  .offer, .offer.clause { padding: 9px 10% 13px; font-size: 13px; gap: 0; }
+  .offer .seal { width: 30px; height: 30px; } .offer .tier { font-size: 16px; } .offer .num { font-size: 14px; }
+  /* short upright screens (most phones with the browser bars showing): a slimmer boss and clerk leave the cards their height */
+  .side .boss { padding: 4px 10px; gap: 10px; } .side .boss img { width: 30px; height: 38px; } .side .boss .who { gap: 0; } .side .boss .who .label { display: none; }
+  .side .boss b { font-size: 15px; } .side .boss span:not(.label) { font-size: 12.5px; line-height: 1.25; }
+  .side .coach p { font-size: 14px; line-height: 1.28; } .side aside.coach p.sub { font-size: 12px; }
+  .side .contract.paper { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 3px 12px; padding: 6px 10px; }
+  .side .contract.paper > :not(:has(.pts)):not(.progress) { grid-column: 1 / -1; } /* the points sit beside their bar */
+  .side .contract.paper .seals img { width: 22px; height: 22px; } .side .contract.paper h2 { font-size: 15px; }
+  .stage > .boss { padding: 4px 10px; gap: 10px; } .stage > .boss img { width: 30px; height: 38px; } .stage > .boss .who { gap: 0; } .stage > .boss .who .label { display: none; }
+  .stage > .boss b { font-size: 15px; } .stage > .boss span:not(.label) { font-size: 12.5px; line-height: 1.25; }
+  .side .warn, .stage > .warn { display: none; } /* as sideways: the Guild box shows the dues in red when you're short */
+  .side .coach .label { display: none; }
+}
+@media (max-width: 899px) and (orientation: portrait) {
+  /* when a boss, a contract and a long clerk line leave the room short, the name sits on the art so the card's number stays in view */
+  /* never squeeze the room below what a 2 by 2 needs: on the very shortest screens the table scrolls a little instead */
+  main.play .stage { overflow-y: auto; padding: 6px; margin: -6px; } .stage section.chamber:not(.preview) { min-height: 250px; }
+  @container chamber (max-height: 380px) {
+    .stage .card .art { flex: 1 1 0; min-height: 28px; }
+    .stage .card .name { position: relative; z-index: 1; margin-top: -22px; padding: 6px 2px 1px; border-radius: 0 0 5px 5px; background: linear-gradient(transparent, rgba(12,9,6,.88) 45%); color: var(--bone); }
+    .stage .card .face { font-size: 13.5px; } .stage .card .rank { font-size: 14px; padding: 2px 4px; top: 2px; left: 2px; }
+    .stage .card .acts button { padding-block: 6px; }
+  }
+}
+@media (max-width: 374px) and (orientation: portrait) {
+  .stage .card .acts:has(> :nth-child(2)) button { font-size: 11.5px; letter-spacing: -.01em; }
 }
 /* Phones held sideways: status and talk on the left, the table on the right. */
 @media (max-height: 519px) and (orientation: landscape) {
@@ -529,6 +577,7 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
 @media (min-width: 900px) and (min-height: 520px) and (max-height: 820px) {
   .side:has(.contract.paper) .coach.goalonly { display: none; } /* the contract shows the same target */
   .side .boss { padding: 6px 12px; } .side .boss img { width: 44px; height: 55px; } .side .boss .who .label { display: none; }
+  .side .warn { display: none; } /* the Guild box shows the dues in red when you're short */
   .side .extras { display: none; } main.play .more { display: inline-block; padding: 5px 12px; font-size: 14px; }
   main.more-open .side .extras { display: grid; position: fixed; z-index: 20; top: 60px; left: 16px; width: 380px; max-height: calc(100vh - 80px); overflow-y: auto; padding: 12px; background: var(--stone); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.7); }
   .side .coach p { font-size: 18px; line-height: 1.3; }
@@ -546,6 +595,9 @@ main.title { max-width: 1200px; min-height: calc(100vh - 56px); min-height: calc
   main.solo:has(.endform) { max-width: 1100px; }
   main.solo .end { padding: 18px 20px; grid-template-columns: 1.1fr 1fr; align-items: center; column-gap: 28px; text-align: center; }
   main.solo .end .endform { align-content: center; }
+}
+@media (min-width: 900px) and (min-height: 520px) and (max-height: 640px) {
+  .side .coach > .clerk, .side .coach .label { display: none; } .side .coach { grid-template-columns: 1fr; } .side .coach p { font-size: 15px; }
 }
 
 /* ---------- painted UI (batch 2 art): buttons, panels, bars, pips, card frames and numbers ----------
@@ -736,11 +788,14 @@ main.solo.map { max-width: 980px; }
   .buyrow button { padding: 4px 8px; font-size: 12px; } .shopexit .muted { font-size: 12px; }
 }
 @media (max-width: 620px) { .floors.n4 { grid-template-columns: 1fr; } }
+@media (max-width: 620px) and (max-height: 600px) { /* the shortest upright screens: the Start button stays in view */
+  .actmap { gap: 6px; } .actmap h2::after { display: none; } .floor { padding-block: 5px; row-gap: 0; } .mapfoot { gap: 6px; }
+}
 @media (max-height: 360px) and (orientation: landscape) { .floor .rule { -webkit-line-clamp: 1; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; } }
 
 /* ---------- hold / hover tips: the details that don't need to sit on screen ---------- */
 [data-tip], [data-tip] img { -webkit-touch-callout: none; }
-@media (hover: none) { [data-tip] { -webkit-user-select: none; user-select: none; } }
+@media (hover: none) { [data-tip] { -webkit-user-select: none; user-select: none; } [data-tip], [data-tip] img { -webkit-touch-callout: none; } } /* a hold shows the tip, not iOS's image menu */
 #tip { position: fixed; z-index: 40; left: 0; top: 0; max-width: min(280px, calc(100vw - 24px)); padding: 9px 13px 11px; display: none; gap: 3px; pointer-events: none; color: var(--bone); font-size: 14px; line-height: 1.35; text-align: left; border: 1px solid transparent; border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; filter: drop-shadow(0 8px 16px rgba(0,0,0,.7)); }
 #tip.on { display: grid; animation: tipin .12s ease-out; }
 #tip b { font: 400 17px/1.1 var(--display); color: var(--gold); }
@@ -765,9 +820,10 @@ main.solo.map { max-width: 980px; }
 .shopexit { justify-content: space-between; } .shopexit .relics { flex: 1 1 auto; }
 @media not ((min-width: 900px) and (min-height: 520px)) {
   .belt { gap: 10px; flex-wrap: nowrap; } .belt .peek { font-size: 13px; }
+  .belt .relics { flex: none; flex-wrap: nowrap; } .belt .peek { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .shop .label.yours { display: none; } /* the relic row sits next to Leave shop, so it explains itself */
-  .side:has(.contract.paper) .coach.hint .sub { display: none; } /* the contract shows the same target */
 }
+.side:has(.contract.paper) .coach.hint .sub { display: none; } /* the contract shows the same target */
 .peek img { width: 20px; height: 20px; vertical-align: -5px; margin-right: 4px; }
 
 /* ---------- end of run: each ending has its own look ---------- */
@@ -834,7 +890,7 @@ main.solo:has(> .end) > details.lb { margin: 0; max-width: none; }
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.18.0';
+const VERSION = '1.18.1';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -1150,7 +1206,7 @@ function cardHTML(c, active) {
     <div class="acts">${acts}</div></article>`;
 }
 function statusHTML() {
-  const w = s.weapon ? `${s.weapon.v}${s.weapon.limit == null ? '' : ` <span class="muted" style="font-size:13px">hits up to ${s.weapon.limit}</span>`}` : '<span class="muted">none</span>';
+  const w = s.weapon ? `${s.weapon.v}${s.weapon.limit == null ? '' : ` <span class="muted lim"><span class="lg">hits up to</span><span class="sm">max</span> ${s.weapon.limit}</span>`}` : '<span class="muted">none</span>';
   const cells = [
     `<div class="stat hp"><span class="label">${img('icons/hud-hp.webp')}Health</span><span class="num">${s.hp}<span class="muted">/${s.maxHp}</span></span><div class="hpbar"><i style="width:${100 * s.hp / s.maxHp}%"></i></div></div>`,
     goldOpen() && `<div class="stat gold"><span class="label">${img('icons/hud-gold.webp')}Gold</span><span class="num price">${s.gold}</span></div>`,
