@@ -8,6 +8,14 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.25.0 (2026-10-09)
+Tap for explanations on phones, and a payout screen that explains itself.
+
+- On touch screens, **tap** a relic, a stat, a shop notice, the room title, a boss or a payout line to read its tip; tap it again, or anywhere else, to close it. No more press and hold for these.
+- Buttons still do their job on a tap, so a tap never plays a card, buys, or signs a contract by mistake. A button's own tip (a Wildcard contract's rule, Raise, Flee, Equip) still shows on a press and hold, which never counts as a tap.
+- Phones no longer highlight text or images by accident while you play (typing in the name and feedback boxes still works).
+- **Payout screen**: every line explains itself on a tap (or when you point at it with a mouse): the contract, overkill (how many points per extra gold, and how far over you went), interest (1 gold per 5 held, up to the cap), guild dues, the Loan Shark, Blood Pact, and the gold you had. A small hint under the lines says so.
+
 ## 1.24.0 (2026-10-09)
 A payout screen after every floor.
 
