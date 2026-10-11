@@ -8,6 +8,16 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.28.0 (2026-10-11)
+A new way to play: One deck. And you can now look inside the pile.
+
+- **One deck** is a third choice on the title screen, next to Guided start and Full game. It has all the Full game rules, but the dungeon deck isn't reshuffled at the start of every floor. Cards you deal stay gone, the card left in your last room comes with you to the next floor, and the deck is only shuffled fresh when a new act starts (or if the pile runs out first, which shuffles the dealt cards back in).
+- In One deck, **Cull** removes the strongest monster still in the pile, and **Smith**'s weapon goes into the pile at a random spot, so both change cards you're actually about to meet.
+- **Deck view**: tap the pile next to the room's name to see every card in the dungeon, with the ones already dealt dimmed. The shop has a **Deck** button too, to check what Cull and Smith did. Works in every mode.
+- **Top scores** has a One deck tab.
+- On the smallest phones the Raise button says just "Raise" so the room's name keeps its line (its tip still names the new contract).
+- `node src/sim.js onedeck` runs the difficulty curve in One deck. Bots win about as often as in the Full game (15% / 15% / 11% for cautious / balanced / greedy), but die more and strike out less.
+
 ## 1.27.1 (2026-10-09)
 A lone contract fills the board.
 

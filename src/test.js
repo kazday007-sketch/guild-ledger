@@ -135,5 +135,47 @@ for (const mode of ['full', 'guided']) {
   E.devJump(s, 8); ok(s.boss && s.boss.key === 'recklessOnly', 'devJump: floor 9 has the Lich');
   E.bid(s, 0); E.devRoom(s, 3); eq(s.roomsCleared, 3, 'devRoom: room 4'); }
 
+// ---------- One deck ----------
+// Play a floor for real: take the first 3 cards of each room bare-handed, never dying, always meeting the contract.
+function playFloor(s) {
+  if (s.phase === 'bid') E.bid(s, 0);
+  for (let n = 0; s.phase === 'room' && n < 40; n++) { s.hp = 99; s.maxHp = 99; s.slain = 999; E.handle(s, s.room[0].id, 'bare'); }
+}
+const inPile = s => s.draw.length + s.room.length;
+{ const s = E.newGame(7, { oneDeck: true }); ok(s.oneDeck, 'oneDeck flag set');
+  eq(inPile(s), 44, 'one deck: floor 1 starts on the whole deck');
+  const seen = new Set(); const draw0 = s.draw.length;
+  playFloor(s); ok(s.phase === 'shop', 'one deck: floor 1 ends in the shop');
+  const left = s.room.map(c => c.id);
+  eq(left.length, 1, 'one deck: one card is left in the last room');
+  const pile1 = s.draw.length; ok(pile1 < draw0, 'one deck: the pile shrinks over a floor');
+  E.leaveShop(s);
+  eq(inPile(s), pile1 + 1, 'one deck: floor 2 deals from what is left, plus the card left in the room');
+  ok(left.every(id => s.room.some(c => c.id === id)), 'one deck: the card left in the room is still there on floor 2');
+  playFloor(s); E.leaveShop(s); playFloor(s);
+  E.leaveShop(s); eq(s.floor, 3, 'one deck: reached act 2');
+  eq(inPile(s), 46, 'one deck: act 2 starts on a fresh shuffle of the whole deck with its 2 elites'); }
+{ // the pile runs out mid-act: everything dealt goes back in
+  const s = E.newGame(8, { oneDeck: true }); E.bid(s, 0);
+  s.draw = s.draw.slice(0, 1); const before = s.reshuffles;
+  s.hp = 99; E.handle(s, s.room[0].id, 'bare'); E.handle(s, s.room[0].id, 'bare'); E.handle(s, s.room[0].id, 'bare');
+  eq(s.room.length, 4, 'one deck: a room still gets 4 cards when the pile runs out');
+  eq(s.reshuffles, before + 1, 'one deck: running out reshuffles the dealt cards');
+  eq(inPile(s), 44, 'one deck: every dealt card, the ones just handled too, is back in play'); }
+{ // services change the pile you're about to play
+  const s = E.newGame(9, { oneDeck: true }); playFloor(s); s.gold = 50;
+  const top = Math.max(...s.draw.filter(c => c.kind === 'monster').map(c => c.v));
+  const n = s.draw.filter(c => c.kind === 'monster' && c.v === top).length;
+  E.buy(s, 'cull');
+  eq(s.draw.filter(c => c.kind === 'monster' && c.v === top).length, n - 1, 'one deck: Cull takes the strongest monster still in the pile');
+  const p = s.draw.length; E.buy(s, 'smith');
+  eq(s.draw.length, p + 1, 'one deck: Smith\'s weapon goes into the pile');
+  const v = E.deckView(s); eq(v.total, s.deck.length, 'deck view lists every card'); eq(v.left, s.draw.length, 'deck view: cards left = the pile'); }
+{ // normal runs are unchanged
+  const s = E.newGame(7); playFloor(s);
+  eq(E.deckView(s).left, s.deck.length, 'deck view: in a normal shop every card is coming back'); E.leaveShop(s);
+  eq(inPile(s), 44, 'normal run: every floor reshuffles the whole deck'); }
+{ const s = E.newGame(7, { oneDeck: true, guided: true }); ok(!s.oneDeck && s.guided, 'one deck is never guided'); }
+
 console.log(`${passes} passed, ${fails} failed`);
 process.exit(fails ? 1 : 0);
