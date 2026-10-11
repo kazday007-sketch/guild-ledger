@@ -1241,29 +1241,12 @@ svg.rglyph text { fill: var(--fc, #ddd); font-size: 42px; font-family: 'Segoe UI
   .pickview { padding: 28px 34px 30px; gap: 18px; } .pickview .phead .clerk { width: 100px; height: 100px; } .pickview h2 { font-size: 40px; } .pickview .pline2 { font-size: 18px; }
   .pickopt { padding: 20px 14px; } .pickopt .pico { width: 104px; height: 104px; } .pickopt b { font-size: 24px; } .pickopt .ptext { font-size: 16.5px; }
 }
-/* the shop's one rare relic shares the shelf with the three services */
-.shop .shopgrid.wares4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
-@media (min-width: 561px) {
-  .shop .shopgrid.wares4 .tag { font-size: 16px; padding: 2px 8px 2px 4px; gap: 3px; } .shop .shopgrid.wares4 .tag img { width: 16px; height: 16px; }
-  .shop .shopgrid.wares4 .buyrow { gap: 4px; } .shop .shopgrid.wares4 .buyrow button { padding-inline: 10px; }
-}
 /* eight relic slots, the Deck button and Leave shop share one row */
 .shop .shopexit { flex-wrap: nowrap; } .shop .shopexit .relics { flex-wrap: nowrap; gap: 4px; min-width: 0; overflow: hidden; }
 .shop .shopexit .relic { padding: 2px; } .shop .shopexit .relic .ico { width: 28px; height: 28px; } .shop .shopexit > button { flex: none; white-space: nowrap; }
-@media (min-width: 900px) and (min-height: 600px) {
-  /* four wares in a row: icon on top, then the name, then price and Buy */
-  main.play .stage .shop .shopgrid.wares4 .ware { --ico: clamp(56px, 12vh, 132px); grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto auto; justify-items: center; text-align: center; row-gap: 8px; }
-  main.play .stage .shop .shopgrid.wares4 .ware .whead { display: contents; }
-  main.play .stage .shop .shopgrid.wares4 .ware .ico { grid-column: 1; grid-row: 1; align-self: center; }
-  main.play .stage .shop .shopgrid.wares4 .ware b { grid-column: 1; grid-row: 2; align-self: center; }
-  main.play .stage .shop .shopgrid.wares4 .ware .buyrow { grid-column: 1; grid-row: 3; width: 100%; justify-content: center; flex-wrap: nowrap; gap: 4px; }
-  main.play .stage .shop .shopgrid.wares4 .ware .tag { font-size: 15px; padding: 1px 6px 1px 3px; flex: none; }
-  main.play .stage .shop .shopgrid.wares4 .ware .buyrow button { font-size: 14px; padding: 5px 9px; flex: none; }
-}
 @media (max-width: 420px) { .belt:has(.relic:nth-child(7)) .peek .pk-long { display: none; } .belt:has(.relic:nth-child(7)) .peek .pk-short { display: inline; } .belt .relics { gap: 3px; } .belt .relic { padding: 2px; } .belt .relic .ico { width: 24px; height: 24px; } }
 @media (max-height: 519px) and (orientation: landscape) { .shop .shopexit { gap: 6px; } .shop .shopexit .relics { gap: 2px; } .shop .shopexit .relic { padding: 2px; } .shop .shopexit .relic .ico { width: 24px; height: 24px; } .shop .shopexit .relic .link { font-size: 10px; } }
 @media (max-width: 560px) { .shop .shopexit { flex-wrap: wrap; } .shop .shopexit .relics { flex: 1 1 100%; justify-content: space-between; } .shop .shopexit .relic .ico { width: 28px; height: 28px; } }
-@media (max-width: 560px) { .shop .shopgrid.wares4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
 @media (max-width: 700px) { .picks { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } }
 @media (max-width: 560px) {
   .pickview { padding: 12px 12px 14px; gap: 10px; } .pickview .phead .clerk { width: 52px; height: 52px; } .pickview h2 { font-size: 23px; } .pickview .pline2 { font-size: 13.5px; }
@@ -1274,6 +1257,83 @@ svg.rglyph text { fill: var(--fc, #ddd); font-size: 42px; font-family: 'Segoe UI
   .pickview { padding: 8px 14px 10px; gap: 6px; width: min(900px, 100%); } .pickview .phead .clerk { width: 40px; height: 40px; } .pickview h2 { font-size: 20px; } .pickview .pline2 { font-size: 13px; }
   .picks { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; } .pickopt { padding: 6px; gap: 1px; } .pickopt .pico { width: 36px; height: 36px; } .pickopt b { font-size: 15px; } .pickopt .ptext { font-size: 12px; line-height: 1.2; } .pickopt .rtag { font-size: 10px; }
   main.solo:has(> .pickview) > :is(.sync, .version) { display: none; }
+}
+/* ---------- 1.32.0: a bigger shop, the relic on its own shelf ----------
+   The rare relic gets a shelf of its own above the services: one wide niche with a blue rim, its rarity, name and
+   what it does, so it can't be mistaken for a service. Every item, price and Buy button is drawn much bigger, and
+   the niches keep a sensible shape instead of being squeezed into tall strips. */
+main.play .stage .shop .shelf .shopgrid.relicgrid { grid-template-columns: minmax(0, 1fr) !important; }
+main.play .stage .shop .shelf .shopgrid.services { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+main.play .stage .shop .shelf .ware { --ico: 64px; --name: 17px; --tagf: 19px; --btnf: 16px; display: grid; justify-items: center; align-content: center; text-align: center;
+  grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto; row-gap: 6px; column-gap: 12px; padding: 10px 8px; }
+main.play .stage .shop .shelf .ware .whead { display: contents; }
+main.play .stage .shop .shelf .ware .ico { grid-column: 1; grid-row: 1; width: var(--ico); height: var(--ico); align-self: center; }
+main.play .stage .shop .shelf .ware b { grid-column: 1; grid-row: 2; font-size: var(--name); line-height: 1.1; align-self: center; }
+main.play .stage .shop .shelf .ware .buyrow { display: flex; grid-column: 1; grid-row: 3; width: auto; margin: 0; gap: 8px; flex-wrap: nowrap; justify-content: center; align-items: center; }
+main.play .stage .shop .shelf .ware .tag { font-size: var(--tagf); padding: 3px 12px 3px 6px; gap: 5px; border-width: 1.5px; flex: none; }
+main.play .stage .shop .shelf .ware .tag img { width: calc(var(--tagf) * .9); height: calc(var(--tagf) * .9); }
+main.play .stage .shop .shelf .ware .buyrow button { font-size: var(--btnf); padding: .35em .9em; flex: none; }
+/* the relic: icon, then rarity, name and what it does, then price and Buy */
+main.play .stage .shop .shelf .ware.relicware { --ico: 84px; --name: 21px; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto; justify-items: start; text-align: left; column-gap: 16px; padding: 12px 18px; }
+main.play .stage .shop .shelf .ware.relicware .ico { grid-column: 1; grid-row: 1; }
+main.play .stage .shop .shelf .ware.relicware .wtext { grid-column: 2; grid-row: 1; display: grid; gap: 3px; align-self: center; min-width: 0; }
+main.play .stage .shop .shelf .ware.relicware .buyrow { grid-column: 3; grid-row: 1; flex-direction: column; gap: 8px; }
+main.play .stage .shop .shelf .ware.relicware .wtext b { grid-column: auto; grid-row: auto; align-self: auto; }
+main.play .stage .shop .shelf .ware.relicware .rtag { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #8fb0ee; }
+main.play .stage .shop .shelf .ware.relicware.boss .rtag { color: #e7c46a; } main.play .stage .shop .shelf .ware.relicware.common .rtag { color: #b9ab8c; }
+main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size: 15px; line-height: 1.3; color: #d6c8a6; -webkit-line-clamp: unset; }
+.shop .ware.relicware, main.play .stage .shop .ware.relicware { border-color: rgba(143,176,238,.6);
+  background: radial-gradient(ellipse 40% 90% at 12% 50%, rgba(120,160,255,.2), transparent 70%), linear-gradient(#1f2230, #13141c); }
+.shop .ware.relicware.boss { border-color: rgba(231,196,106,.7); background: radial-gradient(ellipse 40% 90% at 12% 50%, rgba(231,196,106,.2), transparent 70%), linear-gradient(#2b2017, #18110b); }
+.shop .ware.relicware:is(:hover, :focus-visible) { border-color: rgba(176,200,255,.95); }
+.shop .rareshelf > .label { color: #dfe7ff; }
+/* big screens: the shelves fill the board, the relic shelf a little shorter than the services */
+@media (min-width: 900px) and (min-height: 600px) {
+  main.play .stage .shop > .shelf.rareshelf, main.play .stage .shop > .shelf.rareshelf .shopgrid { flex: none; } /* the relic's shelf is as tall as its niche; the services take the rest */
+  main.play .stage .shop .shelf .ware { --ico: clamp(70px, 13vh, 150px); --name: clamp(19px, 2.6vh, 26px); --tagf: clamp(20px, 2.8vh, 28px); --btnf: clamp(17px, 2.3vh, 22px); row-gap: clamp(8px, 1.4vh, 14px); }
+  main.play .stage .shop .shelf .ware.relicware { --ico: clamp(84px, 15vh, 170px); --name: clamp(23px, 3.2vh, 32px); grid-template-columns: auto minmax(0, 32em) auto; justify-content: center; column-gap: clamp(20px, 3.5vw, 56px); padding: 14px clamp(18px, 2.5vw, 40px); }
+  main.play .stage .shop .shelf .ware.relicware .desc { font-size: clamp(15px, 2vh, 19px); max-width: 36em; }
+  main.play .stage .shop .shelf .ware.relicware .rtag { font-size: clamp(12px, 1.5vh, 14px); }
+}
+@media (min-width: 900px) and (min-height: 600px) and (max-height: 799px) {
+  main.play .stage .shop .shelf .ware { --ico: clamp(56px, 10vh, 90px); row-gap: 6px; padding-block: 8px; }
+  main.play .stage .shop .shelf .ware.relicware { --ico: clamp(64px, 10vh, 90px); padding-block: 8px; }
+}
+/* upright phones: the relic's price and Buy go under its text */
+@media (max-width: 899px) and (orientation: portrait) {
+  main.play .stage .shop .shelf .ware { --ico: 56px; --name: 16px; --tagf: 18px; --btnf: 15px; padding: 8px 4px; row-gap: 5px; }
+  main.play .stage .shop .shelf .ware .tag { padding: 2px 8px 2px 4px; gap: 3px; }
+  main.play .stage .shop .shelf .ware .buyrow { gap: 5px; }
+  main.play .stage .shop .shelf .ware .buyrow button { padding: .3em .6em; }
+  main.play .stage .shop .shelf .ware.relicware { --ico: 72px; --name: 19px; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 12px; row-gap: 6px; padding: 10px 12px; }
+  main.play .stage .shop .shelf .ware.relicware .ico { grid-row: 1 / 3; }
+  main.play .stage .shop .shelf .ware.relicware .buyrow { grid-column: 2; grid-row: 2; flex-direction: row; justify-content: start; }
+  main.play .stage .shop .shelf .ware.relicware .desc { font-size: 13.5px; line-height: 1.25; }
+  main.play .stage .shop .shelf .ware.relicware .rtag { font-size: 10.5px; }
+}
+@media (max-width: 899px) and (max-height: 720px) and (orientation: portrait) {
+  main.play .stage .shop .shelf .ware { --ico: 36px; --name: 15px; --tagf: 16px; --btnf: 14px; padding: 5px 4px; row-gap: 2px; }
+  main.play .stage .shop .shelf .ware .buyrow button { padding: .2em .55em; } main.play .stage .shop .shelf .ware .tag { padding-block: 1px; }
+  .shop .shelf > .label { padding-block: 1px 2px; }
+  main.play .stage .shop .shelf .ware.relicware { --ico: 48px; --name: 17px; padding: 7px 10px; row-gap: 4px; }
+  main.play .stage .shop .shelf .ware.relicware .rtag { display: none; }
+  main.play .stage .shop .shelf .ware.relicware .desc { font-size: 12.5px; }
+}
+/* sideways phones: each service shows its icon beside the name, the relic one line of what it does */
+@media (max-height: 519px) and (orientation: landscape) {
+  main.play .stage .shop .shelf .ware { --ico: 46px; --name: 15px; --tagf: 17px; --btnf: 14px; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; justify-items: start; text-align: left; column-gap: 8px; row-gap: 4px; padding: 6px 8px; }
+  main.play .stage .shop .shelf .ware .ico { grid-row: 1 / 3; }
+  main.play .stage .shop .shelf .ware b { grid-column: 2; grid-row: 1; align-self: end; }
+  main.play .stage .shop .shelf .ware .buyrow { grid-column: 2; grid-row: 2; align-self: start; gap: 5px; }
+  main.play .stage .shop .shelf .ware .tag { padding: 1px 7px 1px 3px; gap: 3px; }
+  main.play .stage .shop .shelf .ware .buyrow button { padding: .25em .6em; }
+  main.play .stage .shop .shelf .ware.relicware { --ico: 50px; --name: 16px; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto; padding: 6px 12px; }
+  main.play .stage .shop .shelf .ware.relicware .ico { grid-row: 1; }
+  main.play .stage .shop .shelf .ware.relicware .buyrow { grid-column: 3; grid-row: 1; flex-direction: row; align-self: center; }
+  main.play .stage .shop .shelf .ware.relicware .wtext { gap: 1px; }
+  main.play .stage .shop .shelf .ware.relicware .rtag { display: none; }
+  main.play .stage .shop .shelf .ware.relicware .desc { font-size: 12.5px; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .shop .shelf > .label { display: block !important; }
 }
 </style>
 
@@ -1288,7 +1348,7 @@ svg.rglyph text { fill: var(--fc, #ddd); font-size: 42px; font-family: 'Segoe UI
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.31.0';
+const VERSION = '1.32.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -2093,20 +2153,25 @@ function render() {
   } else if (s.phase === 'shop' && s.pick) {
     body = pickHTML();
   } else if (s.phase === 'shop') {
-    // The guild hall's shop: the clerk at the counter reads out your floor, and the wares hang on a wooden board
-    // as pinned notices with brass price tags. Leaving goes back to the act map.
+    // The guild hall's shop: the goat reads out your floor, and the wares sit in lit niches on two shelves:
+    // the rare relic on its own shelf, with what it does, and the services under it. Leaving goes back to the act map.
     const full = E.relicsFull(s);
+    const buyrow = (k, price, sold, short) => `<div class="buyrow"><span class="tag ${short && !sold ? 'short' : ''}">${img('icons/hud-gold.webp')}<span class="num">${price}</span></span>
+      <button data-buy="${k}" ${sold || short || (E.RELICS[k] && full) ? 'disabled' : ''}>${sold ? 'Sold' : 'Buy'}</button></div>`;
     const ware = (k, item) => {
-      const price = E.cost(s, k), sold = !!s.shop.bought[k], short = s.gold < price;
-      return `<div class="ware ${sold ? 'sold' : ''}" tabindex="0"${tipAttr(item.name, E.RELICS[k] ? relicTip(k) : item.text)}><div class="whead">${relicIcon(k)}<b>${item.name}</b></div>
-      <div class="buyrow"><span class="tag ${short && !sold ? 'short' : ''}">${img('icons/hud-gold.webp')}<span class="num">${price}</span></span>
-      <button data-buy="${k}" ${sold || short || (E.RELICS[k] && full) ? 'disabled' : ''}>${sold ? 'Sold' : 'Buy'}</button></div></div>`;
+      const price = E.cost(s, k), sold = !!s.shop.bought[k], short = s.gold < price, r = E.RELICS[k];
+      return r
+        ? `<div class="ware relicware ${r.rarity} ${sold ? 'sold' : ''}" tabindex="0"${tipAttr(item.name, relicTip(k))}>${relicIcon(k)}<div class="wtext"><span class="rtag">${E.RARITIES[r.rarity]} relic</span><b>${item.name}</b><span class="desc">${esc(r.text)}</span></div>${buyrow(k, price, sold, short)}</div>`
+        : `<div class="ware ${sold ? 'sold' : ''}" tabindex="0"${tipAttr(item.name, item.text)}><div class="whead">${img(iconOf(k), 'ico')}<b>${item.name}</b></div>${buyrow(k, price, sold, short)}</div>`;
     };
     const svc = Object.fromEntries(Object.entries(E.SERVICES).map(([k, v]) => [k, s.oneDeck && v.oneDeck ? { ...v, text: v.oneDeck } : v]));
+    const relicShelf = relicsOpen() && s.shop.relics.length;
     body = cols(`${coachHTML()}${statusHTML()}${settleHTML()}`, `
       <section class="shop"><div class="shopsign"><h2>Guild Shop</h2><span class="purse">${img('ui/shop-purse.webp')}<b class="num">${s.gold}</b> gold</span></div>
-        <div class="shelf"><div class="label">${relicsOpen() && s.shop.relics.length ? `Rare relic and services${full ? ' · relic slots full' : ''}` : 'Services'}</div>
-        <div class="shopgrid services ${relicsOpen() && s.shop.relics.length ? 'wares4' : ''}">${relicsOpen() ? s.shop.relics.map(k => ware(k, E.RELICS[k])).join('') : ''}${Object.entries(svc).map(([k, v]) => ware(k, v)).join('')}</div></div>
+        ${relicShelf ? `<div class="shelf rareshelf"><div class="label">${s.shop.relics.length > 1 ? 'Relics' : 'Relic'}${full ? ' · your slots are full' : ''}</div>
+        <div class="shopgrid relicgrid">${s.shop.relics.map(k => ware(k, E.RELICS[k])).join('')}</div></div>` : ''}
+        <div class="shelf"><div class="label">Services</div>
+        <div class="shopgrid services">${Object.entries(svc).map(([k, v]) => ware(k, v)).join('')}</div></div>
         ${duesWarning()}${relicsOpen() ? `<div class="label yours">Your relics (${s.relics.length}/${E.MAX_RELICS})</div>` : ''}
         <div class="shopexit">${relicsOpen() ? relicsHTML(true) : ''}<button class="deckbtn" data-deck${tipAttr('The deck', 'See every card in the dungeon. Cull and Smith change it.')}>${img('icons/hud-draw-pile.webp', 'bi')}Deck</button><button class="primary" data-leave>Leave shop</button></div>
       </section>`, `${rulesHTML()}${boardHTML()}${statsHTML()}`);
