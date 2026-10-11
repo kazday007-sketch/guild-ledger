@@ -1185,6 +1185,34 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
   main.solo:has(> .payout) > :is(.sync, .version) { display: none; }
 }
 @media (max-width: 560px) { .payout { padding: 16px 16px 18px; } .payout .stamp { width: 100px; right: 8px; top: 6px; } .payout h2 { font-size: 25px; } .payout .phead .clerk { width: 60px; height: 60px; } }
+/* ---------- 1.29.0: the shop's cabinet ----------
+   The wares sit in lit display niches inside a dark wooden cabinet, one solid plank under each row. No stretched
+   shelf picture, no torn notes or pins: each niche is a velvet-dark slot with a thin brass rim and a lamp glow on its
+   item, so the icon is what you see first. */
+.shop .shelf { position: relative; box-shadow: none; padding: 8px 10px 20px; border-radius: 8px 8px 3px 3px;
+  background: linear-gradient(rgba(0,0,0,.5), rgba(0,0,0,.22) 30%, rgba(0,0,0,.12)); box-shadow: inset 0 8px 14px rgba(0,0,0,.45), inset 0 0 0 1px rgba(0,0,0,.35); }
+.shop .shelf::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 12px; border-radius: 2px; pointer-events: none;
+  background: linear-gradient(rgba(255,226,170,.22), rgba(255,226,170,0) 3px, rgba(0,0,0,0) 8px, rgba(0,0,0,.45)), #4a3322 url(assets/ui/texture-wood.webp) 0 0 / 256px;
+  box-shadow: 0 5px 8px rgba(0,0,0,.6), 0 1px 0 rgba(0,0,0,.6); }
+.shop .ware, main.play .stage .shop .ware { border: 1px solid rgba(224,180,80,.42); border-image: none; border-radius: 10px; filter: none; transform: none; color: #f1e3bf;
+  background: radial-gradient(ellipse 70% 55% at 50% 40%, rgba(255,196,104,.17), transparent 70%), linear-gradient(#2b2017, #18110b);
+  box-shadow: inset 0 10px 18px rgba(0,0,0,.5), inset 0 0 0 1px rgba(0,0,0,.55), 0 3px 6px rgba(0,0,0,.45); transition: border-color .15s, box-shadow .15s; }
+.shop .ware::before { content: none; }
+.shop .ware:is(:hover, :focus-visible) { border-color: rgba(241,212,136,.85); box-shadow: inset 0 10px 18px rgba(0,0,0,.5), inset 0 0 0 1px rgba(0,0,0,.55), 0 0 0 1px rgba(241,212,136,.25), 0 3px 10px rgba(0,0,0,.5); outline: none; }
+.shop .ware b, main.play .stage .shop .ware b { color: #f1e3bf; text-shadow: 0 1px 2px #000; }
+.shop .ware .desc { color: #cbbd9c; }
+.shop .ware .tag { box-shadow: none; }
+.shop .ware.sold { border-color: rgba(224,180,80,.18); }
+@media (max-height: 519px) and (orientation: landscape) { .shop .shelf { padding: 4px 6px 13px; } .shop .shelf::after { height: 8px; } }
+@media (max-width: 899px) and (orientation: portrait) { .shop .shelf { padding: 4px 5px 12px; } .shop .shelf::after { height: 8px; } }
+/* laptops between 600 and 760 tall: the cabinet fills the board too, with bigger items in the niches */
+@media (min-width: 900px) and (min-height: 600px) and (max-height: 759px) {
+  main.play .stage .shop { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+  main.play .stage .shop > .shelf { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+  main.play .stage .shop > .shelf > .label { align-self: flex-start; }
+  main.play .stage .shop .shopgrid { flex: 1 1 0; min-height: 0; align-items: stretch; }
+  main.play .stage .shop .ware { --ico: clamp(58px, 10vh, 84px); align-content: center; }
+}
 </style>
 
 <div id="scene" aria-hidden="true"></div>
@@ -1198,7 +1226,7 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.28.0';
+const VERSION = '1.29.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board

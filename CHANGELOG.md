@@ -8,6 +8,15 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.29.0 (2026-10-11)
+The shop gets a new look.
+
+- The wares now sit in **lit display niches** in a dark wooden cabinet: a dark slot with a thin brass rim and a warm glow behind each item, so the item is the first thing you see. Hovering a niche lights its rim.
+- Each row stands on a **solid wooden plank** drawn to fit, replacing the stretched shelf picture whose iron brackets poked out under the wares.
+- The torn paper notes, pins and tilts are gone.
+- On laptops 600 to 760 pixels tall the shop now fills the board instead of leaving empty space under it, with bigger items.
+- No new art: the redesign reuses the wood texture already in the game.
+
 ## 1.28.0 (2026-10-11)
 A new way to play: One deck. And you can now look inside the pile.
 
