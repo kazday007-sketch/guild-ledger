@@ -8,6 +8,19 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.30.0 (2026-10-11)
+Relics are now your main source of power.
+
+- **A free relic after every floor.** After the payout you choose 1 of 3 relics, or skip for 4 gold. Boss floors offer **boss relics** instead. Meeting a Bold contract guarantees one rare in the three, and meeting a Reckless or Wildcard contract makes all three rare. Guided runs get their first pick after floor 1.
+- **54 relics in three rarities** (Common, Rare, Boss), up from 26. New ones include Executioner, Masterwork, Unbreaking Edge, Iron Fist, Haymaker, Giant's Grip, Second Heart, Hag's Heart, Golden Idol, Bribe, Lich's Ledger, Oathkeeper, Rulebreaker, Bone Crown, Smoke Bomb and Warden's Keys.
+- **Five families**: Blade, Fist, Blood, Coin and Oath (plus a few with no family). Some relics grow with each relic of their family you hold, for example Blade Oil, Brass Knuckles, Bloodstone, Tip Jar and Oathkeeper. Tips and the pick screen show each relic's rarity, family and how many of that family you hold.
+- **You can carry 8 relics** (was 4). When the belt is full, drop one to take a new one.
+- **Raise is now a relic.** You can no longer raise a contract on your own. Loaded Dice gives one raise per floor, and War Drum gives one that also counts +6 points.
+- **The shop** sells one rare relic beside its services (14 gold in act 2, more later). Services cost more: Bandage 4, Cull 7, Smith 6.
+- **A tougher dungeon to match**: contract targets climb faster from act 2 on (floor 9 Safe is now 96), and each new act adds three elites instead of two.
+- Relics without painted art yet show their family's mark on a coloured seal.
+- Simulator (`node src/sim.js curve`): the bots pick relics and buy the shop's rare. Wins come out at about 18% / 24% / 21% for cautious / balanced / greedy (was 16% / 16% / 12%), so runs end a little more often in a win now that your relics build up.
+
 ## 1.29.0 (2026-10-11)
 The shop gets a new look.
 
