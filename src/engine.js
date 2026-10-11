@@ -40,75 +40,70 @@
     bare: { name: 'Bare Oath', text: 'Only bare-handed kills score points.' },
   };
   // Relics are the run's main source of power. You pick one after every floor (1 of 3, free), a boss floor offers
-  // boss relics instead, and the shop sells one rare relic. Rarity: common (simple numbers), rare (build pieces),
-  // boss (one of a kind, bends a rule). Family: Blade (weapons), Fist (bare hands), Blood (health), Coin (gold),
-  // Oath (contracts and points); a few have none. Some relics grow with how many of their family you hold.
-  const FAMILIES = {
-    blade: { name: 'Blade', glyph: '⚔\uFE0E' }, fist: { name: 'Fist', glyph: '✊\uFE0E' }, blood: { name: 'Blood', glyph: '♥' },
-    coin: { name: 'Coin', glyph: '◉' }, oath: { name: 'Oath', glyph: '✒\uFE0E' }, none: { name: 'Wanderer', glyph: '✦' },
-  };
+  // boss relics instead, and the shop sells one rare relic. Rarity: common (simple numbers), rare (stronger, often a
+  // build piece), boss (one of a kind, bends a rule). Each relic stands on its own: combos are for the player to find.
   const RARITIES = { common: 'Common', rare: 'Rare', boss: 'Boss' };
-  const R = (name, fam, rarity, text) => ({ name, fam, rarity, text });
+  const R = (name, rarity, text) => ({ name, rarity, text });
   const RELICS = {
-    // Blade
-    whetstone: R('Whetstone', 'blade', 'common', 'Your weapon ignores its limit against monsters of 8 or lower.'),
-    keenedge: R('Keen Edge', 'blade', 'common', 'Your weapon can hit monsters up to 2 above its limit.'),
-    grindstone: R('Grindstone', 'blade', 'common', 'Weapons you equip are worth +1.'),
-    oil: R('Blade Oil', 'blade', 'common', 'Weapon kills count +1 point for each Blade relic you hold.'),
-    quickdraw: R('Quickdraw', 'blade', 'common', 'Equipping a weapon counts +2 points.'),
-    quartermaster: R('Quartermaster', 'blade', 'common', 'Start each floor with at least a fresh 5 weapon.'),
-    masterwork: R('Masterwork', 'blade', 'rare', 'Your weapon only dulls on monsters of 10 or more.'),
-    executioner: R('Executioner', 'blade', 'rare', 'Weapon kills of monsters 10 and up count double points.'),
-    unbreaking: R('Unbreaking Edge', 'blade', 'boss', 'Your weapon never dulls.'),
-    // Fist
-    brawler: R('Brawler', 'fist', 'common', 'Bare-handed kills count +3 points.'),
-    fang: R('Vampire Fang', 'fist', 'common', 'Bare-handed kills heal you 2.'),
-    pickpocket: R('Pickpocket', 'fist', 'common', 'Bare-handed kills give 2 gold.'),
-    knuckles: R('Brass Knuckles', 'fist', 'common', 'Bare-handed fights deal 1 less damage for each Fist relic you hold.'),
-    pitfighter: R('Pit Fighter', 'fist', 'common', 'Your first bare-handed kill each floor gives +2 max health and heals 2.'),
-    ironfist: R('Iron Fist', 'fist', 'rare', 'Bare-handed fights against monsters of 6 or lower deal no damage.'),
-    haymaker: R('Haymaker', 'fist', 'rare', 'Your first bare-handed kill in each room counts double points.'),
-    giantsgrip: R("Giant's Grip", 'fist', 'boss', 'Bare-handed fights deal half damage (rounded down).'),
-    // Blood
-    hide: R('Thick Hide', 'blood', 'common', '+6 max health, and heal 6 now.'),
-    herbalist: R('Herbalist', 'blood', 'common', 'Every potion in a room heals, not only the first.'),
-    bloodpact: R('Blood Pact', 'blood', 'common', 'Each contract you meet gives +2 max health and heals 2.'),
-    bloodstone: R('Bloodstone', 'blood', 'common', 'Potions heal +1 for each Blood relic you hold.'),
-    bedroll: R('Bedroll', 'blood', 'common', 'Heal 3 at the start of each floor.'),
-    alchemist: R('Alchemist', 'blood', 'common', 'Healing beyond your max health counts as points.'),
-    ironskin: R('Iron Skin', 'blood', 'rare', 'Take 1 less damage from every monster.'),
-    buckler: R('Buckler', 'blood', 'rare', 'The first monster you fight in each room deals 2 less damage.'),
-    berserk: R('Berserker', 'blood', 'rare', 'Kills made while at 5 health or less count +5 points.'),
-    secondheart: R('Second Heart', 'blood', 'rare', 'The first time you would die, live on with 5 health instead. Then it crumbles.'),
-    hagheart: R("Hag's Heart", 'blood', 'boss', '+8 max health and heal 8 now. The first potion in each room heals double.'),
-    // Coin
-    taxman: R('Taxman', 'coin', 'common', 'Overkill pays 1 gold per 2 points instead of per 5.'),
-    tithe: R('Tithe Box', 'coin', 'common', 'Interest can reach 6 gold instead of 3.'),
-    loanshark: R('Loan Shark', 'coin', 'common', '+4 gold at the start of each floor. A missed contract also costs 8 gold.'),
-    tipjar: R('Tip Jar', 'coin', 'common', 'Each room you clear gives 1 gold for each Coin relic you hold.'),
-    haggler: R('Haggler', 'coin', 'common', 'Everything in the shop costs 2 less.'),
-    ledger: R('Bounty Ledger', 'coin', 'rare', 'Reckless contracts pay x6 instead of x4.'),
-    idol: R('Golden Idol', 'coin', 'rare', 'Kills count +1 point for every 15 gold you hold.'),
-    bribe: R('Bribe', 'coin', 'rare', 'A missed contract costs 10 gold instead of a strike, if you have it.'),
-    lichledger: R("Lich's Ledger", 'coin', 'boss', 'Interest has no cap, guild dues are halved, and kills count +1 point for each Coin relic you hold.'),
-    // Oath
-    thorns: R('Crown of Thorns', 'oath', 'common', 'Every fight costs 1 more health, even after armor, but kills count +4 points.'),
-    loaded: R('Loaded Dice', 'oath', 'common', 'Between rooms, you may raise your contract one step, once per floor.'),
-    oathkeeper: R('Oathkeeper', 'oath', 'common', 'Contracts you sign need 2 fewer points for each Oath relic you hold.'),
-    downpayment: R('Down Payment', 'oath', 'common', 'Start each floor with 4 points already counted.'),
-    wardrum: R('War Drum', 'oath', 'rare', 'Between rooms, you may raise your contract one step, once per floor, and each raise counts +6 points.'),
-    trophy: R('Trophy Hunter', 'oath', 'rare', 'Monsters of 11 and up count +3 points.'),
-    ambush: R('Ambush', 'oath', 'rare', 'The first monster you kill in each room counts +2 points.'),
-    seal: R('Insurance Seal', 'oath', 'rare', 'Your first missed contract each act gives no strike.'),
-    rulebreaker: R('Rulebreaker', 'oath', 'rare', "Wildcard rules don't apply to you. You still get the Wildcard's pay."),
-    bonecrown: R('Bone Crown', 'oath', 'boss', 'Every kill counts +2 points.'),
-    // no family
-    secondwind: R('Second Wind', 'none', 'common', 'You may flee two rooms in a row (not three).'),
-    scout: R('Scout', 'none', 'common', 'You may flee after dealing with 1 card of a room.'),
-    lantern: R('Lantern', 'none', 'common', 'See the next card in the draw pile.'),
-    fortune: R('Fortune Teller', 'none', 'common', 'Once per floor, redraw a room before you pick any of its cards.'),
-    smokebomb: R('Smoke Bomb', 'none', 'rare', 'You may flee any number of rooms in a row.'),
-    wardenkeys: R("Warden's Keys", 'none', 'boss', 'Flee at any point in a room, past any boss, and heal 2 each time you do.'),
+    // weapons
+    whetstone: R('Whetstone', 'common', 'Your weapon ignores its limit against monsters of 8 or lower.'),
+    keenedge: R('Keen Edge', 'common', 'Your weapon can hit monsters up to 2 above its limit.'),
+    grindstone: R('Grindstone', 'common', 'Weapons you equip are worth +1.'),
+    oil: R('Blade Oil', 'common', 'Weapon kills count +2 points.'),
+    quickdraw: R('Quickdraw', 'common', 'Equipping a weapon counts +2 points.'),
+    quartermaster: R('Quartermaster', 'common', 'Start each floor with at least a fresh 5 weapon.'),
+    masterwork: R('Masterwork', 'rare', 'Your weapon only dulls on monsters of 10 or more.'),
+    executioner: R('Executioner', 'rare', 'Weapon kills of monsters 10 and up count double points.'),
+    unbreaking: R('Unbreaking Edge', 'boss', 'Your weapon never dulls.'),
+    // bare hands
+    brawler: R('Brawler', 'common', 'Bare-handed kills count +3 points.'),
+    fang: R('Vampire Fang', 'common', 'Bare-handed kills heal you 2.'),
+    pickpocket: R('Pickpocket', 'common', 'Bare-handed kills give 2 gold.'),
+    knuckles: R('Brass Knuckles', 'common', 'Bare-handed fights deal 2 less damage.'),
+    pitfighter: R('Pit Fighter', 'common', 'Your first bare-handed kill each floor gives +2 max health and heals 2.'),
+    ironfist: R('Iron Fist', 'rare', 'Bare-handed fights against monsters of 6 or lower deal no damage.'),
+    haymaker: R('Haymaker', 'rare', 'Your first bare-handed kill in each room counts double points.'),
+    giantsgrip: R("Giant's Grip", 'boss', 'Bare-handed fights deal half damage (rounded down).'),
+    // health
+    hide: R('Thick Hide', 'common', '+6 max health, and heal 6 now.'),
+    herbalist: R('Herbalist', 'common', 'Every potion in a room heals, not only the first.'),
+    bloodpact: R('Blood Pact', 'common', 'Each contract you meet gives +2 max health and heals 2.'),
+    bloodstone: R('Bloodstone', 'common', 'Potions heal 2 more.'),
+    bedroll: R('Bedroll', 'common', 'Heal 3 at the start of each floor.'),
+    alchemist: R('Alchemist', 'common', 'Healing beyond your max health counts as points.'),
+    ironskin: R('Iron Skin', 'rare', 'Take 1 less damage from every monster.'),
+    buckler: R('Buckler', 'rare', 'The first monster you fight in each room deals 2 less damage.'),
+    berserk: R('Berserker', 'rare', 'Kills made while at 5 health or less count +5 points.'),
+    secondheart: R('Second Heart', 'rare', 'The first time you would die, live on with 5 health instead. Then it crumbles.'),
+    hagheart: R("Hag's Heart", 'boss', '+8 max health and heal 8 now. The first potion in each room heals double.'),
+    // gold
+    taxman: R('Taxman', 'common', 'Overkill pays 1 gold per 2 points instead of per 5.'),
+    tithe: R('Tithe Box', 'common', 'Interest can reach 6 gold instead of 3.'),
+    loanshark: R('Loan Shark', 'common', '+4 gold at the start of each floor. A missed contract also costs 8 gold.'),
+    tipjar: R('Tip Jar', 'common', 'Each room you clear gives 1 gold.'),
+    haggler: R('Haggler', 'common', 'Everything in the shop costs 2 less.'),
+    ledger: R('Bounty Ledger', 'rare', 'Reckless contracts pay x6 instead of x4.'),
+    idol: R('Golden Idol', 'rare', 'Kills count +1 point for every 15 gold you hold.'),
+    bribe: R('Bribe', 'rare', 'A missed contract costs 10 gold instead of a strike, if you have it.'),
+    lichledger: R("Lich's Ledger", 'boss', 'Interest has no cap, guild dues are halved, and every kill counts +1 point.'),
+    // contracts and points
+    thorns: R('Crown of Thorns', 'common', 'Every fight costs 1 more health, even after armor, but kills count +4 points.'),
+    loaded: R('Loaded Dice', 'common', 'Between rooms, you may raise your contract one step, once per floor.'),
+    oathkeeper: R('Oathkeeper', 'common', 'Contracts you sign need 4 fewer points.'),
+    downpayment: R('Down Payment', 'common', 'Start each floor with 4 points already counted.'),
+    wardrum: R('War Drum', 'rare', 'Between rooms, you may raise your contract one step, once per floor, and each raise counts +6 points.'),
+    trophy: R('Trophy Hunter', 'rare', 'Monsters of 11 and up count +3 points.'),
+    ambush: R('Ambush', 'rare', 'The first monster you kill in each room counts +2 points.'),
+    seal: R('Insurance Seal', 'rare', 'Your first missed contract each act gives no strike.'),
+    rulebreaker: R('Rulebreaker', 'rare', "Wildcard rules don't apply to you. You still get the Wildcard's pay."),
+    bonecrown: R('Bone Crown', 'boss', 'Every kill counts +2 points.'),
+    // fleeing and foresight
+    secondwind: R('Second Wind', 'common', 'You may flee two rooms in a row (not three).'),
+    scout: R('Scout', 'common', 'You may flee after dealing with 1 card of a room.'),
+    lantern: R('Lantern', 'common', 'See the next card in the draw pile.'),
+    fortune: R('Fortune Teller', 'common', 'Once per floor, redraw a room before you pick any of its cards.'),
+    smokebomb: R('Smoke Bomb', 'rare', 'You may flee any number of rooms in a row.'),
+    wardenkeys: R("Warden's Keys", 'boss', 'Flee at any point in a room, past any boss, and heal 2 each time you do.'),
   };
   const PICK_SIZE = 3, RARE_CHANCE = 0.25, SKIP_GOLD = 4;
   const RELIC_COST = { common: 7, rare: 12 };
@@ -137,7 +132,6 @@
   }
   const rankLabel = v => ({ 11: 'J', 12: 'Q', 13: 'K', 14: 'A' })[v] || String(v);
   const has = (s, k) => s.relics.includes(k);
-  const fam = (s, f) => s.relics.filter(k => RELICS[k] && RELICS[k].fam === f).length; // relics of a family you hold
   const clause = s => s.contract && !has(s, 'rulebreaker') ? s.contract.clause : null; // the rule in force this floor
 
   // Shared by the game and the simulator bot. `s` needs hp, maxHp, weapon, potionUsed, roomKills, roomBare,
@@ -153,7 +147,7 @@
     if (!useWeapon) {
       if (has(s, 'ironfist') && m.v <= 6) d = 0;
       if (has(s, 'giantsgrip')) d = Math.floor(d / 2);
-      if (has(s, 'knuckles')) d -= fam(s, 'fist');
+      if (has(s, 'knuckles')) d -= 2;
     }
     if (has(s, 'buckler') && s.roomKills === 0) d -= 2;
     if (has(s, 'ironskin')) d -= 1;
@@ -166,7 +160,7 @@
     let p = m.v;
     if (bare && has(s, 'haymaker') && !s.roomBare) p += m.v;
     if (!bare && has(s, 'executioner') && m.v >= 10) p += m.v;
-    if (!bare && has(s, 'oil')) p += fam(s, 'blade');
+    if (!bare && has(s, 'oil')) p += 2;
     if (has(s, 'thorns')) p += 4;
     if (bare && has(s, 'brawler')) p += 3;
     if (has(s, 'trophy') && m.v >= 11) p += 3;
@@ -174,7 +168,7 @@
     if (has(s, 'berserk') && s.hp <= 5) p += 5;
     if (has(s, 'bonecrown')) p += 2;
     if (has(s, 'idol')) p += Math.floor(s.gold / 15);
-    if (has(s, 'lichledger')) p += fam(s, 'coin');
+    if (has(s, 'lichledger')) p += 1;
     return p;
   }
   function potionHeal(s, c) {
@@ -182,7 +176,7 @@
     if (s.potionUsed && !has(s, 'herbalist')) return 0;
     let h = c.v;
     if (has(s, 'hagheart') && !s.potionUsed) h *= 2;
-    if (has(s, 'bloodstone')) h += fam(s, 'blood');
+    if (has(s, 'bloodstone') && h > 0) h += 2;
     return s.boss && s.boss.key === 'halfPotion' ? Math.floor(h / 2) : h;
   }
   const healBy = (s, n) => { const b = s.hp; s.hp = Math.min(s.maxHp, s.hp + n); return s.hp - b; };
@@ -295,7 +289,7 @@
     return cl ? Math.ceil(base * WILDCARD_MULT) : base;
   }
   // The points a contract of this tier needs on this floor (Oathkeeper lowers it).
-  const target = (s, tier) => TARGETS[s.floor][tier] - (has(s, 'oathkeeper') ? 2 * fam(s, 'oath') : 0);
+  const target = (s, tier) => TARGETS[s.floor][tier] - (has(s, 'oathkeeper') ? 4 : 0);
   function makeContract(s, tier, cl) {
     return { tier, clause: cl || null, target: target(s, tier), pay: payout(s, tier, cl) };
   }
@@ -359,7 +353,7 @@
     if (s.hp <= 0) { s.hp = 0; s.phase = 'lost'; s.lastResult = 'You fell in the dungeon.'; return true; }
     if (s.handled === 3) {
       s.roomsCleared++; s.fledStreak = 0; newRoom(s);
-      if (has(s, 'tipjar') && !s.tutorial) s.gold += fam(s, 'coin');
+      if (has(s, 'tipjar') && !s.tutorial) s.gold += 1;
       if (s.roomsCleared >= (s.tutorial ? TUTORIAL_ROOMS : ROOMS_PER_FLOOR)) endFloor(s);
       else s.room.push(...deal(s, 4 - s.room.length));
     }
@@ -557,8 +551,8 @@
 
   const api = {
     MAX_HP, ROOMS_PER_FLOOR, TUTORIAL_ROOMS, FLOORS, UNLOCK, SURVIVAL_PAY, MAX_RELICS, TIERS, TARGETS, DUES, BOSSES, RELICS, SERVICES, CLAUSES, WILDCARD_MULT,
-    FAMILIES, RARITIES, PICK_SIZE, SKIP_GOLD,
-    newGame, newTutorial, bid, flee, canFlee, handle, buy, cost, choose, skipPick, relicsFull, fam, target, duesFor, interestCap, dropRelic, leaveShop, allowedTiers, payout,
+    RARITIES, PICK_SIZE, SKIP_GOLD,
+    newGame, newTutorial, bid, flee, canFlee, handle, buy, cost, choose, skipPick, relicsFull, target, duesFor, interestCap, dropRelic, leaveShop, allowedTiers, payout,
     canRaise, raise, raisesPerFloor, canRedraw, redraw,
     canUseWeapon, monsterDamage, contractPoints, potionHeal, resolveCard, rankLabel, act,
     duesAhead, weaponReach, nextCard, deckView, devJump, devRoom, devGrant, devEndFloor,
