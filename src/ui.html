@@ -1217,8 +1217,7 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
 svg.rglyph circle { fill: #1c1a17; stroke: var(--fc, #8a8a8a); stroke-width: 5; }
 svg.rglyph circle.ring { fill: none; stroke-width: 2; opacity: .55; }
 svg.rglyph.rare circle:not(.ring) { stroke-width: 7; } svg.rglyph.boss circle:not(.ring) { fill: #2a1414; stroke: #e7c46a; stroke-width: 8; }
-svg.rglyph text { fill: var(--fc, #ddd); font-size: 44px; font-family: 'Segoe UI Symbol', 'Noto Sans Symbols 2', 'Apple Symbols', sans-serif; }
-.fam-blade { --fc: #a9c2d9; } .fam-fist { --fc: #e09a5a; } .fam-blood { --fc: #e0625a; } .fam-coin { --fc: #e9c35a; } .fam-oath { --fc: #b79ce6; } .fam-none { --fc: #8fcfae; }
+svg.rglyph text { fill: var(--fc, #ddd); font-size: 42px; font-family: 'Segoe UI Symbol', 'Noto Sans Symbols 2', 'Apple Symbols', sans-serif; }
 .pickview { position: relative; display: grid; gap: 14px; width: min(860px, 100%); justify-self: center; box-sizing: border-box; padding: 20px 24px 22px;
   border: 1px solid transparent; border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
 .pickview .phead { display: flex; gap: 14px; align-items: center; }
@@ -1230,7 +1229,7 @@ svg.rglyph text { fill: var(--fc, #ddd); font-size: 44px; font-family: 'Segoe UI
   background: rgba(8,10,14,.55); border: 2px solid var(--fc, #5a5a5a); border-radius: 8px; color: var(--bone); cursor: pointer; transition: transform .15s, box-shadow .15s; }
 .pickopt:hover:not(:disabled), .pickopt:focus-visible { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,.5), 0 0 0 1px var(--fc, #888); }
 .pickopt:disabled { opacity: .55; cursor: not-allowed; }
-.pickopt.rare { box-shadow: inset 0 0 18px rgba(120,160,255,.18); } .pickopt.boss { border-color: #e7c46a; box-shadow: inset 0 0 22px rgba(231,196,106,.25); }
+.pickopt.common { --fc: #a89a7c; } .pickopt.rare { --fc: #8fb0ee; box-shadow: inset 0 0 18px rgba(120,160,255,.18); } .pickopt.boss { border-color: #e7c46a; box-shadow: inset 0 0 22px rgba(231,196,106,.25); }
 .pickopt.skip { border-style: dashed; border-color: #6b6253; }
 .pickopt .pico { width: 72px; height: 72px; object-fit: contain; }
 .pickopt b { font: 400 20px var(--display); color: #f1d488; line-height: 1.1; }
@@ -1289,7 +1288,7 @@ svg.rglyph text { fill: var(--fc, #ddd); font-size: 44px; font-family: 'Segoe UI
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.30.0';
+const VERSION = '1.31.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -1319,19 +1318,19 @@ function cardArt(c) {
   return `cards/potion-${potionSize(c.v)}.webp`;
 }
 const iconOf = k => E.RELICS[k] ? `icons/relic-${k === 'keenedge' ? 'keen-edge' : k}.webp` : `icons/service-${k}.webp`;
-// Relics with painted icons. The rest (new in 1.29.0) show their family's mark on a coloured seal until art is made.
+// Relics with painted icons. The rest (new in 1.30.0) show a mark of their own on a coloured seal until art is made.
 const PAINTED = new Set('whetstone keenedge grindstone ironskin buckler hide herbalist fang bloodpact secondwind scout lantern fortune trophy brawler ambush berserk thorns alchemist ledger seal loaded taxman tithe pickpocket loanshark'.split(' '));
+const MARKS = { oil: '☄', quickdraw: '⚡︎', quartermaster: '⚒︎', masterwork: '✠', executioner: '⚔︎', unbreaking: '⛨', knuckles: '❂', pitfighter: '♜', ironfist: '⚙︎',
+  haymaker: '✺', giantsgrip: '⛰︎', bloodstone: '◆', bedroll: '☾', secondheart: '♥', hagheart: '⚘', tipjar: '⚱︎', haggler: '⚖︎', idol: '♛', bribe: '✉︎',
+  lichledger: '☠︎', oathkeeper: '✒︎', downpayment: '⚑', wardrum: '◎', rulebreaker: '✂︎', bonecrown: '♚', smokebomb: '☁︎', wardenkeys: '⚷' };
 function relicIcon(k, cls = 'ico') {
   const r = E.RELICS[k];
   if (!r || PAINTED.has(k)) return img(iconOf(k), cls);
-  return `<svg class="${cls} rglyph fam-${r.fam} ${r.rarity}" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44"/><circle class="ring" cx="50" cy="50" r="36"/><text x="50" y="51" text-anchor="middle" dominant-baseline="central">${E.FAMILIES[r.fam].glyph}</text></svg>`;
+  const hue = Math.round(Object.keys(MARKS).indexOf(k) * 137.5) % 360; // a different colour for every relic
+  return `<svg class="${cls} rglyph ${r.rarity}" style="--fc: hsl(${hue} 55% 68%)" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44"/><circle class="ring" cx="50" cy="50" r="36"/><text x="50" y="51" text-anchor="middle" dominant-baseline="central">${MARKS[k] || '✦'}</text></svg>`;
 }
-// A relic's tip: what it does, then its rarity and family, and for relics that grow with their family how many you hold.
-function relicTip(k) {
-  const r = E.RELICS[k], f = E.FAMILIES[r.fam], n = E.fam(s, r.fam);
-  const grows = /for each \w+ relic/.test(r.text);
-  return `${r.text}<br><i>${E.RARITIES[r.rarity]}${r.fam !== 'none' ? ` · ${f.name} relic` : ''}${grows ? ` · you hold ${n} ${f.name}` : ''}</i>`;
-}
+// A relic's tip: what it does, then its rarity.
+const relicTip = k => `${E.RELICS[k].text}<br><i>${E.RARITIES[E.RELICS[k].rarity]} relic</i>`;
 const tierSeal = t => `ui/seal-tier-${['safe', 'bold', 'reckless'][t]}.webp`;
 const clauseSeal = k => `ui/seal-clause-${({ sworn: 'sworn', abstain: 'abstinent', steel: 'steel-oath', bare: 'bare-oath' })[k]}.webp`;
 const bossArt = { fleeToll: 'boss-warden', halfPotion: 'boss-plague-hag', recklessOnly: 'boss-lich-auditor' };
@@ -1519,7 +1518,7 @@ function currentHint() {
     ['contracts', s.phase === 'bid' && !multi, '<b>New! Contracts.</b> Promise to kill this many monster points on this floor. Make it and you get gold. Miss it and you get a <b>strike</b>. Three strikes ends your run.', '.offers'],
     ['strikes', s.phase === 'bid' && contractsOpen(), 'These are your <b>strikes</b>. Miss a contract and you get one. Three strikes ends your run.', '.stat.guild'],
     ['met', s.phase === 'room' && s.contract && !survival() && s.slain >= s.contract.target, '<b>Contract met!</b> Not bad. Extra points only pay a little more gold, so from here on, <b>protect your health</b>. Take the smallest hits and drink potions.', '.contract'],
-    ['relics', s.phase === 'shop' && !!s.pick && !payoutView, '<b>New! Relics.</b> Your real power down here. Pick one after every floor and it works for the rest of the run. Relics of the same family help each other. You can carry 8.', '.picks'],
+    ['relics', s.phase === 'shop' && !!s.pick && !payoutView, '<b>New! Relics.</b> Your real power down here. Pick one after every floor and it works for the rest of the run. Some work well together; finding out which is your job. You can carry 8.', '.picks'],
     ['dues', shopNow && contractsOpen() && s.floor % 3 === 1, '<b>Guild dues.</b> After the next floor, the guild collects this fee. Keep enough gold, or it\'s a strike.', '.stat.guild'],
     ['tiers', s.phase === 'bid' && multi && !s.boss, '<b>New! Bold and Reckless contracts.</b> A bigger target pays more gold, but a miss is a strike. When in doubt, Safe is fine.', '.offers'],
     ['raise', s.phase === 'room' && E.canRaise(s), '<b>Raise.</b> Your relic lets you raise your contract one step between rooms, for more gold. Only if the floor is going well.', '[data-raise]'],
@@ -1679,7 +1678,7 @@ function relicsHTML(withDrop, slots = withDrop) {
   if (!relicsOpen()) return '';
   if (!s.relics.length && !slots) return '';
   const empty = slots ? Array.from({ length: E.MAX_RELICS - s.relics.length }, () => `<div class="relic empty"${tipAttr('Empty slot', 'You get a free relic after every floor. The shop sells one too.')}>${img('icons/hud-relic-slot.webp', 'ico', 'Empty slot')}</div>`).join('') : '';
-  return `<div class="relics">${s.relics.map(k => `<div class="relic fam-${E.RELICS[k].fam}" tabindex="0" role="group" aria-label="${E.RELICS[k].name}: ${E.RELICS[k].text}"${tipAttr(E.RELICS[k].name, relicTip(k))}>${relicIcon(k)}${withDrop ? `<button class="link" data-drop="${k}">Drop</button>` : ''}</div>`).join('')}${empty}</div>`;
+  return `<div class="relics">${s.relics.map(k => `<div class="relic" tabindex="0" role="group" aria-label="${E.RELICS[k].name}: ${E.RELICS[k].text}"${tipAttr(E.RELICS[k].name, relicTip(k))}>${relicIcon(k)}${withDrop ? `<button class="link" data-drop="${k}">Drop</button>` : ''}</div>`).join('')}${empty}</div>`;
 }
 const roomsOnFloor = () => s.tutorial ? E.TUTORIAL_ROOMS : E.ROOMS_PER_FLOOR;
 function contractHTML() {
@@ -1724,7 +1723,7 @@ const rulesHTML = () => `<details class="rules"><summary>How to play</summary><o
   <li><b>Running away:</b> before touching a room you can flee it, but not two rooms in a row.</li>
   ${contractsOpen() ? `<li><b>Contracts:</b> before each floor, promise how many monster points you'll kill. Make it: gold. Miss it: a strike. Three strikes ends the run.</li>
   <li><b>Gold</b> buys services and a rare relic in the shop. Every 3 floors the guild charges dues; if you can't pay, that's a strike.</li>` : ''}
-  ${relicsOpen() ? `<li><b>Relics:</b> after every floor, pick 1 of 3 for free (a boss gives boss relics; a met Bold, Reckless or Wildcard contract gives rarer ones). Some grow stronger with each relic of their family you hold. You can carry ${E.MAX_RELICS}.</li>` : ''}
+  ${relicsOpen() ? `<li><b>Relics:</b> after every floor, pick 1 of 3 for free (a boss gives boss relics; a met Bold, Reckless or Wildcard contract gives rarer ones). You can carry ${E.MAX_RELICS}.</li>` : ''}
   ${s.oneDeck ? `<li><b>One deck:</b> the dungeon isn't reshuffled between floors. Cards you've dealt stay gone until the next act starts (or the pile runs out). Tap the pile to see what's left.</li>` : ''}
   ${!s.guided || s.floor >= E.UNLOCK.clauses ? `<li><b>Wildcard:</b> one offer per floor pays ${E.WILDCARD_MULT}× as much, but adds one extra rule for that floor.</li>` : ''}
 </ol><button class="link" data-tutorial>Replay the training floor</button></details>`;
@@ -2189,9 +2188,9 @@ function pickHTML() {
   const line = h && h.key === 'relics' ? h.text : p.boss ? 'The boss dropped these. One of a kind, each. Choose well, or don\'t. I\'m not your mother.'
     : rare ? 'A clean contract. The guild hands over the good stuff for that.' : 'Something for the road. Pick one.';
   const opt = k => {
-    const r = E.RELICS[k], f = E.FAMILIES[r.fam], n = E.fam(s, r.fam);
-    return `<button class="pickopt ${r.rarity} fam-${r.fam}" data-choose="${k}" ${full ? 'disabled' : ''}>${relicIcon(k, 'pico')}<b>${r.name}</b>
-      <span class="rtag">${E.RARITIES[r.rarity]}${r.fam !== 'none' ? ` · ${f.name}${n ? ` <span class="have">(you hold ${n})</span>` : ''}` : ''}</span><span class="ptext">${esc(r.text)}</span></button>`;
+    const r = E.RELICS[k];
+    return `<button class="pickopt ${r.rarity}" data-choose="${k}" ${full ? 'disabled' : ''}>${relicIcon(k, 'pico')}<b>${r.name}</b>
+      <span class="rtag">${E.RARITIES[r.rarity]}</span><span class="ptext">${esc(r.text)}</span></button>`;
   };
   return `<section class="pickview"><div class="phead">${clerk(p.boss || rare ? 'impressed' : 'pleased')}<div><span class="label">Floor <span class="num">${s.floor + 1}</span> reward</span><h2>${p.boss ? 'Choose a boss relic' : 'Choose a relic'}</h2><p class="pline2">${line}</p></div></div>
     <div class="picks">${p.options.map(opt).join('')}<button class="pickopt skip" data-skip>${img('icons/hud-gold.webp', 'pico')}<b>Skip</b><span class="ptext">Take <b class="num">${E.SKIP_GOLD}</b> gold instead.</span></button></div>

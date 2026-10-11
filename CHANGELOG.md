@@ -8,6 +8,14 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.31.0 (2026-10-11)
+No more relic families: every relic stands on its own.
+
+- Relics no longer belong to families (Blade, Fist, Blood, Coin, Oath). Tips, the pick screen and the shop show only what a relic does and its rarity. Which relics work well together is for you to find.
+- The relics that grew with their family now give a flat bonus: **Blade Oil** weapon kills +2 points, **Brass Knuckles** bare-handed fights 2 less damage, **Bloodstone** potions heal 2 more, **Tip Jar** 1 gold per cleared room, **Oathkeeper** contracts need 4 fewer points, **Lich's Ledger** every kill +1 point.
+- Relics without painted art yet each get a mark and colour of their own instead of a shared family seal. Pick cards are edged by rarity.
+- Simulator: 16% / 23% / 20% wins for cautious / balanced / greedy.
+
 ## 1.30.0 (2026-10-11)
 Relics are now your main source of power.
 

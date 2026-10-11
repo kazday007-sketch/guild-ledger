@@ -77,7 +77,7 @@ function playRun(seed, bot, opts = {}) {
       const spend = k => { const it = E.RELICS[k] || E.SERVICES[k]; if (s.gold - it.cost >= reserve) E.buy(s, k); };
       if (s.hp < s.maxHp - 6) spend('bandage');
       if (s.pick) {
-        // The free pick: the best-rated option, leaning toward families already held; drop the weakest relic when full.
+        // The free pick: the best-rated option; drop the weakest relic when full.
         const best = s.pick.options.slice().sort((a, b) => worth(s, b) - worth(s, a))[0];
         if (opts.relics || opts.noPicks) E.skipPick(s);
         else {
@@ -92,10 +92,9 @@ function playRun(seed, bot, opts = {}) {
   }
   return s;
 }
-// How much the bot wants a relic: its win-rate lift when held alone (sim.js relics), plus a bit per family-mate.
+// How much the bot wants a relic: its win-rate lift when held alone (sim.js relics).
 const RATING = {seal: 24.6, idol: 23.4, executioner: 21.8, unbreaking: 17.2, bribe: 17.0, quickdraw: 16.6, bonecrown: 16.6, buckler: 15.4, berserk: 15.2, hagheart: 14.0, ambush: 12.8, oil: 10.4, giantsgrip: 9.4, fortune: 8.8, ironskin: 8.6, grindstone: 7.6, masterwork: 7.4, smokebomb: 7.2, trophy: 6.8, oathkeeper: 6.4, ironfist: 4.8, bedroll: 4.6, wardenkeys: 4.4, fang: 4.0, wardrum: 3.8, bloodstone: 3.6, rulebreaker: 3.4, secondwind: 3.4, downpayment: 3.2, whetstone: 2.8, keenedge: 2.8, bloodpact: 2.6, brawler: 2.2, alchemist: 2.0, haymaker: 1.6, ledger: 1.4, quartermaster: 1.0, knuckles: 1.0, hide: 1.0, pitfighter: 0.8, herbalist: 0.5, scout: 0.5, lantern: 0.5, secondheart: 0.5, tipjar: 0.5, taxman: 0.5, loanshark: 0.5, pickpocket: 0.5, tithe: 0.5, haggler: 0.5, lichledger: 0.5, thorns: 0.5, loaded: 0.5};
-const worth = (s, k) => (RATING[k] != null ? RATING[k] : ({ common: 3, rare: 6, boss: 10 })[E.RELICS[k].rarity]) +
-  (E.RELICS[k].fam !== 'none' ? 1.5 * s.relics.filter(j => j !== k && E.RELICS[j].fam === E.RELICS[k].fam).length : 0);
+const worth = (s, k) => RATING[k] != null ? RATING[k] : ({ common: 3, rare: 6, boss: 10 })[E.RELICS[k].rarity];
 function batch(runs, bot, opts, seed0 = 1) {
   const res = { stalled: 0, won: 0, died: 0, struck: 0, floors: 0, diedAt: Array(9).fill(0), struckAt: Array(9).fill(0) };
   for (let i = 0; i < runs; i++) {
