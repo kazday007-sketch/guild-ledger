@@ -8,6 +8,14 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.32.0 (2026-10-11)
+A bigger, clearer shop.
+
+- The **relic has its own shelf** above the services: a wide niche with a blue rim that shows its rarity, its name and what it does, so you can tell it apart from a service at a glance and don't need to hover to read it.
+- **Services** keep their own shelf of three niches, no longer squeezed into tall strips next to the relic.
+- Item pictures, prices and Buy buttons are **much bigger** on every screen, the relic's picture most of all.
+- Still no scrolling on desktop, laptops, and sideways or upright phones.
+
 ## 1.31.0 (2026-10-11)
 No more relic families: every relic stands on its own.
 
