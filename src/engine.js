@@ -160,6 +160,9 @@
       gold: 0, strikes: 0, relics: [], contract: null, offers: [], raises: 0, fortuneUsed: false,
       phase: 'bid', log: [], sealUsed: false, boss: null, shop: null, lastResult: null,
       guided: !!(opts && opts.guided),
+      // One deck: the dungeon isn't reshuffled between floors, only when a new act starts. Dealt cards stay gone
+      // until then, and if the pile runs out first, everything not in play is shuffled back in. Full game rules otherwise.
+      oneDeck: !!(opts && opts.oneDeck) && !(opts && opts.guided), reshuffles: 0,
     };
     startFloor(s);
     return s;
@@ -168,16 +171,37 @@
   const act = s => Math.floor(s.floor / 3);
 
   function newRoom(s) { s.handled = 0; s.potionUsed = false; s.roomKills = 0; }
+  // Take n cards off the top of the pile. In One deck, an empty pile is refilled first with every card that's
+  // been dealt (the dungeon deck minus what's in the room or still in the pile), shuffled.
+  function deal(s, n) {
+    if (s.oneDeck && s.draw.length < n) {
+      const inPlay = new Set([...s.room, ...s.draw].map(c => c.id));
+      const back = s.deck.filter(c => !inPlay.has(c.id)).map(c => ({ ...c }));
+      if (back.length) {
+        s.draw.push(...shuffle(back, s.r));
+        s.reshuffles++; log(s, 'The pile ran out. The dungeon shuffles its dead back in.');
+      }
+    }
+    return s.draw.splice(0, n);
+  }
+  // One deck: a card added to the dungeon mid-run goes into the pile at a random spot, so it can turn up soon.
+  function slipIn(s, c) {
+    if (!s.oneDeck) return;
+    s.draw.splice(Math.floor(s.r() * (s.draw.length + 1)), 0, { ...c });
+  }
   function startFloor(s) {
     if (s.floor === 3 || s.floor === 6) { // a new act adds two elites to the dungeon
       const v = s.floor === 3 ? 15 : 17;
-      s.deck.push(card('monster', v, '★'), card('monster', v, '★'));
+      const elites = [card('monster', v, '★'), card('monster', v, '★')];
+      s.deck.push(...elites); elites.forEach(c => slipIn(s, c));
       log(s, `Act ${act(s) + 1}: two elite ${v}s join the dungeon.`);
     }
     if (s.floor % 3 === 0) s.sealUsed = false;
     if (has(s, 'loanshark')) { s.gold += 4; log(s, 'The loan shark advances you 4 gold.'); }
-    s.draw = shuffle(s.deck.map(c => ({ ...c })), s.r);
-    s.room = s.draw.splice(0, 4);
+    // One deck carries the pile (and the card left in the last room) from floor to floor within an act. A deck lasts
+    // about one act, so each act starts on a fresh shuffle; carrying the dregs over killed ~70% of sim runs on floor 4.
+    if (s.oneDeck && s.floor % 3 !== 0) s.room.push(...deal(s, 4 - s.room.length));
+    else { s.draw = shuffle(s.deck.map(c => ({ ...c })), s.r); s.room = s.draw.splice(0, 4); }
     newRoom(s); s.fledStreak = 0;
     s.roomsCleared = 0; s.slain = 0; s.contract = null; s.raises = 0; s.fortuneUsed = false;
     s.boss = BOSSES[s.floor] || null;
@@ -218,7 +242,7 @@
   function canRedraw(s) { return s.phase === 'room' && s.handled === 0 && has(s, 'fortune') && !s.fortuneUsed; }
   function redraw(s) {
     if (!canRedraw(s)) return false;
-    s.draw.push(...s.room); s.room = s.draw.splice(0, 4); s.fortuneUsed = true;
+    s.draw.push(...s.room); s.room = []; s.room = deal(s, 4); s.fortuneUsed = true;
     log(s, 'The fortune teller redraws the room.');
     return true;
   }
@@ -242,7 +266,7 @@
   }
   function flee(s) {
     if (!canFlee(s)) return false;
-    s.draw.push(...s.room); s.room = s.draw.splice(0, 4); s.fledStreak++; newRoom(s);
+    s.draw.push(...s.room); s.room = []; s.room = deal(s, 4); s.fledStreak++; newRoom(s);
     if (s.boss && s.boss.key === 'fleeToll') { s.hp -= 4; log(s, 'Fled past the Warden: -4 HP.'); }
     else log(s, 'Fled the room. Its cards go to the bottom of the pile.');
     return true;
@@ -262,7 +286,7 @@
     if (s.handled === 3) {
       s.roomsCleared++; s.fledStreak = 0; newRoom(s);
       if (s.roomsCleared >= (s.tutorial ? TUTORIAL_ROOMS : ROOMS_PER_FLOOR)) endFloor(s);
-      else s.room.push(...s.draw.splice(0, 4 - s.room.length));
+      else s.room.push(...deal(s, 4 - s.room.length));
     }
     return true;
   }
@@ -305,7 +329,7 @@
   }
   const SERVICES = {
     bandage: { name: 'Bandage', text: 'Heal 6 HP.', cost: 3 },
-    cull: { name: 'Cull', text: 'Remove your strongest monster from the dungeon.', cost: 5 },
+    cull: { name: 'Cull', text: 'Remove your strongest monster from the dungeon.', oneDeck: 'Remove the strongest monster still in the pile from the dungeon.', cost: 5 },
     smith: { name: 'Smith', text: 'Add a random 6-10 weapon to the dungeon.', cost: 4 },
   };
   function buy(s, what) {
@@ -318,11 +342,15 @@
       if (what === 'hide') { s.maxHp += 6; s.hp = Math.min(s.maxHp, s.hp + 6); }
     } else if (what === 'bandage') s.hp = Math.min(s.maxHp, s.hp + 6);
     else if (what === 'cull') {
-      const ms = s.deck.filter(c => c.kind === 'monster').sort((a, b) => b.v - a.v);
+      // One deck culls the strongest monster still ahead of you in the pile, so it's one you would have met.
+      const ahead = new Set(s.draw.map(c => c.id));
+      const pool = s.deck.filter(c => c.kind === 'monster' && (!s.oneDeck || ahead.has(c.id)));
+      const ms = (pool.length ? pool : s.deck.filter(c => c.kind === 'monster')).sort((a, b) => b.v - a.v);
       s.deck = s.deck.filter(c => c !== ms[0]);
+      s.draw = s.draw.filter(c => c.id !== ms[0].id); s.room = s.room.filter(c => c.id !== ms[0].id);
       log(s, `Culled a ${ms[0].v} monster from the dungeon.`);
     } else if (what === 'smith') {
-      const v = 6 + Math.floor(s.r() * 5); s.deck.push(card('weapon', v, '♦'));
+      const v = 6 + Math.floor(s.r() * 5), w = card('weapon', v, '♦'); s.deck.push(w); slipIn(s, w);
       log(s, `The smith forged a ${v} weapon.`);
     }
     s.gold -= item.cost; s.shop.bought[what] = true;
@@ -348,6 +376,15 @@
     return Math.max(s.weapon.limit + (has(s, 'keenedge') ? 2 : 0), has(s, 'whetstone') ? 8 : 0);
   }
   const nextCard = s => s.draw[0] || null;
+  // The deck view: every card in the dungeon, sorted, each marked whether it's still in the pile. In the shop before a
+  // fresh shuffle (every floor of a normal run, each act in One deck) every card counts as in the pile.
+  function deckView(s) {
+    const fresh = s.phase === 'shop' && (!s.oneDeck || (s.floor + 1) % 3 === 0); // the next floor starts a new shuffle
+    const ahead = new Set(s.draw.map(c => c.id));
+    const cards = s.deck.map(c => ({ kind: c.kind, v: c.v, elite: c.suit === '★', left: fresh || ahead.has(c.id) }))
+      .sort((a, b) => a.v - b.v);
+    return { cards, left: cards.filter(c => c.left).length, total: cards.length };
+  }
 
   // ---------- developer mode (?dev=1): jump anywhere, grant anything. Never used by a normal run. ----------
   // Start floor f (0-based) fresh: the deck is rebuilt with the elites of every act reached so far.
@@ -356,7 +393,7 @@
     s.deck = startingDeck();
     if (f > 3) s.deck.push(card('monster', 15, '★'), card('monster', 15, '★'));
     if (f > 6) s.deck.push(card('monster', 17, '★'), card('monster', 17, '★'));
-    s.floor = f; s.sealUsed = false; s.shop = null; s.lastResult = null;
+    s.floor = f; s.sealUsed = false; s.shop = null; s.lastResult = null; s.draw = []; s.room = [];
     if (s.hp <= 0) s.hp = s.maxHp;
     startFloor(s);
     log(s, `Dev: jumped to floor ${f + 1}.`);
@@ -365,7 +402,7 @@
   function devRoom(s, n) {
     if (s.phase === 'bid') bid(s, 0);
     if (s.phase !== 'room') return false;
-    s.draw.push(...s.room); s.room = s.draw.splice(0, 4);
+    s.draw.push(...s.room); s.room = []; s.room = deal(s, 4);
     newRoom(s); s.fledStreak = 0; s.roomsCleared = Math.max(0, Math.min(ROOMS_PER_FLOOR - 1, n | 0));
     return true;
   }
@@ -400,7 +437,7 @@
     newGame, newTutorial, bid, flee, canFlee, handle, buy, dropRelic, leaveShop, allowedTiers, payout,
     canRaise, raise, canRedraw, redraw,
     canUseWeapon, monsterDamage, contractPoints, potionHeal, resolveCard, rankLabel, act,
-    duesAhead, weaponReach, nextCard, devJump, devRoom, devGrant, devEndFloor,
+    duesAhead, weaponReach, nextCard, deckView, devJump, devRoom, devGrant, devEndFloor,
   };
   if (typeof module !== 'undefined') module.exports = api; else root.Engine = api;
 })(typeof window !== 'undefined' ? window : globalThis);

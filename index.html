@@ -175,7 +175,7 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 .chamber-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .chamber .pile { position: relative; width: 46px; height: 64px; flex: none; margin: 0 4px 0 0; }
 .chamber .pile img { position: absolute; width: 42px; height: 58px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,.6); }
-.chamber .pile img:nth-child(2) { left: 2px; top: 2px; } .chamber .pile img:nth-child(3) { left: 4px; top: 4px; }
+.chamber .pile img:first-child { left: 0; top: 0; } .chamber .pile img:nth-child(2) { left: 2px; top: 2px; } .chamber .pile img:nth-child(3) { left: 4px; top: 4px; }
 .pip.pick { width: 12px; height: 12px; } .pip.pick.on { background: var(--gold); border-color: var(--gold); }
 .slot { border: 2px dashed rgba(233,226,208,.35); border-radius: 12px; display: grid; place-content: center; justify-items: center; gap: 4px; color: rgba(233,226,208,.65); min-height: 140px; }
 .slot b { font-size: 28px; line-height: 1; } .slot small { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
@@ -393,7 +393,7 @@ main .titlecard .logo::after { display: none; } /* the logo has its own letterin
   .stage > * { flex: none; }
   .stage section.chamber { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; padding: 6px; gap: 6px; border-radius: 10px; }
   .stage .chamber-head { flex: none; padding: 6px 8px; gap: 8px; }
-  .chamber .pile { display: none; }
+  main .chamber .pile { width: 30px; height: 40px; margin: 0 6px 0 0; } main .chamber .pile img { width: 27px; height: 37px; border-radius: 3px; } main .chamber .pile > b { font-size: 11px; min-width: 18px; right: -8px; bottom: -5px; }
   .chamber-title { min-width: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; } .chamber-title h2 { font-size: 17px; } .chamber-title > span:not(.pips) { display: none; }
   .chamber-title .pips { height: auto; }
   .side:has(.contract.paper) .coach.goalonly { display: none; } aside.coach p.sub { font-size: 13px; }
@@ -704,6 +704,24 @@ header .pause img { width: 24px; height: 24px; }
 .pausebox h2::after { content: ''; display: block; width: 200px; height: 30px; margin: 2px auto 0; background: url(assets/ui/divider.webp) center / contain no-repeat; }
 .pausebox button { font-size: 17px; padding: 11px 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .pausebox .muted { margin: 0; font-size: 13px; }
+/* the deck view: every card in the dungeon as a small numbered chip, dealt ones dimmed */
+.deckbox { width: min(100%, 560px); gap: 10px; text-align: left; max-height: calc(100dvh - 32px); overflow-y: auto; }
+.deckbox h2 { text-align: center; }
+.deckbox > p.muted { font-size: 14px; text-align: center; }
+.deckrow { display: grid; gap: 4px; }
+.deckrow .label { font-size: 14px; color: var(--bone); } .deckrow .label b { margin-left: 4px; }
+.deckrow .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.deckrow .chip { min-width: 28px; padding: 3px 4px; border-radius: 4px; text-align: center; font-size: 14px; line-height: 1.2; background: #e9e2d0; color: #2a2622; box-shadow: 0 1px 2px rgba(0,0,0,.5); }
+.deckrow.weapon .chip { color: #2e5f93; } .deckrow.potion .chip { color: #a3323a; }
+.deckrow .chip.elite { background: #2a2622; color: var(--gold); outline: 1px solid var(--gold); }
+.deckrow .chip.gone { opacity: .3; text-decoration: line-through; box-shadow: none; }
+.chamber button.pile { padding: 0; border: 0; background: none; cursor: pointer; border-image: none; }
+.chamber .pile > b { position: absolute; right: -6px; bottom: -6px; min-width: 22px; padding: 1px 5px; border-radius: 11px; font-size: 13px; text-align: center; background: var(--gold); color: #2a1d05; box-shadow: 0 1px 3px rgba(0,0,0,.6); }
+.chamber button.pile:hover img, .chamber button.pile:focus-visible img { filter: brightness(1.15); }
+.shopexit .deckbtn { display: inline-flex; align-items: center; gap: 6px; }
+@media (max-width: 380px) { /* the smallest phones: a slimmer pile so the room title keeps its line */
+  main .chamber .pile { width: 22px; height: 30px; margin: 0 8px 0 0; } main .chamber .pile img { width: 20px; height: 28px; }
+  main .chamber .pile img:nth-child(n+2) { display: none; } main .chamber-actions .rto { display: none; } }
 /* The act map: the act's three floors side by side, boss last, like a road you walk left to right. */
 main.solo.map { max-width: 980px; }
 .actmap { --tok: clamp(64px, 12vh, 120px); display: grid; gap: 14px; justify-items: center; text-align: center; }
@@ -1337,6 +1355,9 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
       gold: 0, strikes: 0, relics: [], contract: null, offers: [], raises: 0, fortuneUsed: false,
       phase: 'bid', log: [], sealUsed: false, boss: null, shop: null, lastResult: null,
       guided: !!(opts && opts.guided),
+      // One deck: the dungeon isn't reshuffled between floors, only when a new act starts. Dealt cards stay gone
+      // until then, and if the pile runs out first, everything not in play is shuffled back in. Full game rules otherwise.
+      oneDeck: !!(opts && opts.oneDeck) && !(opts && opts.guided), reshuffles: 0,
     };
     startFloor(s);
     return s;
@@ -1345,16 +1366,37 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
   const act = s => Math.floor(s.floor / 3);
 
   function newRoom(s) { s.handled = 0; s.potionUsed = false; s.roomKills = 0; }
+  // Take n cards off the top of the pile. In One deck, an empty pile is refilled first with every card that's
+  // been dealt (the dungeon deck minus what's in the room or still in the pile), shuffled.
+  function deal(s, n) {
+    if (s.oneDeck && s.draw.length < n) {
+      const inPlay = new Set([...s.room, ...s.draw].map(c => c.id));
+      const back = s.deck.filter(c => !inPlay.has(c.id)).map(c => ({ ...c }));
+      if (back.length) {
+        s.draw.push(...shuffle(back, s.r));
+        s.reshuffles++; log(s, 'The pile ran out. The dungeon shuffles its dead back in.');
+      }
+    }
+    return s.draw.splice(0, n);
+  }
+  // One deck: a card added to the dungeon mid-run goes into the pile at a random spot, so it can turn up soon.
+  function slipIn(s, c) {
+    if (!s.oneDeck) return;
+    s.draw.splice(Math.floor(s.r() * (s.draw.length + 1)), 0, { ...c });
+  }
   function startFloor(s) {
     if (s.floor === 3 || s.floor === 6) { // a new act adds two elites to the dungeon
       const v = s.floor === 3 ? 15 : 17;
-      s.deck.push(card('monster', v, '★'), card('monster', v, '★'));
+      const elites = [card('monster', v, '★'), card('monster', v, '★')];
+      s.deck.push(...elites); elites.forEach(c => slipIn(s, c));
       log(s, `Act ${act(s) + 1}: two elite ${v}s join the dungeon.`);
     }
     if (s.floor % 3 === 0) s.sealUsed = false;
     if (has(s, 'loanshark')) { s.gold += 4; log(s, 'The loan shark advances you 4 gold.'); }
-    s.draw = shuffle(s.deck.map(c => ({ ...c })), s.r);
-    s.room = s.draw.splice(0, 4);
+    // One deck carries the pile (and the card left in the last room) from floor to floor within an act. A deck lasts
+    // about one act, so each act starts on a fresh shuffle; carrying the dregs over killed ~70% of sim runs on floor 4.
+    if (s.oneDeck && s.floor % 3 !== 0) s.room.push(...deal(s, 4 - s.room.length));
+    else { s.draw = shuffle(s.deck.map(c => ({ ...c })), s.r); s.room = s.draw.splice(0, 4); }
     newRoom(s); s.fledStreak = 0;
     s.roomsCleared = 0; s.slain = 0; s.contract = null; s.raises = 0; s.fortuneUsed = false;
     s.boss = BOSSES[s.floor] || null;
@@ -1395,7 +1437,7 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
   function canRedraw(s) { return s.phase === 'room' && s.handled === 0 && has(s, 'fortune') && !s.fortuneUsed; }
   function redraw(s) {
     if (!canRedraw(s)) return false;
-    s.draw.push(...s.room); s.room = s.draw.splice(0, 4); s.fortuneUsed = true;
+    s.draw.push(...s.room); s.room = []; s.room = deal(s, 4); s.fortuneUsed = true;
     log(s, 'The fortune teller redraws the room.');
     return true;
   }
@@ -1419,7 +1461,7 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
   }
   function flee(s) {
     if (!canFlee(s)) return false;
-    s.draw.push(...s.room); s.room = s.draw.splice(0, 4); s.fledStreak++; newRoom(s);
+    s.draw.push(...s.room); s.room = []; s.room = deal(s, 4); s.fledStreak++; newRoom(s);
     if (s.boss && s.boss.key === 'fleeToll') { s.hp -= 4; log(s, 'Fled past the Warden: -4 HP.'); }
     else log(s, 'Fled the room. Its cards go to the bottom of the pile.');
     return true;
@@ -1439,7 +1481,7 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
     if (s.handled === 3) {
       s.roomsCleared++; s.fledStreak = 0; newRoom(s);
       if (s.roomsCleared >= (s.tutorial ? TUTORIAL_ROOMS : ROOMS_PER_FLOOR)) endFloor(s);
-      else s.room.push(...s.draw.splice(0, 4 - s.room.length));
+      else s.room.push(...deal(s, 4 - s.room.length));
     }
     return true;
   }
@@ -1482,7 +1524,7 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
   }
   const SERVICES = {
     bandage: { name: 'Bandage', text: 'Heal 6 HP.', cost: 3 },
-    cull: { name: 'Cull', text: 'Remove your strongest monster from the dungeon.', cost: 5 },
+    cull: { name: 'Cull', text: 'Remove your strongest monster from the dungeon.', oneDeck: 'Remove the strongest monster still in the pile from the dungeon.', cost: 5 },
     smith: { name: 'Smith', text: 'Add a random 6-10 weapon to the dungeon.', cost: 4 },
   };
   function buy(s, what) {
@@ -1495,11 +1537,15 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
       if (what === 'hide') { s.maxHp += 6; s.hp = Math.min(s.maxHp, s.hp + 6); }
     } else if (what === 'bandage') s.hp = Math.min(s.maxHp, s.hp + 6);
     else if (what === 'cull') {
-      const ms = s.deck.filter(c => c.kind === 'monster').sort((a, b) => b.v - a.v);
+      // One deck culls the strongest monster still ahead of you in the pile, so it's one you would have met.
+      const ahead = new Set(s.draw.map(c => c.id));
+      const pool = s.deck.filter(c => c.kind === 'monster' && (!s.oneDeck || ahead.has(c.id)));
+      const ms = (pool.length ? pool : s.deck.filter(c => c.kind === 'monster')).sort((a, b) => b.v - a.v);
       s.deck = s.deck.filter(c => c !== ms[0]);
+      s.draw = s.draw.filter(c => c.id !== ms[0].id); s.room = s.room.filter(c => c.id !== ms[0].id);
       log(s, `Culled a ${ms[0].v} monster from the dungeon.`);
     } else if (what === 'smith') {
-      const v = 6 + Math.floor(s.r() * 5); s.deck.push(card('weapon', v, '♦'));
+      const v = 6 + Math.floor(s.r() * 5), w = card('weapon', v, '♦'); s.deck.push(w); slipIn(s, w);
       log(s, `The smith forged a ${v} weapon.`);
     }
     s.gold -= item.cost; s.shop.bought[what] = true;
@@ -1525,6 +1571,15 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
     return Math.max(s.weapon.limit + (has(s, 'keenedge') ? 2 : 0), has(s, 'whetstone') ? 8 : 0);
   }
   const nextCard = s => s.draw[0] || null;
+  // The deck view: every card in the dungeon, sorted, each marked whether it's still in the pile. In the shop before a
+  // fresh shuffle (every floor of a normal run, each act in One deck) every card counts as in the pile.
+  function deckView(s) {
+    const fresh = s.phase === 'shop' && (!s.oneDeck || (s.floor + 1) % 3 === 0); // the next floor starts a new shuffle
+    const ahead = new Set(s.draw.map(c => c.id));
+    const cards = s.deck.map(c => ({ kind: c.kind, v: c.v, elite: c.suit === '★', left: fresh || ahead.has(c.id) }))
+      .sort((a, b) => a.v - b.v);
+    return { cards, left: cards.filter(c => c.left).length, total: cards.length };
+  }
 
   // ---------- developer mode (?dev=1): jump anywhere, grant anything. Never used by a normal run. ----------
   // Start floor f (0-based) fresh: the deck is rebuilt with the elites of every act reached so far.
@@ -1533,7 +1588,7 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
     s.deck = startingDeck();
     if (f > 3) s.deck.push(card('monster', 15, '★'), card('monster', 15, '★'));
     if (f > 6) s.deck.push(card('monster', 17, '★'), card('monster', 17, '★'));
-    s.floor = f; s.sealUsed = false; s.shop = null; s.lastResult = null;
+    s.floor = f; s.sealUsed = false; s.shop = null; s.lastResult = null; s.draw = []; s.room = [];
     if (s.hp <= 0) s.hp = s.maxHp;
     startFloor(s);
     log(s, `Dev: jumped to floor ${f + 1}.`);
@@ -1542,7 +1597,7 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
   function devRoom(s, n) {
     if (s.phase === 'bid') bid(s, 0);
     if (s.phase !== 'room') return false;
-    s.draw.push(...s.room); s.room = s.draw.splice(0, 4);
+    s.draw.push(...s.room); s.room = []; s.room = deal(s, 4);
     newRoom(s); s.fledStreak = 0; s.roomsCleared = Math.max(0, Math.min(ROOMS_PER_FLOOR - 1, n | 0));
     return true;
   }
@@ -1577,7 +1632,7 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
     newGame, newTutorial, bid, flee, canFlee, handle, buy, dropRelic, leaveShop, allowedTiers, payout,
     canRaise, raise, canRedraw, redraw,
     canUseWeapon, monsterDamage, contractPoints, potionHeal, resolveCard, rankLabel, act,
-    duesAhead, weaponReach, nextCard, devJump, devRoom, devGrant, devEndFloor,
+    duesAhead, weaponReach, nextCard, deckView, devJump, devRoom, devGrant, devEndFloor,
   };
   if (typeof module !== 'undefined') module.exports = api; else root.Engine = api;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -1587,7 +1642,7 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.27.1';
+const VERSION = '1.28.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
@@ -1726,9 +1781,11 @@ function newRec() {
     floorReached: 1, totalSlain: 0, gold: 0, strikes: 0, relics: [], floors: [], shops: [], actions: 0, note: '',
   };
 }
-// 'guided' starts with only health, weapons and potions and unlocks the rest floor by floor; 'full' has everything from floor 1.
-const gameMode = () => store.get('mode', 'guided') === 'full' ? 'full' : 'guided';
-function startRun() { tut = null; lastHit = null; s = E.newGame(undefined, { guided: gameMode() === 'guided' }); rec = newRec(); rec.mode = gameMode(); store.set('tutorial', true); noteSurvivalFloor(); mapView = 'auto'; }
+// 'guided' starts with only health, weapons and potions and unlocks the rest floor by floor; 'full' has everything from floor 1;
+// 'onedeck' is the full game played down one deck: the pile isn't reshuffled between floors, only when an act starts.
+const MODES = { guided: 'Guided start', full: 'Full game', onedeck: 'One deck' };
+const gameMode = () => { const m = store.get('mode', 'guided'); return MODES[m] ? m : 'guided'; };
+function startRun() { tut = null; lastHit = null; s = E.newGame(undefined, { guided: gameMode() === 'guided', oneDeck: gameMode() === 'onedeck' }); rec = newRec(); rec.mode = gameMode(); store.set('tutorial', true); noteSurvivalFloor(); mapView = 'auto'; }
 function noteSurvivalFloor() { // a floor with no contract starts without a bid, so record it here
   if (!rec || s.phase !== 'room' || !s.contract || !s.contract.survival) return;
   const f = rec.floors[rec.floors.length - 1];
@@ -1809,6 +1866,7 @@ function currentHint() {
     ['bossroom', s.phase === 'room' && survival() && s.boss, `<b>Boss floor!</b> ${s.boss ? esc(s.boss.name) : ''} has a special rule. ${s.boss ? esc(s.boss.rule) : ''}`, '.boss'],
     ['boss', s.phase === 'bid' && s.boss, '<b>Boss floor.</b> The boss adds one special rule for this floor. Read it before you sign. I never do, but I\'m a goat.', '.boss'],
     ['clause', s.phase === 'bid' && s.offers.some(o => o.clause), `<b>New! The Wildcard.</b> One offer now pays ${E.WILDCARD_MULT}× as much, more than the next contract up. The catch is that it adds one extra rule for this floor.`, '.offer.clause'],
+    ['onedeck', s.oneDeck && s.phase === 'room' && s.floor === 0, '<b>One deck.</b> The dungeon won\'t reshuffle between floors here. What you deal stays gone until the next act. Tap the <b>pile</b> to count what\'s left. I count it in my head.', '.chamber .pile'],
     ['limit', s.phase === 'room' && s.weapon && s.weapon.limit != null, 'Your weapon has dulled. It only hits monsters up to the number shown under Weapon. Bigger ones need fists, or a new weapon.', '.stat.weapon'],
   ];
   const h = list.find(([k, cond]) => cond && !seenHints[k]);
@@ -1843,7 +1901,8 @@ function roomHTML(active, actions = '') {
     return c ? cardHTML(c, active) : '<div class="slot"><small>Picked</small></div>';
   }).join('');
   return `<section class="chamber ${active ? '' : 'preview'}" aria-label="Room ${s.roomsCleared + 1}">
-    <div class="chamber-head"><div class="pile" aria-hidden="true">${img('cards/back.webp')}${img('cards/back.webp')}${img('cards/back.webp')}</div>
+    <div class="chamber-head">${tut ? `<div class="pile" aria-hidden="true">${img('cards/back.webp')}${img('cards/back.webp')}${img('cards/back.webp')}</div>`
+      : `<button class="pile" data-deck aria-label="The pile: ${s.draw.length} cards left. Open the deck."${tipAttr('The pile', `<b>${s.draw.length}</b> cards left. Tap to see what's in it.`)}>${img('cards/back.webp')}${img('cards/back.webp')}${img('cards/back.webp')}<b class="num">${s.draw.length}</b></button>`}
       <div class="chamber-title"${tipAttr(`Room ${s.roomsCleared + 1} of ${roomsOnFloor()}`, say)}><h2>${img(crestOf(place()), 'crest')}Room ${s.roomsCleared + 1} <span class="muted">of ${roomsOnFloor()}</span></h2></div>
       ${actions ? `<div class="chamber-actions">${actions}</div>` : ''}</div>
     <div class="room">${slots}</div></section>`;
@@ -2005,6 +2064,7 @@ const rulesHTML = () => `<details class="rules"><summary>How to play</summary><o
   <li><b>Running away:</b> before touching a room you can flee it, but not two rooms in a row.</li>
   ${contractsOpen() ? `<li><b>Contracts:</b> before each floor, promise how many monster points you'll kill. Make it: gold. Miss it: a strike. Three strikes ends the run.</li>
   <li><b>Gold</b> buys relics between floors. Every 3 floors the guild charges dues; if you can't pay, that's a strike.</li>` : ''}
+  ${s.oneDeck ? `<li><b>One deck:</b> the dungeon isn't reshuffled between floors. Cards you've dealt stay gone until the next act starts (or the pile runs out). Tap the pile to see what's left.</li>` : ''}
   ${!s.guided || s.floor >= E.UNLOCK.clauses ? `<li><b>Wildcard:</b> one offer per floor pays ${E.WILDCARD_MULT}× as much, but adds one extra rule for that floor.</li>` : ''}
 </ol><button class="link" data-tutorial>Replay the training floor</button></details>`;
 function syncNote() {
@@ -2132,7 +2192,7 @@ function runReport(r = rec) {
   const floors = r.floors.map(f => f.survival ? `F${f.floor} Survival ${f.died ? 'died' : f.hpEnd != null ? 'survived' : ''}`.trim() : `F${f.floor} ${E.TIERS[f.tier]}${f.clause ? '+' + E.CLAUSES[f.clause].name : ''} ${f.slain ?? '?'}/${f.target}${f.met ? ' met' : f.met === false ? ' missed' : ''}${f.raises ? ' raised' : ''}${f.flees ? ` fled${f.flees}` : ''}`).join('; ');
   const bought = r.shops.flatMap(sh => sh.bought.filter(k => E.RELICS[k]).map(k => E.RELICS[k].name)).join(', ') || 'none';
   const skipped = [...new Set(r.shops.flatMap(sh => sh.offered.filter(k => !sh.bought.includes(k)).map(k => E.RELICS[k].name)))].join(', ') || 'none';
-  return `Scapegrace v${VERSION} run report${r.mode === 'full' ? ' (full game)' : ''}: ${out} on floor ${r.floorReached}, ${r.totalSlain} points, ${r.gold} gold.\nFloors: ${floors}\nRelics bought: ${bought}\nRelics passed on: ${skipped}`;
+  return `Scapegrace v${VERSION} run report${r.mode === 'full' ? ' (full game)' : r.mode === 'onedeck' ? ' (one deck)' : ''}: ${out} on floor ${r.floorReached}, ${r.totalSlain} points, ${r.gold} gold.\nFloors: ${floors}\nRelics bought: ${bought}\nRelics passed on: ${skipped}`;
 }
 function tutDoneHTML() {
   // laid out like the end of a run: the goat and the result on one side, the three things to remember and the button on the other
@@ -2172,7 +2232,7 @@ function boardFromCSV(text) {
   const col = k => head.findIndex(h => h.trim().toLowerCase() === k);
   const at = { mode: col('mode'), name: col('name'), points: col('points'), floor: col('floor'), outcome: col('outcome'), gold: col('gold'), version: col('version') };
   if (Object.values(at).some(i => i < 0)) throw new Error('unexpected columns');
-  const out = { guided: [], full: [] }, best = {};
+  const out = { guided: [], full: [], onedeck: [] }, best = {};
   for (const r of rows) {
     const e = { mode: r[at.mode], name: (r[at.name] || '').trim().slice(0, 40), points: +r[at.points], floor: +r[at.floor], outcome: r[at.outcome], gold: +r[at.gold] || 0 };
     if (!boardVersionOK(r[at.version])) continue;
@@ -2201,7 +2261,7 @@ async function loadBoard() {
 }
 function boardBody() {
   const m = boardMode || gameMode();
-  const tabs = `<div class="mode boardtabs" role="group" aria-label="Leaderboard mode">${[['guided', 'Guided start'], ['full', 'Full game']].map(([k, label]) =>
+  const tabs = `<div class="mode boardtabs" role="group" aria-label="Leaderboard mode">${Object.entries(MODES).map(([k, label]) =>
     `<button data-board="${k}" aria-pressed="${m === k}">${label}</button>`).join('')}</div>`;
   if (!board) return tabs + `<p class="muted" style="margin:6px 0 0">${boardState === 'error' ? 'Couldn\'t load the leaderboard. Try again later.' : 'Loading…'}</p>`;
   const me = store.get('name', '').toLowerCase(), list = board[m];
@@ -2278,13 +2338,32 @@ function mapHTML() {
     <div class="mapfoot">${dues ? `<p class="dues"${tipAttr('Guild dues', 'Collected after the boss floor. If you can\'t pay, it\'s a strike.')}>Dues <b class="num price">${E.DUES[a]}</b> gold · you have <b class="num price">${s.gold}</b></p>` : ''}
     ${go}</div></section>`;
 }
+// ---------- the deck view: what's left in the pile ----------
+let deckOpen = false;
+const DECK_KINDS = [['monster', 'Monsters'], ['weapon', 'Weapons'], ['potion', 'Potions']];
+function deckHTML() {
+  const v = E.deckView(s), shop = s.phase === 'shop';
+  const act = E.act(s) + (shop && (s.floor + 1) % 3 === 0 ? 1 : 0);
+  const note = !s.oneDeck ? (shop ? 'The whole deck is shuffled for the next floor.' : 'Dimmed cards were dealt this floor. Everything is shuffled back for the next floor.')
+    : shop && (s.floor + 1) % 3 === 0 ? `Act ${act + 1} starts on a fresh shuffle of the whole deck.`
+    : `Dimmed cards are gone ${act < 2 ? `until act ${act + 2} starts, or ` : 'until '}the pile runs out.`;
+  const rows = DECK_KINDS.map(([k, label]) => {
+    const cs = v.cards.filter(c => c.kind === k), n = cs.filter(c => c.left).length;
+    return `<div class="deckrow ${k}"><span class="label">${label} <b class="num">${n}</b><span class="muted">/${cs.length}</span></span>
+      <div class="chips">${cs.map(c => `<span class="chip num ${c.left ? '' : 'gone'} ${c.elite ? 'elite' : ''}">${c.v}</span>`).join('')}</div></div>`;
+  }).join('');
+  return `<div class="overlay" role="dialog" aria-modal="true" aria-label="The dungeon deck"><section class="pausebox deckbox"><h2>${shop ? 'The deck' : 'The pile'}</h2>
+    <p class="muted"><b class="num">${v.left}</b> of ${v.total} cards ${shop && v.left === v.total ? 'in the deck' : 'left'}. ${note}</p>${rows}
+    <button class="primary" data-deckclose>Close</button></section></div>`;
+}
 const pauseHTML = () => `<div class="overlay" role="dialog" aria-modal="true" aria-label="Paused"><section class="pausebox"><h2>Paused</h2>
   <button class="primary" data-resume>Resume</button>
   <button data-map>${img('ui/icon-map.webp', 'bi')}Map</button>
   <button data-title>Main menu</button>
-  <p class="muted">${gameMode() === 'full' ? 'Full game' : 'Guided start'}${tut ? ' · training' : ''}</p></section></div>`;
+  <p class="muted">${MODES[gameMode()]}${tut ? ' · training' : ''}</p></section></div>`;
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape' || !canPause() || busy) return;
+  if (deckOpen) { deckOpen = false; render(); return; }
   if (mapView === 'pause') mapView = null;
   else if (mapView) return;
   else paused = !paused;
@@ -2298,7 +2377,7 @@ function renderTitle() {
   shownScene = 'title';
   const sc = document.getElementById('scene');
   sc.style.backgroundImage = `url(${ART}backgrounds/title.webp)`; sc.className = 'title-art';
-  const modes = `<div class="mode big" role="group" aria-label="Game mode">${[['guided', 'Guided start', 'Learn as you go: new rules unlock floor by floor.'], ['full', 'Full game', 'Every rule from floor 1.']].map(([k, label, sub]) =>
+  const modes = `<div class="mode big" role="group" aria-label="Game mode">${[['guided', 'Guided start', 'Learn as you go: new rules unlock floor by floor.'], ['full', 'Full game', 'Every rule from floor 1.'], ['onedeck', 'One deck', 'The full game, but the dungeon deck isn\'t reshuffled each floor. Cards you\'ve dealt stay gone until the next act.']].map(([k, label, sub]) =>
     `<button data-mode="${k}" aria-pressed="${gameMode() === k}"${tipAttr(label, sub)}><b>${label}</b></button>`).join('')}</div>`;
   app.className = 'title'; delete app.dataset.place; setAmbient(null);
   app.innerHTML = `<section class="titlecard">
@@ -2319,6 +2398,7 @@ function render() {
   if (shownScene === 'title') document.getElementById('scene').className = '';
   if (!canPause()) { paused = false; mapView = null; }
   if (s.phase !== 'shop') payoutView = false;
+  if (!['room', 'shop'].includes(s.phase) || tut || mapView || paused || payoutView) deckOpen = false;
   setScene();
   const where = place(); setAmbient(where);
   if (where) app.dataset.place = where; else delete app.dataset.place;
@@ -2346,7 +2426,7 @@ function render() {
     const up = E.canRaise(s) && !tut && { tier: s.contract.tier + 1, target: E.TARGETS[s.floor][s.contract.tier + 1], pay: E.payout(s, s.contract.tier + 1, s.contract.clause) };
     const fleeOk = E.canFlee(s) && (!tut || !!(TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.flee));
     body = cols(`${coachHTML()}${statusHTML()}${bossHTML()}${survival() ? '' : contractHTML()}${duesWarning()}`, `
-      ${roomHTML(true, `${up ? `<button data-raise${tipAttr('Raise your contract', `Kill <b>${up.target}</b> points instead, for <b>${up.pay}</b> gold. Between rooms, ${s.relics.includes('loaded') ? 'twice' : 'once'} per floor.`)}>${img('icons/hud-raise.webp', 'bi')}${s.contract.clause ? 'Raise' : `Raise to ${E.TIERS[up.tier]}`}</button>` : ''}
+      ${roomHTML(true, `${up ? `<button data-raise${tipAttr('Raise your contract', `Kill <b>${up.target}</b> points instead, for <b>${up.pay}</b> gold. Between rooms, ${s.relics.includes('loaded') ? 'twice' : 'once'} per floor.`)}>${img('icons/hud-raise.webp', 'bi')}${s.contract.clause ? 'Raise' : `Raise<span class="rto"> to ${E.TIERS[up.tier]}</span>`}</button>` : ''}
         ${E.canRedraw(s) && !tut ? `<button data-redraw${tipAttr('Fortune Teller', 'Redraw this room. Once per floor, before you pick a card.')}>Redraw room</button>` : ''}<button data-flee ${fleeOk ? '' : 'disabled'} class="${tut && fleeOk ? 'lit' : ''}">${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room</button>`)}<div class="belt">${relicsHTML(false)}${peekHTML()}</div>`, `${tut ? '' : rulesHTML()}${boardHTML()}${statsHTML()}`);
   } else if (s.phase === 'shop' && payoutView && s.payout) {
     body = payoutHTML();
@@ -2360,14 +2440,15 @@ function render() {
       <div class="buyrow"><span class="tag ${short && !sold ? 'short' : ''}">${img('icons/hud-gold.webp')}<span class="num">${item.cost}</span></span>
       <button data-buy="${k}" ${sold || short || (E.RELICS[k] && full) ? 'disabled' : ''}>${sold ? 'Sold' : 'Buy'}</button></div></div>`;
     };
+    const svc = Object.fromEntries(Object.entries(E.SERVICES).map(([k, v]) => [k, s.oneDeck && v.oneDeck ? { ...v, text: v.oneDeck } : v]));
     body = cols(`${coachHTML()}${statusHTML()}${settleHTML()}`, `
       <section class="shop"><div class="shopsign"><h2>Guild Shop</h2><span class="purse">${img('ui/shop-purse.webp')}<b class="num">${s.gold}</b> gold</span></div>
         ${relicsOpen() ? `<div class="shelf"><div class="label">Relics${full ? ' · slots full' : ''}</div>
         <div class="shopgrid relicgrid">${s.shop.relics.map(k => ware(k, E.RELICS[k])).join('') || '<p class="muted">Sold out.</p>'}</div></div>` : ''}
         <div class="shelf"><div class="label">Services</div>
-        <div class="shopgrid services">${Object.entries(E.SERVICES).map(([k, v]) => ware(k, v)).join('')}</div></div>
+        <div class="shopgrid services">${Object.entries(svc).map(([k, v]) => ware(k, v)).join('')}</div></div>
         ${duesWarning()}${relicsOpen() ? `<div class="label yours">Your relics (${s.relics.length}/${E.MAX_RELICS})</div>` : ''}
-        <div class="shopexit">${relicsOpen() ? relicsHTML(true) : ''}<button class="primary" data-leave>Leave shop</button></div>
+        <div class="shopexit">${relicsOpen() ? relicsHTML(true) : ''}<button class="deckbtn" data-deck${tipAttr('The deck', 'See every card in the dungeon. Cull and Smith change it.')}>${img('icons/hud-draw-pile.webp', 'bi')}Deck</button><button class="primary" data-leave>Leave shop</button></div>
       </section>`, `${rulesHTML()}${boardHTML()}${statsHTML()}`);
   } else if (s.phase === 'tutdone') {
     body = tutDoneHTML();
@@ -2377,10 +2458,10 @@ function render() {
   const framed = body.startsWith('<div class="cols">');
   app.className = (framed ? 'play' : 'solo') + (moreOpen && framed ? ' more-open' : '') + (mapView ? ' map' : '');
   const endForm = (s.phase === 'won' || s.phase === 'lost') && webReports() && rec; // its own note already says the report is sent
-  app.innerHTML = head + body + (framed ? '' : (endForm ? '' : syncNote()) + `<p class="muted version">v${VERSION}</p>`) + (paused && !mapView ? pauseHTML() : '');
-  if (paused && !mapView) { // only the menu takes clicks and focus while paused
+  app.innerHTML = head + body + (framed ? '' : (endForm ? '' : syncNote()) + `<p class="muted version">v${VERSION}</p>`) + (paused && !mapView ? pauseHTML() : '') + (deckOpen ? deckHTML() : '');
+  if ((paused && !mapView) || deckOpen) { // only the menu takes clicks and focus while paused or reading the deck
     app.querySelectorAll(':scope > :not(.overlay)').forEach(el => { el.inert = true; });
-    app.querySelector('.overlay [data-resume]').focus();
+    app.querySelector('.overlay [data-resume], .overlay [data-deckclose]').focus();
   }
   dealIn();
   if (app.querySelector('.payout')) playPayout();
@@ -2600,6 +2681,8 @@ app.addEventListener('click', async e => {
   const d = b.dataset, prev = s.phase, hintBefore = shownHint;
   if ('more' in d) { moreOpen = !moreOpen; render(); return; }
   if ('pause' in d) { paused = true; moreOpen = false; render(); return; }
+  if ('deck' in d) { deckOpen = true; moreOpen = false; render(); return; }
+  if ('deckclose' in d) { deckOpen = false; render(); return; }
   if ('resume' in d) { paused = false; render(); return; }
   if ('map' in d) { mapView = 'pause'; render(); return; }
   if ('payok' in d) { payoutView = false; payoutPlayed = null; render(); return; } // on to the shop
@@ -2807,17 +2890,17 @@ render();
     }).filter(Boolean).slice(0, 4);
   }
   const live = () => !titleOn && s && !tut && ['bid', 'room', 'shop'].includes(s.phase);
-  function ensureRun(guided) {
-    if (live() && guided == null) return;
-    titleOn = false; tut = null; lastHit = null;
-    s = E.newGame(undefined, { guided: guided == null ? gameMode() === 'guided' : guided });
-    rec = newRec(); rec.mode = s.guided ? 'guided' : 'full'; rec.dev = true;
+  function ensureRun(mode) { // 'guided' | 'full' | 'onedeck', or none for the title screen's mode
+    if (live() && mode == null) return;
+    titleOn = false; tut = null; lastHit = null; mode = mode || gameMode();
+    s = E.newGame(undefined, { guided: mode === 'guided', oneDeck: mode === 'onedeck' });
+    rec = newRec(); rec.mode = s.guided ? 'guided' : s.oneDeck ? 'onedeck' : 'full'; rec.dev = true;
   }
   function done() { mapView = null; paused = false; moreOpen = false; if (typeof noteSurvivalFloor === 'function') noteSurvivalFloor(); render(); paint(); }
   const num = (id, d) => { const v = parseInt(panel.querySelector('#' + id).value, 10); return Number.isFinite(v) ? v : d; };
 
   const actions = {
-    run: b => { ensureRun(b.dataset.run === 'guided'); done(); },
+    run: b => { ensureRun(b.dataset.run); done(); },
     floor: b => { ensureRun(); E.devJump(s, +b.dataset.floor); done(); },
     room: b => { ensureRun(); if (s.phase === 'shop') E.leaveShop(s); E.devRoom(s, +b.dataset.room); done(); },
     meet: () => { ensureRun(); if (s.phase === 'bid') E.bid(s, 0); if (s.contract) s.slain = Math.max(s.slain, s.contract.target); done(); },
@@ -2854,7 +2937,7 @@ render();
       done();
     },
     close: () => toggle(false),
-    hints: () => { ['survive', 'gold', 'contracts', 'strikes', 'met', 'relics', 'dues', 'tiers', 'raise', 'bossroom', 'boss', 'clause', 'limit'].forEach(k => seenHints[k] = true); done(); },
+    hints: () => { ['survive', 'gold', 'contracts', 'strikes', 'met', 'relics', 'dues', 'tiers', 'raise', 'bossroom', 'boss', 'clause', 'onedeck', 'limit'].forEach(k => seenHints[k] = true); done(); },
   };
   panel.addEventListener('click', e => {
     const b = e.target.closest('button[data-dv]'); if (!b || busy) return;
@@ -2872,8 +2955,8 @@ render();
     const relics = Object.entries(E.RELICS).map(([k, r]) => `<button data-dv="relic" data-relic="${k}" class="${on && s.relics.includes(k) ? 'on' : ''}" title="${esc(r.text)}">${img(iconOf(k))}<span>${r.name}</span></button>`).join('');
     panel.innerHTML = `<div class="head"><b>DEVELOPER</b><span class="row" style="margin:0"><button data-dv="hints" title="Mark every one-time tip as seen">Hide tips</button><button data-dv="close">Close</button></span></div>
       <p class="note">Test build: runs here are never reported, saved or put on the leaderboard.</p>
-      <div class="state">${esc(here)}${on ? ` · ${s.guided ? 'guided' : 'full'}<br>HP ${s.hp}/${s.maxHp} · gold ${s.gold} · strikes ${s.strikes}${s.weapon ? ` · weapon ${s.weapon.v}${s.weapon.limit != null ? ' (max ' + s.weapon.limit + ')' : ''}` : ''}${c ? `<br>Contract: ${c.survival ? 'survive' : `${s.slain}/${c.target} points, pays ${c.pay}`}` : ''}<br>${d ? `Dues ${d.due}g after floor ${d.floor}` : 'No dues ahead'}` : ''}</div>
-      <h3>New run</h3><div class="row"><button data-dv="run" data-run="guided">Guided</button><button data-dv="run" data-run="full">Full game</button></div>
+      <div class="state">${esc(here)}${on ? ` · ${s.guided ? 'guided' : s.oneDeck ? 'one deck' : 'full'} · pile ${s.draw.length}<br>HP ${s.hp}/${s.maxHp} · gold ${s.gold} · strikes ${s.strikes}${s.weapon ? ` · weapon ${s.weapon.v}${s.weapon.limit != null ? ' (max ' + s.weapon.limit + ')' : ''}` : ''}${c ? `<br>Contract: ${c.survival ? 'survive' : `${s.slain}/${c.target} points, pays ${c.pay}`}` : ''}<br>${d ? `Dues ${d.due}g after floor ${d.floor}` : 'No dues ahead'}` : ''}</div>
+      <h3>New run</h3><div class="row"><button data-dv="run" data-run="guided">Guided</button><button data-dv="run" data-run="full">Full game</button><button data-dv="run" data-run="onedeck">One deck</button></div>
       <h3>Go to floor</h3><div class="row">${floorBtns}</div><p class="note">★ boss floor. Dues are collected when floors 3, 6 and 9 end.</p>
       <h3>Go to room</h3><div class="row">${roomBtns}</div>
       <h3>Settle</h3><div class="row"><button data-dv="meet">Meet contract</button><button data-dv="end" title="Pays the contract, interest and any dues, then opens the shop">End floor now</button></div>
