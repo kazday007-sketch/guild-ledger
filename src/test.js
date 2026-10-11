@@ -111,7 +111,7 @@ function clearFloor(s) {
 
 // ---------- 1.29.0 relics ----------
 { const m = M(5), s = game({ relics: ['oil', 'grindstone', 'whetstone'], weapon: [9, null], room: [m, M(2), M(2), M(2)] });
-  eq(fight(s, m, 'weapon').pts, 8, 'Blade Oil: weapon kill +1 per Blade relic (3)'); }
+  eq(fight(s, m, 'weapon').pts, 7, 'Blade Oil: weapon kill +2'); }
 { const w = W(4), s = game({ relics: ['quickdraw'], room: [w, M(2), M(2), M(2)] }); E.handle(s, w.id); eq(s.slain, 2, 'Quickdraw: equipping counts 2'); }
 { const s = game({ relics: ['quartermaster'], floor: 2 }); s.weapon = null; s.slain = 999; clearFloor(s); E.skipPick(s); E.leaveShop(s);
   eq(s.weapon && s.weapon.v, 5, 'Quartermaster: a fresh 5 weapon at the start of the floor'); }
@@ -121,7 +121,7 @@ function clearFloor(s) {
 { const m = M(11), s = game({ relics: ['executioner'], weapon: [11, null], room: [m, M(2), M(2), M(2)] }); eq(fight(s, m, 'weapon').pts, 22, 'Executioner: weapon kill of 11 counts 22'); }
 { const m = M(13), s = game({ relics: ['unbreaking'], weapon: [9, null], room: [m, M(2), M(2), M(2)] }); fight(s, m, 'weapon'); eq(s.weapon.limit, null, 'Unbreaking Edge: never dulls'); }
 { const m = M(9), s = game({ relics: ['knuckles', 'brawler', 'fang'], room: [m, M(2), M(2), M(2)] });
-  eq(fight(s, m, 'bare').lost, 9 - 3 - 2, 'Brass Knuckles: 3 Fist relics take 3 off a bare fight (and the fang heals 2)'); }
+  eq(fight(s, m, 'bare').lost, 9 - 2 - 2, 'Brass Knuckles: 2 off a bare fight (and the fang heals 2)'); }
 { const m = M(6), s = game({ relics: ['ironfist'], room: [m, M(7), M(2), M(2)] }); eq(fight(s, m, 'bare').lost, 0, 'Iron Fist: a 6 deals nothing bare-handed');
   eq(fight(s, s.room[0], 'bare').lost, 7, 'Iron Fist: a 7 hits as normal'); }
 { const a = M(4), b = M(4), s = game({ relics: ['haymaker'], room: [a, b, M(2), M(2)] });
@@ -129,7 +129,7 @@ function clearFloor(s) {
 { const a = M(3), b = M(3), s = game({ relics: ['pitfighter'], hp: 10, room: [a, b, M(2), M(2)] });
   fight(s, a, 'bare'); eq(s.maxHp, 22, 'Pit Fighter: +2 max health'); fight(s, b, 'bare'); eq(s.maxHp, 22, 'Pit Fighter: once per floor'); }
 { const m = M(9), s = game({ relics: ['giantsgrip'], room: [m, M(2), M(2), M(2)] }); eq(fight(s, m, 'bare').lost, 4, "Giant's Grip: a 9 bare deals 4"); }
-{ const p = P(5), s = game({ relics: ['bloodstone', 'hide'], hp: 5, room: [p, M(2), M(2), M(2)] }); E.handle(s, p.id); eq(s.hp, 5 + 5 + 2, 'Bloodstone: +1 heal per Blood relic'); }
+{ const p = P(5), s = game({ relics: ['bloodstone', 'hide'], hp: 5, room: [p, M(2), M(2), M(2)] }); E.handle(s, p.id); eq(s.hp, 5 + 5 + 2, 'Bloodstone: potions heal 2 more'); }
 { const s = game({ relics: ['bedroll'], floor: 2, hp: 10 }); s.slain = 999; clearFloor(s); E.skipPick(s); E.leaveShop(s); eq(s.hp, 13, 'Bedroll: heal 3 at the start of a floor'); }
 { const m = M(14), s = game({ relics: ['secondheart'], hp: 6, room: [m, M(2), M(2), M(2)] }); E.handle(s, m.id, 'bare');
   eq(s.hp, 5, 'Second Heart: live on at 5'); ok(s.phase === 'room' && !s.relics.includes('secondheart'), 'Second Heart: it crumbles'); }
@@ -137,7 +137,7 @@ function clearFloor(s) {
   const a = P(3), b = P(3); s.room = [a, b, M(2), M(2)]; s.relics.push('herbalist'); E.handle(s, a.id); eq(s.hp, 24, "Hag's Heart: first potion heals double");
   E.handle(s, b.id); eq(s.hp, 27, "Hag's Heart: the second potion heals normally"); }
 { const s = game({ relics: ['tipjar', 'taxman'], gold: 0 }); s.room = [P(2), P(2), P(2), P(2)]; for (let i = 0; i < 3; i++) E.handle(s, s.room[0].id);
-  eq(s.gold, 2, 'Tip Jar: a cleared room gives 1 gold per Coin relic'); }
+  eq(s.gold, 1, 'Tip Jar: a cleared room gives 1 gold'); }
 { const s = game({ floor: 3, gold: 20 }); s.phase = 'shop'; s.pick = null; s.shop = { relics: [], bought: {} }; const full = E.cost(s, 'bandage');
   E.devGrant(s, 'haggler'); eq(E.cost(s, 'bandage'), full - 2, 'Haggler: 2 off'); }
 { const m = M(4), s = game({ relics: ['idol'], gold: 32, room: [m, M(2), M(2), M(2)] }); eq(fight(s, m, 'bare').pts, 6, 'Golden Idol: 25 gold adds 2'); }
@@ -146,7 +146,7 @@ function clearFloor(s) {
 { const s = game({ relics: ['lichledger'], floor: 2, gold: 100 }); s.slain = 999; clearFloor(s);
   ok(/Interest \+\d{2,}/.test(s.lastResult), "Lich's Ledger: interest has no cap"); ok(/Paid 5 gold in guild dues/.test(s.lastResult), "Lich's Ledger: dues halved"); }
 { const s = E.newGame(1); E.devJump(s, 3); E.devGrant(s, 'oathkeeper'); E.devGrant(s, 'loaded'); E.bid(s, 0);
-  eq(s.contract.target, E.TARGETS[3][0] - 4, 'Oathkeeper: 2 Oath relics take 4 off the target'); }
+  eq(s.contract.target, E.TARGETS[3][0] - 4, 'Oathkeeper: 4 off the target'); }
 { const s = game({ relics: ['downpayment'], floor: 2 }); s.slain = 999; clearFloor(s); E.skipPick(s); E.leaveShop(s); eq(s.slain, 4, 'Down Payment: floors start at 4 points'); }
 { const s = game({ relics: ['wardrum'], floor: 4 }); s.room = [P(2), P(2), P(2), P(2)]; for (let i = 0; i < 3; i++) E.handle(s, s.room[0].id);
   const b = s.slain; E.raise(s); eq(s.slain, b + 6, 'War Drum: raising counts 6'); }
