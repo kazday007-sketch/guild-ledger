@@ -8,6 +8,15 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.36.0 (2026-10-14)
+Meet the goat: a short story intro, and a tighter tutorial.
+
+- **Story intro** before the tutorial: three full-screen paintings with one line each. The guild threw a goat into the dungeon to take the blame; it didn't die and now works for the guild; you're the newest recruit, so follow the goat. Tap Next, or Skip.
+- **One idea per tutorial step:** "Keep your health above 0. Tap Equip on the sword," then "Monsters hit as hard as their number. Tap Weapon on the Owlbear."
+- **The goat says what just happened:** after your first sword fight ("Your sword blocked 7, so you only lost 2") and your first bare-handed fight ("Fists block nothing, so you took the full hit").
+- **Skip tutorial** button during the guided moves.
+- **Run reports say how the tutorial went:** whether the intro was watched or skipped, how many guided moves were made, whether the tutorial was skipped, whether the recap was reached, and whether the goat had to save you.
+
 ## 1.35.0 (2026-10-14)
 The tutorial plays on every Guided start run and fills its gaps.
 
