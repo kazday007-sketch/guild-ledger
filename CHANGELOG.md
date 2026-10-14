@@ -8,6 +8,9 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.37.0 (2026-10-14)
+- The goat now tells the story intro himself, in his own dry voice, with his crest and name over each line.
+
 ## 1.36.0 (2026-10-14)
 Meet the goat: a short story intro, and a tighter tutorial.
 
