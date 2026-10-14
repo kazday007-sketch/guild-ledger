@@ -131,6 +131,7 @@
   }
   const rankLabel = v => ({ 11: 'J', 12: 'Q', 13: 'K', 14: 'A' })[v] || String(v);
   const has = (s, k) => s.relics.includes(k);
+  const safeFloor = s => !!s.tutorial && s.floor === 0; // the tutorial run's first floor: health can't drop below 1
   const clause = s => s.contract && !has(s, 'rulebreaker') ? s.contract.clause : null; // the rule in force this floor
 
   // Shared by the game and the simulator bot. `s` needs hp, maxHp, weapon, potionUsed, roomKills, roomBare,
@@ -186,6 +187,7 @@
       const dmg = monsterDamage(s, c, useWeapon);
       s.hp -= dmg; out.dmg = dmg;
       if (s.hp <= 0 && has(s, 'secondheart')) { s.hp = 5; s.relics = s.relics.filter(k => k !== 'secondheart'); out.saved = true; }
+      if (s.hp <= 0 && safeFloor(s)) { s.hp = 1; s.spared = true; out.spared = true; } // the tutorial's floor can't kill you
       if (useWeapon && !has(s, 'unbreaking') && !(has(s, 'masterwork') && c.v < 10)) s.weapon.limit = s.weapon.limit == null ? c.v : Math.min(s.weapon.limit, c.v);
       if (s.hp > 0) {
         out.points = contractPoints(s, c, !useWeapon); s.slain += out.points;
@@ -347,6 +349,7 @@
     s.room.splice(i, 1); s.handled++;
     const name = `${{ monster: 'Monster', weapon: 'Weapon', potion: 'Potion' }[c.kind]} ${c.v}`;
     if (out.saved) log(s, 'Your Second Heart beats once more: back up at 5 health. It crumbles.');
+    if (out.spared) log(s, 'That should have killed you. The goat dragged you clear at 1 health.');
     if (c.kind === 'monster') log(s, `${name}: took ${out.dmg} damage` + (s.hp > 0 ? `${s.contract.survival ? '' : `, +${out.points} points`}${out.heal ? `, healed ${out.heal}` : ''}${out.gold ? `, +${out.gold} gold` : ''}.` : '.'));
     else if (c.kind === 'weapon') log(s, `Equipped a ${s.weapon.v} weapon.`);
     else log(s, (out.heal ? `${name}: healed ${out.heal}` : `${name}: no healing`) + (out.points ? `, +${out.points} points.` : '.'));
@@ -554,7 +557,7 @@
   const api = {
     MAX_HP, ROOMS_PER_FLOOR, FLOORS, UNLOCK, SURVIVAL_PAY, MAX_RELICS, TIERS, TARGETS, DUES, BOSSES, RELICS, SERVICES, CLAUSES, WILDCARD_MULT,
     RARITIES, PICK_SIZE, SKIP_GOLD,
-    newGame, bid, flee, canFlee, handle, buy, cost, choose, skipPick, relicsFull, target, duesFor, interestCap, dropRelic, leaveShop, allowedTiers, payout,
+    newGame, safeFloor, bid, flee, canFlee, handle, buy, cost, choose, skipPick, relicsFull, target, duesFor, interestCap, dropRelic, leaveShop, allowedTiers, payout,
     canRaise, raise, raisesPerFloor, canRedraw, redraw,
     canUseWeapon, monsterDamage, contractPoints, potionHeal, resolveCard, rankLabel, act,
     duesAhead, weaponReach, nextCard, deckView, devJump, devRoom, devGrant, devEndFloor,

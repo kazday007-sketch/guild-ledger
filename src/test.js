@@ -256,6 +256,12 @@ const inPile = s => s.draw.length + s.room.length;
   eq(s.hp, 18, 'tutorial: the guided moves cost 2 health');
   clearFloor(s); eq(s.phase, 'shop', 'tutorial: floor 1 ends as usual, after 4 rooms'); }
 { const s = E.newGame(3, { tutorial: true }); ok(!s.tutorial, 'tutorial only stacks a guided run'); }
+{ // the tutorial's floor can't kill you; later floors can
+  const s = E.newGame(3, { guided: true, tutorial: true }); s.hp = 3;
+  E.handle(s, s.room.find(c => c.v === 13).id, 'bare');
+  ok(s.hp === 1 && s.spared && s.phase === 'room', 'tutorial: a fatal hit on floor 1 leaves you at 1 health');
+  clearFloor(s); E.leaveShop(s); s.hp = 3; s.room = [M(13), M(2), M(2), M(2)];
+  E.handle(s, s.room[0].id, 'bare'); eq(s.phase, 'lost', 'tutorial: floor 2 can kill you'); }
 
 console.log(`${passes} passed, ${fails} failed`);
 process.exit(fails ? 1 : 0);
