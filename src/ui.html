@@ -1348,7 +1348,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.32.0';
+const VERSION = '1.33.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -1466,19 +1466,14 @@ let seenHints = store.get('hints', {});
 // Steps with `allow` wait for that one move. Steps without it are a tour of the screen with a Next button.
 // `focus` highlights the part of the screen the step talks about.
 const TUTORIAL = [
-  { focus: '.stat.hp', text: 'I\'m the goat. I live down here, and I\'ll show you around. This is your <b>health</b>. If it reaches 0, you lose. Your only goal is to <b>stay alive</b>.' },
-  { focus: '.stat.weapon', text: 'This is your <b>weapon</b>. A weapon blocks damage from monsters. You don\'t have one yet.' },
-  { focus: '.chamber', text: 'This is a <b>room</b>. Each room is dealt 4 cards from the pile. You pick 3 of them, and the last one stays for the next room.' },
-  { focus: '.chamber-title h2', text: 'This counts the <b>rooms</b> you get through. Get through 2 rooms to finish training.' },
-  { allow: { v: 7, mode: null }, text: 'Let\'s play. Pick up the <b>Short Sword</b>.' },
-  { allow: { v: 9, mode: 'weapon' }, focus: '.stat.weapon', text: 'Every card has a number. A monster\'s number is how much <b>health it takes</b>. The <b>Owlbear</b> is a 9, so it hits for 9. Your sword is a 7, so it blocks 7. You only lose <b>2</b>. Fight it with your sword.' },
-  { allow: { v: 5, mode: 'weapon' }, focus: '.stat.weapon', text: 'Each fight wears your sword down. Now it can only fight monsters up to <b>9</b>, the size of the last one it beat. The <b>Ghost</b> is a 5, so your sword still works. Fight it.' },
-  { allow: { flee: true }, focus: '[data-flee]', text: 'New room! These monsters are all <b>too big</b> for your sword. Fighting them would cost most of your health. Tap <b>Flee room</b> to run away.' },
-  { focus: '.chamber-title h2', text: 'You got away! The monsters went to the bottom of the pile. Fleeing <b>doesn\'t count</b> as a room, so this is still room 2.' },
-  { focus: '.chamber', text: 'You can flee at the start of <b>any room</b>. The only rule is you <b>can\'t flee 2 rooms in a row</b>, so you have to face this one.' },
-  { allow: { v: 3, mode: 'weapon' }, focus: '.stat.weapon', text: 'The <b>Cave Bat</b> is a 3. That\'s under 5, so your sword can fight it. Hit it with your sword.' },
-  { allow: { v: 10, mode: 'bare' }, focus: '.stat.hp', text: 'The <b>Bone Golem</b> is a 10. That\'s too big for your sword now, so you fight with your fists and lose the full <b>10</b> health.' },
-  { allow: { v: 6, mode: null }, focus: '.stat.hp', text: 'Ouch. I\'d have dodged that. The <b>Tonic</b> is a 6, so it gives back 6 health. Drink it.' },
+  { focus: '.stat.hp', text: 'I\'m the goat. This is your <b>health</b>. Don\'t let it reach 0. Each room has 4 cards. Use <b>3</b> of them to get through it.' },
+  { allow: { v: 7, mode: null }, text: 'Tap <b>Equip</b> on the sword.' },
+  { allow: { v: 9, mode: 'weapon' }, text: 'Monsters hurt you. Your sword takes most of the hit. Tap <b>Weapon</b> on the Owlbear.' },
+  { allow: { v: 5, mode: 'weapon' }, text: 'One more card. Tap <b>Weapon</b> on the Ghost.' },
+  { allow: { flee: true }, focus: '[data-flee]', text: 'These monsters are too big. Tap <b>Flee room</b> to skip this room. You can\'t flee 2 rooms in a row.' },
+  { allow: { v: 3, mode: 'weapon' }, text: 'Tap <b>Weapon</b> on the Cave Bat.' },
+  { allow: { v: 10, mode: 'bare' }, text: 'Your sword can only hit monsters smaller than its last kill. Tap <b>Fists</b> on the Bone Golem.' },
+  { allow: { v: 6, mode: null }, focus: '.stat.hp', text: 'Tap <b>Drink</b> on the potion to heal.' },
 ];
 let tut = null; // { step, snaps } while the tutorial runs
 // Back and Next on the training floor: the game as it stood when each step was first shown, so Back can return to it
@@ -1919,9 +1914,9 @@ function tutDoneHTML() {
   return `<section class="end trained"><div class="endsum">${clerk('pleased')}<h2>Training complete</h2>
     <p class="trainline">${esc(s.lastResult)} You're ready.</p></div>
     <div class="endform"><ul class="recap">
-      <li>Pick 3 of the 4 cards in each room.</li>
-      <li>Use weapons on big monsters first, then smaller ones.</li>
-      <li>Low on health? Drink a potion, or flee a room before you pick a card. You can't flee 2 rooms in a row.</li>
+      <li>Use 3 of the 4 cards in each room.</li>
+      <li>Hit big monsters with your weapon first.</li>
+      <li>Low on health? Drink a potion, or flee a room.</li>
     </ul>
     <button class="primary" data-new>Start your first run</button></div></section>`;
 }
