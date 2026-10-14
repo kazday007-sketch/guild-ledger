@@ -260,6 +260,8 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 .coach .ok { font-size: 17px; padding: 10px 22px; }
 @media (max-width: 560px) { .coach > .clerk { width: 60px; height: 75px; } .coach p { font-size: 19px; } }
 .coach > :not(.clerk) { grid-column: 2; }
+.coach.nar { grid-template-columns: 1fr; } .coach.nar > * { grid-column: 1; }
+.coach p.retort { font-size: 18px; font-style: italic; color: var(--ash); } .coach p.retort .label { font-style: normal; margin-right: 4px; display: inline !important; } /* compact layouts hide labels, but a line needs its speaker */
 .settle { position: relative; display: flex; gap: 14px; align-items: center; background: var(--panel-bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
 .settle .clerk { width: 72px; height: 90px; }
 .settle .say { display: grid; gap: 4px; min-width: 0; }
@@ -1362,7 +1364,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.38.0';
+const VERSION = '1.39.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -1593,14 +1595,14 @@ function currentHint() {
   const multi = s.offers && s.offers.length > 1;
   const shopNow = s.phase === 'shop' && !s.pick; // the relic pick comes before the shop
   const list = [
-    ['spared', s.phase === 'room' && s.spared, 'That should have killed you. I dragged you out at <b>1 health</b>. Only on this floor, mind. Next time, flee or use your weapon.', '.stat.hp'],
-    ['tutdone', s.phase === 'room' && s.tutorial && s.floor === 0 && s.roomsCleared === 2 && s.handled === 0, '<b>You\'ve got the basics.</b> Use 3 cards a room, hit big monsters with your weapon, drink potions when hurt, and flee rooms you can\'t win. 2 more rooms on your own.', null],
+    ['spared', s.phase === 'room' && s.spared, 'That should have killed you. You\'re at <b>1 health</b> because the goat begged us to go easy on floor 1. Next time, flee or use your weapon.', '.stat.hp', 'I did not beg.'],
+    ['tutdone', s.phase === 'room' && s.tutorial && s.floor === 0 && s.roomsCleared === 2 && s.handled === 0, '<b>You\'ve got the basics.</b> Use 3 cards a room, hit big monsters with your weapon, drink potions when hurt, and flee rooms you can\'t win. 2 more rooms on your own.', null, 'Took you long enough.'],
     ['lastpick', s.phase === 'room' && s.tutorial && s.floor === 0 && s.roomsCleared === 0 && s.handled === 2, 'Your sword blocked 7, so you only lost <b>2</b>. Your turn: one more card ends the room.', '.stat.hp'],
     ['fists', s.phase === 'room' && s.tutorial && s.floor === 0 && s.floorBare && !s.spared, 'Fists block nothing, so you took the <b>full hit</b>. Save them for small monsters.', '.stat.hp'],
-    ['flee', s.phase === 'room' && s.handled === 0 && E.canFlee(s) && s.room.filter(c => c.kind === 'monster' && c.v >= 10 && !E.canUseWeapon(s, c)).length >= 2, 'These are too big for your weapon. Tap <b>Flee room</b> to run. You can\'t flee 2 rooms in a row.', '[data-flee]'],
+    ['flee', s.phase === 'room' && s.handled === 0 && E.canFlee(s) && s.room.filter(c => c.kind === 'monster' && c.v >= 10 && !E.canUseWeapon(s, c)).length >= 2, 'These are too big for your weapon. Tap <b>Flee room</b> to run. You can\'t flee 2 rooms in a row. The goat calls it a tactical retreat. He retreats a lot.', '[data-flee]'],
     ['limit', s.phase === 'room' && s.weapon && s.weapon.limit != null, 'Your weapon is dull now. It only hits monsters up to the number under <b>Weapon</b>. Bigger ones need <b>Fists</b>.', '.stat.weapon'],
     ['potion', s.phase === 'room' && !s.potionUsed && s.hp < s.maxHp && s.room.some(c => c.kind === 'potion'), 'That\'s a <b>potion</b>. Tap <b>Drink</b> to heal. Only 1 potion works per room.', '.stat.hp'],
-    ['survive', s.phase === 'room' && survival() && s.floor === 0, '<b>Stay alive</b> for 4 rooms. Use 3 of the 4 cards in each room. I do it in my sleep.', null],
+    ['survive', s.phase === 'room' && survival() && s.floor === 0, '<b>Stay alive</b> for 4 rooms. Use 3 of the 4 cards in each room.', null, 'I do this in my sleep.'],
     ['gold', shopNow && s.floor === 0, '<b>New! Gold.</b> The guild paid you 6 gold for surviving. Don\'t let it go to your head. Spend it here: a <b>Bandage</b> heals 6 health. Then tap <b>Leave shop</b>.', '.stat.gold, .shop .services'],
     ['contracts', s.phase === 'bid' && !multi, '<b>New! Contracts.</b> Promise to kill this many monster points on this floor. Make it and you get gold. Miss it and you get a <b>strike</b>. Three strikes ends your run.', '.offers'],
     ['strikes', s.phase === 'bid' && contractsOpen(), 'These are your <b>strikes</b>. Miss a contract and you get one. Three strikes ends your run.', '.stat.guild'],
@@ -1610,12 +1612,12 @@ function currentHint() {
     ['tiers', s.phase === 'bid' && multi && !s.boss, '<b>New! Bold and Reckless contracts.</b> A bigger target pays more gold, but a miss is a strike. When in doubt, Safe is fine.', '.offers'],
     ['raise', s.phase === 'room' && E.canRaise(s), '<b>Raise.</b> Your relic lets you raise your contract one step between rooms, for more gold. Only if the floor is going well.', '[data-raise]'],
     ['bossroom', s.phase === 'room' && survival() && s.boss, `<b>Boss floor!</b> ${s.boss ? esc(s.boss.name) : ''} has a special rule. ${s.boss ? esc(s.boss.rule) : ''}`, '.boss'],
-    ['boss', s.phase === 'bid' && s.boss, '<b>Boss floor.</b> The boss adds one special rule for this floor. Read it before you sign. I never do, but I\'m a goat.', '.boss'],
+    ['boss', s.phase === 'bid' && s.boss, '<b>Boss floor.</b> The boss adds one special rule for this floor. Read it before you sign. The goat never does.', '.boss', 'I don\'t need to.'],
     ['clause', s.phase === 'bid' && s.offers.some(o => o.clause), `<b>New! The Wildcard.</b> One offer now pays ${E.WILDCARD_MULT}× as much, more than the next contract up. The catch is that it adds one extra rule for this floor.`, '.offer.clause'],
-    ['onedeck', s.oneDeck && s.phase === 'room' && s.floor === 0, '<b>One deck.</b> The dungeon won\'t reshuffle between floors here. What you deal stays gone until the next act. Tap the <b>pile</b> to count what\'s left. I count it in my head.', '.chamber .pile'],
+    ['onedeck', s.oneDeck && s.phase === 'room' && s.floor === 0, '<b>One deck.</b> The dungeon won\'t reshuffle between floors here. What you deal stays gone until the next act. Tap the <b>pile</b> to count what\'s left.', '.chamber .pile', 'I count it in my head. Show-offs use the pile.'],
   ];
   const h = list.find(([k, cond]) => cond && !seenHints[k]);
-  return h ? { key: h[0], text: h[2], focus: h[3] } : null;
+  return h ? { key: h[0], text: h[2], focus: h[3], goat: h[4] } : null;
 }
 // Shown in the shop and on the floor right before the guild collects. In the shop it stays up even when you can pay,
 // so nobody spends their dues by accident; it turns red when you're short.
@@ -1789,7 +1791,10 @@ function coachHTML() {
   const h = currentHint(), g = goal();
   shownHint = h ? h.key : null;
   const low = s.phase === 'room' && s.hp <= Math.max(5, s.maxHp / 4); // the clerk worries when you're nearly dead
-  if (h) return `<aside class="coach hint">${clerk(low ? 'worried' : 'neutral')}<span class="label">Azazel says</span><p>${h.text}</p>${g ? `<p class="sub"><b>Goal:</b> ${g.text}</p>` : ''}</aside>`;
+  // Tips are the dungeon's voice: no name, no face. Now and then Azazel answers back, and only then does he appear.
+  if (h) return h.goat
+    ? `<aside class="coach hint">${clerk(low ? 'worried' : 'neutral')}<p>${h.text}</p><p class="retort"><span class="label">Azazel</span> “${h.goat}”</p>${g ? `<p class="sub"><b>Goal:</b> ${g.text}</p>` : ''}</aside>`
+    : `<aside class="coach hint nar"><p>${h.text}</p>${g ? `<p class="sub"><b>Goal:</b> ${g.text}</p>` : ''}</aside>`;
   return g ? `<aside class="coach goalonly ${g.done ? 'done' : ''}">${clerk(g.done ? 'impressed' : low ? 'worried' : 'neutral')}<span class="label">${g.done ? 'Contract met' : 'Goal'}</span><p>${g.text}</p></aside>` : '';
 }
 // A tip stays up until your next move, then it's done. No "Got it" tap.
@@ -1854,7 +1859,7 @@ const DEATH_LINES = {
 const DEATH_ANY = [
   'The {m} did not read the contract.',
   'Filed under "lunch" by the {m}.',
-  'Azazel has already eaten your bunk.',
+  'The goat has already eaten your bunk.',
   'Last words: "I can take a {v}." You could not take a {v}.',
   'The {m} sends its regards, and your boots.',
   'Cause of death: {m}. Cause of the {m}: unclear.',
@@ -1863,7 +1868,7 @@ const DEATH_FISTS = ['Punched the {m}. The {m} punched back harder.', 'Brought f
 const DEATH_WEAPON = ['Your weapon did its best. Its best was not enough.', 'You hit the {m} with everything you had. The {m} had more.'];
 const REVOKED = {
   dues: ['Couldn\'t cover the guild dues. The guild accepts gold or resignation, and picked for you.', 'Dues unpaid. Your license is now a very official coaster.'],
-  contract: ['Three missed contracts. The guild tore up your license, and Azazel ate the pieces.', 'Third strike. Your license has been filed under "Former".'],
+  contract: ['Three missed contracts. The guild tore up your license, and the goat ate the pieces.', 'Third strike. Your license has been filed under "Former".'],
   any: ['Struck out. The guild thanks you for your service and asks for the helmet back.', 'License revoked. The monsters send their thanks.'],
 };
 const theName = n => n === 'Rats' ? 'rats' : 'the ' + n;
@@ -1875,7 +1880,7 @@ function epitaph() {
     return { kind: 'revoked', title: 'License revoked', line: pickLine([...REVOKED[dues ? 'dues' : 'contract'], ...REVOKED.any], seed) };
   }
   const h = lastHit;
-  if (!h) return { kind: 'dead', title: 'You fell', line: pickLine(['Azazel has already eaten your bunk.'], seed) };
+  if (!h) return { kind: 'dead', title: 'You fell', line: pickLine(['The goat has already eaten your bunk.'], seed) };
   const pool = [...(DEATH_LINES[h.name] || []), ...(DEATH_LINES[h.name] || []), ...DEATH_ANY, ...(h.mode === 'bare' ? DEATH_FISTS : DEATH_WEAPON)];
   if (s.boss) pool.push(`${s.boss.name} watched the whole thing and took notes.`);
   if (s.floor === 0) pool.push('Floor 1. The guild had barely learned your name. It has now stopped trying.');
@@ -1891,7 +1896,7 @@ function endHTML() {
   const medal = won ? 'gold' : s.floor >= 6 ? 'silver' : s.floor >= 3 ? 'bronze' : 'copper'; // how far you got: act 1, 2, 3 or the end
   const tally = `<p class="muted tally">${img(`ui/medal-${medal}.webp`, 'medal', `${medal[0].toUpperCase() + medal.slice(1)} medal`)}Floor <span class="num">${s.floor + 1}</span> · <span class="num">${runPoints()}</span> points · <span class="num">${s.gold}</span> gold</p>`;
   let top;
-  if (won) top = `${stamp('paid', key)}<div class="endsum">${img('ui/end-victory.webp', 'endart', 'The ledger, closed')}<h2>You made it out. Azazel is mildly impressed.</h2><p style="margin:0">${esc(s.lastResult || '')}</p>${tally}</div>`;
+  if (won) top = `${stamp('paid', key)}<div class="endsum">${img('ui/end-victory.webp', 'endart', 'The ledger, closed')}<h2>You made it out. The goat is mildly impressed. Don't gloat.</h2><p style="margin:0">${esc(s.lastResult || '')}</p>${tally}</div>`;
   else {
     const ep = epitaph();
     const pic = ep.kind === 'dead'
