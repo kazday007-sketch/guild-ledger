@@ -349,7 +349,7 @@
     s.room.splice(i, 1); s.handled++;
     const name = `${{ monster: 'Monster', weapon: 'Weapon', potion: 'Potion' }[c.kind]} ${c.v}`;
     if (out.saved) log(s, 'Your Second Heart beats once more: back up at 5 health. It crumbles.');
-    if (out.spared) log(s, 'That should have killed you. The goat dragged you clear at 1 health.');
+    if (out.spared) log(s, 'That should have killed you. You live, at 1 health. The goat insisted.');
     if (c.kind === 'monster') log(s, `${name}: took ${out.dmg} damage` + (s.hp > 0 ? `${s.contract.survival ? '' : `, +${out.points} points`}${out.heal ? `, healed ${out.heal}` : ''}${out.gold ? `, +${out.gold} gold` : ''}.` : '.'));
     else if (c.kind === 'weapon') log(s, `Equipped a ${s.weapon.v} weapon.`);
     else log(s, (out.heal ? `${name}: healed ${out.heal}` : `${name}: no healing`) + (out.points ? `, +${out.points} points.` : '.'));
