@@ -8,6 +8,12 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.33.0 (2026-10-14)
+A much simpler training floor.
+
+- Training is **8 short steps** instead of 13. Each one tells you what to tap (Equip, Weapon, Flee room, Fists, Drink) in a sentence or two, with no tour of the screen and no extra explanation steps.
+- The "Training complete" reminders are shorter.
+
 ## 1.32.0 (2026-10-11)
 A bigger, clearer shop.
 
