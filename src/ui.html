@@ -316,6 +316,22 @@ ol.lbrows .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 ol.lbrows li.me .who { color: var(--gold); font-weight: 700; }
 ol.lbrows .muted { font-size: 13px; text-align: right; }
 .end + details.lb { width: 100%; max-width: 560px; box-sizing: border-box; margin: 12px auto 0; align-self: center; }
+/* ---------- the story intro: three paintings with one line each, before the tutorial ---------- */
+.intro { position: fixed; inset: 0; z-index: 30; overflow: hidden; background: #0a0c10; }
+.introart { position: absolute; inset: 0; background: center / cover no-repeat; animation: introin .9s ease-out both, kenburns 14s ease-out both; }
+.intro::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(10,12,16,.35), rgba(10,12,16,0) 30%, rgba(10,12,16,.25) 55%, rgba(10,12,16,.92)); }
+.introtext { position: absolute; z-index: 1; left: 50%; bottom: max(28px, 5vh); transform: translateX(-50%); width: min(720px, calc(100% - 32px)); display: grid; gap: 18px; justify-items: center; text-align: center; animation: introtext .8s .25s ease-out both; }
+.introtext p { margin: 0; font-size: clamp(21px, 2.3vw, 32px); line-height: 1.3; color: var(--bone); text-shadow: 0 2px 10px rgba(0,0,0,.9); text-wrap: balance; }
+.introfoot { display: flex; align-items: center; gap: 22px; }
+.introfoot .primary { min-width: 150px; font-size: 19px; padding: 10px 22px; }
+.intro .dots { display: flex; gap: 8px; } .intro .dots i { width: 9px; height: 9px; border-radius: 50%; background: color-mix(in srgb, var(--bone) 35%, transparent); } .intro .dots i.on { background: var(--gold); }
+.introskip { position: absolute; z-index: 1; top: 14px; right: 18px; font-size: 16px; text-shadow: 0 1px 4px #000; }
+@keyframes introin { from { opacity: 0; } }
+@keyframes kenburns { from { transform: scale(1.0); } to { transform: scale(1.07); } }
+@keyframes introtext { from { opacity: 0; transform: translate(-50%, 10px); } }
+@media (prefers-reduced-motion: reduce) { .introart, .introtext { animation: none; } }
+@media (max-height: 480px) { .introtext { gap: 10px; bottom: 14px; } .introtext p { font-size: 19px; } .introfoot .primary { padding: 7px 18px; font-size: 17px; } }
+
 /* ---------- title screen (shown once per visit) ---------- */
 /* One column, everything centred under the logo and the same width as it. Wide screens keep the column in the dark
    left part of the painting, centred within that part; upright phones centre it on the screen. */
@@ -1345,7 +1361,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.35.0';
+const VERSION = '1.36.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -1463,11 +1479,29 @@ let seenHints = store.get('hints', {});
 // what happens, through hints that reset each tutorial run. Floor 1 can't kill you, and clearing the tutorial's
 // rooms gets a short recap.
 const TUTORIAL = [
-  { allow: { v: 7, mode: null }, focus: '.stat.hp', text: 'I\'m the goat. This is your <b>health</b>. If it hits 0, you lose. Each room has 4 cards, and you use 3. Tap <b>Equip</b> on the sword.' },
-  { allow: { v: 9, mode: 'weapon' }, focus: '.stat.weapon', text: 'Monsters hurt you by their number. Your sword blocks most of it. Tap <b>Weapon</b> on the Owlbear.' },
+  { allow: { v: 7, mode: null }, focus: '.stat.hp', text: 'Keep your <b>health</b> above 0. First, tap <b>Equip</b> on the sword.' },
+  { allow: { v: 9, mode: 'weapon' }, focus: '.stat.weapon', text: 'Monsters hit as hard as their number. Your sword blocks most of it. Tap <b>Weapon</b> on the Owlbear.' },
 ];
-const TUTORIAL_HINTS = ['survive', 'spared', 'lastpick', 'flee', 'limit', 'potion', 'tutdone'];
+const TUTORIAL_HINTS = ['survive', 'spared', 'lastpick', 'fists', 'flee', 'limit', 'potion', 'tutdone'];
+const TUTORIAL_ONLY = ['spared', 'lastpick', 'fists', 'tutdone']; // skipping the tutorial skips these; the rest are for everyone
 let tut = null; // { step } during the tutorial's guided moves
+// The story, before the tutorial: three paintings, one line each. Tap through or skip.
+const INTRO = [
+  { art: 'victory', pos: '80% 60%', text: 'Years ago, the guild threw a goat into the dungeon to take the blame.' },
+  { art: 'guild-hall', pos: '88% 50%', text: 'It didn\'t die. It made itself at home, and now it works for the guild.' },
+  { art: 'title', pos: '62% 50%', text: 'You\'re the newest recruit. Clear the dungeon, get paid, stay alive.', go: 'Follow the goat' },
+];
+let introStep = null; // which painting is showing, or null
+function introHTML() {
+  const p = INTRO[introStep], last = introStep === INTRO.length - 1;
+  return `<section class="intro" aria-label="The story">
+    <div class="introart" style="background-image:url(${ART}backgrounds/${p.art}.webp);background-position:${p.pos}" aria-hidden="true"></div>
+    <button class="link introskip" data-introskip>Skip</button>
+    <div class="introtext"><p>${p.text}</p>
+      <div class="introfoot"><span class="dots" aria-hidden="true">${INTRO.map((_, i) => `<i class="${i === introStep ? 'on' : ''}"></i>`).join('')}</span>
+      <button class="primary" data-intronext autofocus>${last ? p.go : 'Next'}</button></div></div></section>`;
+}
+function endIntro(skipped) { if (rec && rec.tut) rec.tut.intro = skipped ? `skipped at ${introStep + 1}` : 'watched'; introStep = null; }
 
 // ---------- game state and playtest record ----------
 let s;
@@ -1485,8 +1519,9 @@ const MODES = { guided: 'Guided start', full: 'Full game', onedeck: 'One deck' }
 const gameMode = () => { const m = store.get('mode', 'guided'); return MODES[m] ? m : 'guided'; };
 function startRun(tutorial = gameMode() === 'guided') {
   if (tutorial) { store.set('mode', 'guided'); TUTORIAL_HINTS.forEach(k => { seenHints[k] = k === 'survive'; }); store.set('hints', seenHints); }
-  tut = tutorial ? { step: 0 } : null; lastHit = null;
+  tut = tutorial ? { step: 0 } : null; lastHit = null; introStep = tutorial ? 0 : null;
   s = E.newGame(undefined, { guided: gameMode() === 'guided', oneDeck: gameMode() === 'onedeck', tutorial }); rec = newRec(); rec.mode = gameMode(); rec.tutorial = tutorial;
+  if (tutorial) rec.tut = { intro: null, guided: 0, skipped: false, spared: 0, recap: false }; // where tutorial players get to, for the playtest report
   noteSurvivalFloor(); mapView = 'auto';
 }
 function noteSurvivalFloor() { // a floor with no contract starts without a bid, so record it here
@@ -1559,7 +1594,8 @@ function currentHint() {
   const list = [
     ['spared', s.phase === 'room' && s.spared, 'That should have killed you. I dragged you out at <b>1 health</b>. Only on this floor, mind. Next time, flee or use your weapon.', '.stat.hp'],
     ['tutdone', s.phase === 'room' && s.tutorial && s.floor === 0 && s.roomsCleared === 2 && s.handled === 0, '<b>You\'ve got the basics.</b> Use 3 cards a room, hit big monsters with your weapon, drink potions when hurt, and flee rooms you can\'t win. 2 more rooms on your own.', null],
-    ['lastpick', s.phase === 'room' && s.tutorial && s.floor === 0 && s.roomsCleared === 0 && s.handled === 2, 'Your turn. One more card ends the room. The card you leave stays for the next room.', '.chamber'],
+    ['lastpick', s.phase === 'room' && s.tutorial && s.floor === 0 && s.roomsCleared === 0 && s.handled === 2, 'Your sword blocked 7, so you only lost <b>2</b>. Your turn: one more card ends the room.', '.stat.hp'],
+    ['fists', s.phase === 'room' && s.tutorial && s.floor === 0 && s.floorBare && !s.spared, 'Fists block nothing, so you took the <b>full hit</b>. Save them for small monsters.', '.stat.hp'],
     ['flee', s.phase === 'room' && s.handled === 0 && E.canFlee(s) && s.room.filter(c => c.kind === 'monster' && c.v >= 10 && !E.canUseWeapon(s, c)).length >= 2, 'These are too big for your weapon. Tap <b>Flee room</b> to run. You can\'t flee 2 rooms in a row.', '[data-flee]'],
     ['limit', s.phase === 'room' && s.weapon && s.weapon.limit != null, 'Your weapon is dull now. It only hits monsters up to the number under <b>Weapon</b>. Bigger ones need <b>Fists</b>.', '.stat.weapon'],
     ['potion', s.phase === 'room' && !s.potionUsed && s.hp < s.maxHp && s.room.some(c => c.kind === 'potion'), 'That\'s a <b>potion</b>. Tap <b>Drink</b> to heal. Only 1 potion works per room.', '.stat.hp'],
@@ -1748,7 +1784,7 @@ function peekHTML() {
 }
 const logHTML = () => `<details class="rules"><summary>Log</summary><div class="log">${s.log.map(l => `<p>${esc(l)}</p>`).join('') || '<p class="muted">Your deeds will be recorded here.</p>'}</div></details>`;
 function coachHTML() {
-  if (tut && TUTORIAL[tut.step]) { shownHint = null; return `<aside class="coach">${clerk('neutral')}<span class="label">The goat says</span><p>${TUTORIAL[tut.step].text}</p></aside>`; }
+  if (tut && TUTORIAL[tut.step]) { shownHint = null; return `<aside class="coach">${clerk('neutral')}<span class="label">The goat says</span><p>${TUTORIAL[tut.step].text}</p><button class="link" data-skiptut>Skip tutorial</button></aside>`; }
   const h = currentHint(), g = goal();
   shownHint = h ? h.key : null;
   const low = s.phase === 'room' && s.hp <= Math.max(5, s.maxHp / 4); // the clerk worries when you're nearly dead
@@ -1899,7 +1935,8 @@ function runReport(r = rec) {
   const floors = r.floors.map(f => f.survival ? `F${f.floor} Survival ${f.died ? 'died' : f.hpEnd != null ? 'survived' : ''}`.trim() : `F${f.floor} ${E.TIERS[f.tier]}${f.clause ? '+' + E.CLAUSES[f.clause].name : ''} ${f.slain ?? '?'}/${f.target}${f.met ? ' met' : f.met === false ? ' missed' : ''}${f.raises ? ' raised' : ''}${f.flees ? ` fled${f.flees}` : ''}`).join('; ');
   const bought = r.shops.flatMap(sh => sh.bought.filter(k => E.RELICS[k]).map(k => E.RELICS[k].name)).join(', ') || 'none';
   const skipped = [...new Set(r.shops.flatMap(sh => sh.offered.filter(k => !sh.bought.includes(k)).map(k => E.RELICS[k].name)))].join(', ') || 'none';
-  return `Scapegrace v${VERSION} run report${r.mode === 'full' ? ' (full game)' : r.mode === 'onedeck' ? ' (one deck)' : ''}: ${out} on floor ${r.floorReached}, ${r.totalSlain} points, ${r.gold} gold.\nFloors: ${floors}\nRelics taken: ${bought}\nRelics passed on: ${skipped}`;
+  const t = r.tut ? `\nTutorial: intro ${r.tut.intro || 'not finished'}, ${r.tut.skipped ? `skipped after ${r.tut.guided} of ${TUTORIAL.length} guided moves` : `${r.tut.guided} of ${TUTORIAL.length} guided moves`}, ${r.tut.recap ? 'reached the recap' : 'no recap'}${r.tut.spared ? ', saved from death' : ''}` : '';
+  return `Scapegrace v${VERSION} run report${r.mode === 'full' ? ' (full game)' : r.mode === 'onedeck' ? ' (one deck)' : ''}: ${out} on floor ${r.floorReached}, ${r.totalSlain} points, ${r.gold} gold.\nFloors: ${floors}\nRelics taken: ${bought}\nRelics passed on: ${skipped}${t}`;
 }
 // ---------- leaderboard (top scores from the Sheet's published Leaderboard tab) ----------
 // The tab has one row per reported run: mode, name, points, floor, outcome, gold, version, date.
@@ -1990,7 +2027,7 @@ function settleHTML() {
 let paused = false;
 let mapView = null; // 'auto': shown after the shop, with a button into the floor. 'pause': opened from the pause menu.
 const ACTS = [{ name: 'The Crypt', scene: 'act1-crypt' }, { name: 'The Sewers', scene: 'act2-sewers' }, { name: 'The Vault', scene: 'act3-vault' }];
-const canPause = () => !titleOn && s && ['bid', 'room', 'shop'].includes(s.phase);
+const canPause = () => !titleOn && introStep == null && s && ['bid', 'room', 'shop'].includes(s.phase);
 const nextFloor = () => s.phase === 'shop' ? s.floor + 1 : s.floor; // the floor you're on, or heading to from the shop
 const mapAct = () => Math.min(2, Math.floor(nextFloor() / 3));
 // What floor f (0-based) will ask of you, from the engine's own unlock rules.
@@ -2086,6 +2123,7 @@ function render() {
   hideTip();
   if (titleOn) { renderTitle(); return; }
   if (!s) return;
+  if (introStep != null) { app.className = 'introscreen'; delete app.dataset.place; setAmbient(null); app.innerHTML = introHTML(); const b = app.querySelector('[data-intronext]'); if (b) b.focus(); return; }
   if (shownScene === 'title') document.getElementById('scene').className = '';
   if (!canPause()) { paused = false; mapView = null; }
   if (s.phase !== 'shop') payoutView = false;
@@ -2389,6 +2427,11 @@ app.addEventListener('click', async e => {
     return;
   }
   const d = b.dataset, prev = s.phase, hintBefore = shownHint;
+  if (introStep != null) {
+    if ('intronext' in d) { if (introStep < INTRO.length - 1) introStep++; else endIntro(false); }
+    else if ('introskip' in d) endIntro(true);
+    render(); return;
+  }
   if ('more' in d) { moreOpen = !moreOpen; render(); return; }
   if ('pause' in d) { paused = true; moreOpen = false; render(); return; }
   if ('deck' in d) { deckOpen = true; moreOpen = false; render(); return; }
@@ -2465,6 +2508,7 @@ app.addEventListener('click', async e => {
     rec = null; moreOpen = false; paused = false; mapView = null; titleOn = true; render(); return;
   }
   else if ('tutorial' in d) { startTutorial(); acted = false; }
+  else if ('skiptut' in d) { if (rec && rec.tut) rec.tut.skipped = true; tut = null; TUTORIAL_ONLY.forEach(k => { seenHints[k] = true; }); store.set('hints', seenHints); acted = false; }
   else if ('fb' in d) {
     const t = document.getElementById('fb'); if (!t || !rec) return;
     rec.note = t.value.trim().slice(0, 600);
@@ -2481,7 +2525,9 @@ app.addEventListener('click', async e => {
     return;
   }
   else return;
-  if (tut && acted && !TUTORIAL[++tut.step]) { tut = null; store.set('tutorial', true); } // the guided moves are done: play on
+  if (tut && acted) { if (rec && rec.tut) rec.tut.guided = tut.step + 1; if (!TUTORIAL[++tut.step]) { tut = null; store.set('tutorial', true); } } // the guided moves are done: play on
+  if (acted && rec && rec.tut && s.spared && !rec.tut.spared) rec.tut.spared = 1;
+  if (acted && rec && rec.tut && s.tutorial && s.floor === 0 && s.roomsCleared >= 2) rec.tut.recap = true;
   if (acted && s.tutorial && s.floor === 0 && s.phase === 'room' && s.roomsCleared === 2 && s.handled === 0 && !seenHints.tutdone && hintBefore !== 'tutdone' && prev === 'room') effect = (e => () => { if (e) e(); fx('contract-met', rectOf('.coach')); })(effect); // tutorial done: a stamp on the goat's recap
   if (acted) { afterAction(prev); if (!tut) retireHint(hintBefore); }
   if (prev === 'room' && s.phase === 'shop') { // the floor is settled: one mark on the clerk's ledger, and coins on your gold
@@ -2652,7 +2698,7 @@ render();
       done();
     },
     close: () => toggle(false),
-    hints: () => { ['survive', 'spared', 'tutdone', 'lastpick', 'flee', 'potion', 'gold', 'contracts', 'strikes', 'met', 'relics', 'dues', 'tiers', 'raise', 'bossroom', 'boss', 'clause', 'onedeck', 'limit'].forEach(k => seenHints[k] = true); done(); },
+    hints: () => { ['survive', 'spared', 'tutdone', 'lastpick', 'fists', 'flee', 'potion', 'gold', 'contracts', 'strikes', 'met', 'relics', 'dues', 'tiers', 'raise', 'bossroom', 'boss', 'clause', 'onedeck', 'limit'].forEach(k => seenHints[k] = true); done(); },
   };
   panel.addEventListener('click', e => {
     const b = e.target.closest('button[data-dv]'); if (!b || busy) return;
