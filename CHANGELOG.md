@@ -8,6 +8,15 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.35.0 (2026-10-14)
+The tutorial plays on every Guided start run and fills its gaps.
+
+- **Every Guided start run starts with the tutorial**, not just your first. Full game and One deck runs never show it.
+- **Floor 1 of a Guided start run can't kill you.** A fatal hit leaves you at 1 health, and the goat tells you how to avoid it next time. Health previews and the fatal skull reflect this. From floor 2 on, the normal rules apply.
+- **A "you did it" moment:** clearing the tutorial's rooms gets a stamp and a one-line recap (use 3 cards, weapon on big monsters, drink potions, flee rooms you can't win).
+- **Potions are taught:** the first time a potion turns up while you're hurt, the goat says to tap Drink, and that only 1 potion works per room.
+- The `?tutorial` address switch is gone, since Guided start always plays it. Replay the tutorial in How to play still works from any mode.
+
 ## 1.34.0 (2026-10-14)
 The tutorial is now the start of your first run, and you learn by playing.
 

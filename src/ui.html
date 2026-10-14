@@ -1345,7 +1345,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.34.0';
+const VERSION = '1.35.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -1458,17 +1458,16 @@ const store = {
 let seenHints = store.get('hints', {});
 
 // ---------- tutorial ----------
-// The tutorial is the start of the player's first guided run: floor 1 is dealt from a stacked pile (see the engine).
+// The tutorial is the start of every Guided start run: floor 1 is dealt from a stacked pile (see the engine).
 // The first two moves are guided, one allowed action each. After that you play freely and the goat only reacts to
-// what happens, through the one-time hints ('lastpick', 'flee', 'limit').
+// what happens, through hints that reset each tutorial run. Floor 1 can't kill you, and clearing the tutorial's
+// rooms gets a short recap.
 const TUTORIAL = [
   { allow: { v: 7, mode: null }, focus: '.stat.hp', text: 'I\'m the goat. This is your <b>health</b>. If it hits 0, you lose. Each room has 4 cards, and you use 3. Tap <b>Equip</b> on the sword.' },
   { allow: { v: 9, mode: 'weapon' }, focus: '.stat.weapon', text: 'Monsters hurt you by their number. Your sword blocks most of it. Tap <b>Weapon</b> on the Owlbear.' },
 ];
-const TUTORIAL_HINTS = ['survive', 'lastpick', 'flee', 'limit'];
+const TUTORIAL_HINTS = ['survive', 'spared', 'lastpick', 'flee', 'limit', 'potion', 'tutdone'];
 let tut = null; // { step } during the tutorial's guided moves
-// A first-time player's guided run starts with the tutorial. ?tutorial in the address plays it again.
-if (new URLSearchParams(location.search).has('tutorial')) store.set('tutorial', false);
 
 // ---------- game state and playtest record ----------
 let s;
@@ -1484,7 +1483,7 @@ function newRec() {
 // 'onedeck' is the full game played down one deck: the pile isn't reshuffled between floors, only when an act starts.
 const MODES = { guided: 'Guided start', full: 'Full game', onedeck: 'One deck' };
 const gameMode = () => { const m = store.get('mode', 'guided'); return MODES[m] ? m : 'guided'; };
-function startRun(tutorial = gameMode() === 'guided' && !store.get('tutorial', false)) {
+function startRun(tutorial = gameMode() === 'guided') {
   if (tutorial) { store.set('mode', 'guided'); TUTORIAL_HINTS.forEach(k => { seenHints[k] = k === 'survive'; }); store.set('hints', seenHints); }
   tut = tutorial ? { step: 0 } : null; lastHit = null;
   s = E.newGame(undefined, { guided: gameMode() === 'guided', oneDeck: gameMode() === 'onedeck', tutorial }); rec = newRec(); rec.mode = gameMode(); rec.tutorial = tutorial;
@@ -1558,9 +1557,12 @@ function currentHint() {
   const multi = s.offers && s.offers.length > 1;
   const shopNow = s.phase === 'shop' && !s.pick; // the relic pick comes before the shop
   const list = [
+    ['spared', s.phase === 'room' && s.spared, 'That should have killed you. I dragged you out at <b>1 health</b>. Only on this floor, mind. Next time, flee or use your weapon.', '.stat.hp'],
+    ['tutdone', s.phase === 'room' && s.tutorial && s.floor === 0 && s.roomsCleared === 2 && s.handled === 0, '<b>You\'ve got the basics.</b> Use 3 cards a room, hit big monsters with your weapon, drink potions when hurt, and flee rooms you can\'t win. 2 more rooms on your own.', null],
     ['lastpick', s.phase === 'room' && s.tutorial && s.floor === 0 && s.roomsCleared === 0 && s.handled === 2, 'Your turn. One more card ends the room. The card you leave stays for the next room.', '.chamber'],
     ['flee', s.phase === 'room' && s.handled === 0 && E.canFlee(s) && s.room.filter(c => c.kind === 'monster' && c.v >= 10 && !E.canUseWeapon(s, c)).length >= 2, 'These are too big for your weapon. Tap <b>Flee room</b> to run. You can\'t flee 2 rooms in a row.', '[data-flee]'],
     ['limit', s.phase === 'room' && s.weapon && s.weapon.limit != null, 'Your weapon is dull now. It only hits monsters up to the number under <b>Weapon</b>. Bigger ones need <b>Fists</b>.', '.stat.weapon'],
+    ['potion', s.phase === 'room' && !s.potionUsed && s.hp < s.maxHp && s.room.some(c => c.kind === 'potion'), 'That\'s a <b>potion</b>. Tap <b>Drink</b> to heal. Only 1 potion works per room.', '.stat.hp'],
     ['survive', s.phase === 'room' && survival() && s.floor === 0, '<b>Stay alive</b> for 4 rooms. Use 3 of the 4 cards in each room. I do it in my sleep.', null],
     ['gold', shopNow && s.floor === 0, '<b>New! Gold.</b> The guild paid you 6 gold for surviving. Don\'t let it go to your head. Spend it here: a <b>Bandage</b> heals 6 health. Then tap <b>Leave shop</b>.', '.stat.gold, .shop .services'],
     ['contracts', s.phase === 'bid' && !multi, '<b>New! Contracts.</b> Promise to kill this many monster points on this floor. Make it and you get gold. Miss it and you get a <b>strike</b>. Three strikes ends your run.', '.offers'],
@@ -1671,7 +1673,7 @@ const digits = v => String(v).split('').map(d => `<i class="dg" style="--g:url($
 const skull = '<i class="skull" aria-label="fatal"></i>';
 function fightLabel(c, weapon) {
   const d = E.monsterDamage(s, c, weapon), w = weapon ? 'Weapon' : 'Fists';
-  if (d >= s.hp) return dual(`${skull}${w}: lose ${d} (fatal)`, `${w} −${d} ${skull}`);
+  if (d >= s.hp && !E.safeFloor(s)) return dual(`${skull}${w}: lose ${d} (fatal)`, `${w} −${d} ${skull}`);
   return dual(`${w}: lose ${d} health`, `${w} −${d}`);
 }
 function potionPreview(c) {
@@ -1686,7 +1688,7 @@ function allowed(c, mode) {
   return !!a && a.v === c.v && a.mode === mode;
 }
 function cardHTML(c, active) {
-  const btn = (mode, label, tip = '') => `<button data-act="${mode || 'take'}" data-id="${c.id}" ${allowed(c, mode) ? '' : 'disabled'}${c.kind === 'monster' && E.monsterDamage(s, c, mode === 'weapon') >= s.hp ? ' class="fatal"' : ''}${tip}>${label}</button>`;
+  const btn = (mode, label, tip = '') => `<button data-act="${mode || 'take'}" data-id="${c.id}" ${allowed(c, mode) ? '' : 'disabled'}${c.kind === 'monster' && E.monsterDamage(s, c, mode === 'weapon') >= s.hp && !E.safeFloor(s) ? ' class="fatal"' : ''}${tip}>${label}</button>`;
   let acts = '';
   if (c.kind === 'monster') {
     if (E.canUseWeapon(s, c)) acts += btn('weapon', fightLabel(c, true));
@@ -2268,7 +2270,7 @@ function previewHP(b) {
   clearPreview();
   const delta = b ? hpChange(b) : 0, cell = app.querySelector('.stat.hp');
   if (!delta || !cell) return;
-  const after = Math.max(0, Math.min(s.maxHp, s.hp + delta)), pct = v => 100 * v / s.maxHp;
+  const after = Math.max(E.safeFloor(s) ? 1 : 0, Math.min(s.maxHp, s.hp + delta)), pct = v => 100 * v / s.maxHp; // the tutorial's floor stops at 1
   const bar = cell.querySelector('.hpbar'), num = cell.querySelector('.num');
   const seg = document.createElement('b'); seg.className = 'preview ' + (delta < 0 ? 'loss' : 'gain');
   const lo = Math.min(after, s.hp), hi = Math.max(after, s.hp);
@@ -2480,6 +2482,7 @@ app.addEventListener('click', async e => {
   }
   else return;
   if (tut && acted && !TUTORIAL[++tut.step]) { tut = null; store.set('tutorial', true); } // the guided moves are done: play on
+  if (acted && s.tutorial && s.floor === 0 && s.phase === 'room' && s.roomsCleared === 2 && s.handled === 0 && !seenHints.tutdone && hintBefore !== 'tutdone' && prev === 'room') effect = (e => () => { if (e) e(); fx('contract-met', rectOf('.coach')); })(effect); // tutorial done: a stamp on the goat's recap
   if (acted) { afterAction(prev); if (!tut) retireHint(hintBefore); }
   if (prev === 'room' && s.phase === 'shop') { // the floor is settled: one mark on the clerk's ledger, and coins on your gold
     const r = s.lastResult || '', last = effect;
@@ -2649,7 +2652,7 @@ render();
       done();
     },
     close: () => toggle(false),
-    hints: () => { ['survive', 'lastpick', 'flee', 'gold', 'contracts', 'strikes', 'met', 'relics', 'dues', 'tiers', 'raise', 'bossroom', 'boss', 'clause', 'onedeck', 'limit'].forEach(k => seenHints[k] = true); done(); },
+    hints: () => { ['survive', 'spared', 'tutdone', 'lastpick', 'flee', 'potion', 'gold', 'contracts', 'strikes', 'met', 'relics', 'dues', 'tiers', 'raise', 'bossroom', 'boss', 'clause', 'onedeck', 'limit'].forEach(k => seenHints[k] = true); done(); },
   };
   panel.addEventListener('click', e => {
     const b = e.target.closest('button[data-dv]'); if (!b || busy) return;
