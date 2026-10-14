@@ -240,5 +240,22 @@ const inPile = s => s.draw.length + s.room.length;
   eq(inPile(s), 44, 'normal run: every floor reshuffles the whole deck'); }
 { const s = E.newGame(7, { oneDeck: true, guided: true }); ok(!s.oneDeck && s.guided, 'one deck is never guided'); }
 
+// The tutorial: a guided run's first floor dealt from a stacked pile of the deck's own cards, then a normal floor.
+{ const s = E.newGame(3, { guided: true, tutorial: true });
+  eq(s.room.map(c => c.kind[0] + c.v).join(' '), 'm5 w7 m13 m9', 'tutorial: room 1 is stacked');
+  eq(s.draw.slice(0, 7).map(c => c.v).join(' '), '14 12 11 3 10 6 2', 'tutorial: the next cards are stacked');
+  const ids = [...s.room, ...s.draw].map(c => c.id);
+  eq(new Set(ids).size, 44, 'tutorial: every card is the deck\'s own, once');
+  eq(E.deckView(s).left, 44 - 4, 'tutorial: deck view still adds up');
+  ok(s.phase === 'room' && s.contract.survival, 'tutorial: floor 1 is a survival floor');
+  const W7 = s.room.find(c => c.v === 7), O9 = s.room.find(c => c.v === 9), G5 = s.room.find(c => c.v === 5);
+  E.handle(s, W7.id); E.handle(s, O9.id, 'weapon'); E.handle(s, G5.id, 'weapon');
+  eq(s.room.map(c => c.v).join(' '), '13 14 12 11', 'tutorial: room 2 is all big monsters');
+  ok(E.flee(s), 'tutorial: you can flee room 2');
+  eq(s.room.map(c => c.v).join(' '), '3 10 6 2', 'tutorial: the room after fleeing has the potion');
+  eq(s.hp, 18, 'tutorial: the guided moves cost 2 health');
+  clearFloor(s); eq(s.phase, 'shop', 'tutorial: floor 1 ends as usual, after 4 rooms'); }
+{ const s = E.newGame(3, { tutorial: true }); ok(!s.tutorial, 'tutorial only stacks a guided run'); }
+
 console.log(`${passes} passed, ${fails} failed`);
 process.exit(fails ? 1 : 0);

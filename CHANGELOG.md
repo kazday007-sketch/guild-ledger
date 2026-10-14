@@ -8,6 +8,15 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.34.0 (2026-10-14)
+The tutorial is now the start of your first run, and you learn by playing.
+
+- **No more training floor.** Your first Guided start run teaches you on floor 1, dealt from a set-up deck: a sword and an easy fight, then a room full of big monsters, then a potion. The rest of the floor, and the run, plays as usual.
+- **Only the first two moves are guided:** equip the sword, then use it on the Owlbear. After that you choose, and the goat reacts to what happens in one line: one more card ends the room, these monsters are too big so flee, your weapon is dull so use fists.
+- The "too big, flee" tip is new for everyone and shows once, the first time a room has two or more monsters your weapon can't hit.
+- **Replay the tutorial** from How to play, or open the game with `?tutorial` at the end of the address.
+- The "Training complete" screen is gone.
+
 ## 1.33.0 (2026-10-14)
 A much simpler training floor.
 
