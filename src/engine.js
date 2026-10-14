@@ -1,7 +1,6 @@
 // Guild Ledger: game rules. Pure logic, no DOM. Works in the browser (window.Engine) and Node (require).
 (function (root) {
   const MAX_HP = 20;
-  const TUTORIAL_ROOMS = 2; // the fled room in between doesn't count
   const ROOMS_PER_FLOOR = 4;
   const FLOORS = 9; // 3 acts x 3 floors, a boss rule on floors 3, 6, 9
   const MAX_RELICS = 8;
@@ -221,6 +220,7 @@
       oneDeck: !!(opts && opts.oneDeck) && !(opts && opts.guided), reshuffles: 0,
     };
     startFloor(s);
+    if (opts && opts.tutorial && s.guided) stackTutorial(s);
     return s;
   }
   const log = (s, msg) => { s.log.unshift(msg); if (s.log.length > 40) s.log.pop(); };
@@ -353,15 +353,14 @@
     if (s.hp <= 0) { s.hp = 0; s.phase = 'lost'; s.lastResult = 'You fell in the dungeon.'; return true; }
     if (s.handled === 3) {
       s.roomsCleared++; s.fledStreak = 0; newRoom(s);
-      if (has(s, 'tipjar') && !s.tutorial) s.gold += 1;
-      if (s.roomsCleared >= (s.tutorial ? TUTORIAL_ROOMS : ROOMS_PER_FLOOR)) endFloor(s);
+      if (has(s, 'tipjar')) s.gold += 1;
+      if (s.roomsCleared >= ROOMS_PER_FLOOR) endFloor(s);
       else s.room.push(...deal(s, 4 - s.room.length));
     }
     return true;
   }
   function endFloor(s) {
     const c = s.contract; s.totalSlain += s.slain;
-    if (s.tutorial) { s.phase = 'tutdone'; s.lastResult = `You made it through with ${s.hp} health left.`; return; }
     let msg;
     // The payout screen counts these up line by line: what the contract paid, the extras, and what was taken.
     const pay = s.payout = { floor: s.floor, slain: s.slain, target: c.target, survival: !!c.survival, outcome: null, start: s.gold, lines: [], strikes: s.strikes };
@@ -482,9 +481,9 @@
   function leaveShop(s) { if (s.phase !== 'shop') return; if (s.pick) skipPick(s); s.floor++; startFloor(s); }
 
   // What the HUD shows about dues: the next dues you'll owe (for the act you're in, or heading into from the shop),
-  // and the floor (1-based) they're collected after. null when none are coming (training, guided act 1, run over).
+  // and the floor (1-based) they're collected after. null when none are coming (guided act 1, run over).
   function duesAhead(s) {
-    if (s.tutorial || !['bid', 'room', 'shop'].includes(s.phase)) return null;
+    if (!['bid', 'room', 'shop'].includes(s.phase)) return null;
     const f = s.phase === 'shop' ? s.floor + 1 : s.floor, a = Math.floor(f / 3), last = a * 3 + 2;
     if (a > 2 || (s.guided && last < UNLOCK.contracts)) return null;
     return { due: duesFor(s, a), act: a, floor: last + 1, next: f === last };
@@ -537,22 +536,25 @@
     return true;
   }
 
-  // A training floor with a stacked deck, used by the tutorial: clear a room, flee a room of big monsters, then clear one more.
-  function newTutorial() {
-    const s = newGame(1);
-    const c = (kind, v, suit) => card(kind, v, suit);
-    // Room 1 leaves the Goblin King behind, room 2 is all big monsters and you flee it, and room 3 ends training.
-    const room1 = [c('monster', 5, '♠'), c('weapon', 7, '♦'), c('monster', 13, '♣'), c('monster', 9, '♣')];
-    const next = [c('monster', 14, '♠'), c('monster', 12, '♣'), c('monster', 11, '♠'), c('monster', 3, '♣'), c('monster', 10, '♠'), c('potion', 6, '♥'), c('monster', 2, '♠')];
-    s.tutorial = true; s.room = room1; s.draw = next.concat(s.draw); s.log = [];
-    survivalFloor(s, 0);
-    return s;
+  // The tutorial is the start of a guided run's first floor, dealt from a stacked pile: room 1 has a sword and an
+  // easy fight, room 2 is all big monsters (worth fleeing), and the room after that has a potion. The rest of the
+  // floor, and the run, is dealt as usual. The stacked cards are the deck's own, so the deck view stays right.
+  const TUTORIAL_DECK = {
+    room: [['monster', 5, '♠'], ['weapon', 7, '♦'], ['monster', 13, '♣'], ['monster', 9, '♣']],
+    next: [['monster', 14, '♠'], ['monster', 12, '♣'], ['monster', 11, '♠'], ['monster', 3, '♣'], ['monster', 10, '♠'], ['potion', 6, '♥'], ['monster', 2, '♠']],
+  };
+  function stackTutorial(s) {
+    const pool = [...s.room, ...s.draw];
+    const take = ([kind, v, suit]) => pool.splice(pool.findIndex(c => c.kind === kind && c.v === v && c.suit === suit), 1)[0];
+    s.room = TUTORIAL_DECK.room.map(take);
+    s.draw = TUTORIAL_DECK.next.map(take).concat(pool);
+    s.tutorial = true;
   }
 
   const api = {
-    MAX_HP, ROOMS_PER_FLOOR, TUTORIAL_ROOMS, FLOORS, UNLOCK, SURVIVAL_PAY, MAX_RELICS, TIERS, TARGETS, DUES, BOSSES, RELICS, SERVICES, CLAUSES, WILDCARD_MULT,
+    MAX_HP, ROOMS_PER_FLOOR, FLOORS, UNLOCK, SURVIVAL_PAY, MAX_RELICS, TIERS, TARGETS, DUES, BOSSES, RELICS, SERVICES, CLAUSES, WILDCARD_MULT,
     RARITIES, PICK_SIZE, SKIP_GOLD,
-    newGame, newTutorial, bid, flee, canFlee, handle, buy, cost, choose, skipPick, relicsFull, target, duesFor, interestCap, dropRelic, leaveShop, allowedTiers, payout,
+    newGame, bid, flee, canFlee, handle, buy, cost, choose, skipPick, relicsFull, target, duesFor, interestCap, dropRelic, leaveShop, allowedTiers, payout,
     canRaise, raise, raisesPerFloor, canRedraw, redraw,
     canUseWeapon, monsterDamage, contractPoints, potionHeal, resolveCard, rankLabel, act,
     duesAhead, weaponReach, nextCard, deckView, devJump, devRoom, devGrant, devEndFloor,
