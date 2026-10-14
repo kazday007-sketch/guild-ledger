@@ -1362,7 +1362,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.37.0';
+const VERSION = '1.38.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -1408,9 +1408,9 @@ const relicTip = k => `${E.RELICS[k].text}<br><i>${E.RARITIES[E.RELICS[k].rarity
 const tierSeal = t => `ui/seal-tier-${['safe', 'bold', 'reckless'][t]}.webp`;
 const clauseSeal = k => `ui/seal-clause-${({ sworn: 'sworn', abstain: 'abstinent', steel: 'steel-oath', bare: 'bare-oath' })[k]}.webp`;
 const bossArt = { fleeToll: 'boss-warden', halfPotion: 'boss-plague-hag', recklessOnly: 'boss-lich-auditor' };
-// The goat (it replaced the guild clerk in 1.20.0; the CSS class is still .clerk). It has lived in the dungeon
+// Azazel the goat (it replaced the guild clerk in 1.20.0, and got its name in 1.38.0; the CSS class is still .clerk). It has lived in the dungeon
 // for years, finds it all rather easy, and talks you through it.
-const clerk = (mood, cls = 'clerk') => img(`portraits/goat-${mood}.webp`, cls, 'The goat');
+const clerk = (mood, cls = 'clerk') => img(`portraits/goat-${mood}.webp`, cls, 'Azazel the goat');
 // A stamp slams down once; later renders of the same stamp sit still.
 const stamped = new Set();
 const stamp = (kind, key) => {
@@ -1488,9 +1488,9 @@ const TUTORIAL_ONLY = ['spared', 'lastpick', 'fists', 'tutdone']; // skipping th
 let tut = null; // { step } during the tutorial's guided moves
 // The story, before the tutorial: three paintings, one line each, told by the goat. Tap through or skip.
 const INTRO = [
-  { art: 'victory', pos: '80% 60%', text: 'Years ago, the guild threw me down here to take the blame. Rude.' },
+  { art: 'victory', pos: '80% 60%', text: 'I\'m Azazel. Years ago, the guild threw me down here to take the blame. Rude.' },
   { art: 'guild-hall', pos: '88% 50%', text: 'I didn\'t die. I got comfortable. Now the guild pays me to show recruits around.' },
-  { art: 'title', pos: '62% 50%', text: 'You\'re the new recruit. Clear the dungeon, get paid, stay alive. Try to keep up.', go: 'Follow the goat' },
+  { art: 'title', pos: '62% 50%', text: 'You\'re the new recruit. Clear the dungeon, get paid, stay alive. Try to keep up.', go: 'Follow Azazel' },
 ];
 let introStep = null; // which painting is showing, or null
 function introHTML() {
@@ -1498,7 +1498,7 @@ function introHTML() {
   return `<section class="intro" aria-label="The story">
     <div class="introart" style="background-image:url(${ART}backgrounds/${p.art}.webp);background-position:${p.pos}" aria-hidden="true"></div>
     <button class="link introskip" data-introskip>Skip</button>
-    <div class="introtext"><span class="who">${img('icons/emblem-goat.webp', 'crest')}The goat</span><p>“${p.text}”</p>
+    <div class="introtext"><span class="who">${img('icons/emblem-goat.webp', 'crest')}Azazel</span><p>“${p.text}”</p>
       <div class="introfoot"><span class="dots" aria-hidden="true">${INTRO.map((_, i) => `<i class="${i === introStep ? 'on' : ''}"></i>`).join('')}</span>
       <button class="primary" data-intronext autofocus>${last ? p.go : 'Next'}</button></div></div></section>`;
 }
@@ -1785,11 +1785,11 @@ function peekHTML() {
 }
 const logHTML = () => `<details class="rules"><summary>Log</summary><div class="log">${s.log.map(l => `<p>${esc(l)}</p>`).join('') || '<p class="muted">Your deeds will be recorded here.</p>'}</div></details>`;
 function coachHTML() {
-  if (tut && TUTORIAL[tut.step]) { shownHint = null; return `<aside class="coach">${clerk('neutral')}<span class="label">The goat says</span><p>${TUTORIAL[tut.step].text}</p><button class="link" data-skiptut>Skip tutorial</button></aside>`; }
+  if (tut && TUTORIAL[tut.step]) { shownHint = null; return `<aside class="coach">${clerk('neutral')}<span class="label">Azazel says</span><p>${TUTORIAL[tut.step].text}</p><button class="link" data-skiptut>Skip tutorial</button></aside>`; }
   const h = currentHint(), g = goal();
   shownHint = h ? h.key : null;
   const low = s.phase === 'room' && s.hp <= Math.max(5, s.maxHp / 4); // the clerk worries when you're nearly dead
-  if (h) return `<aside class="coach hint">${clerk(low ? 'worried' : 'neutral')}<span class="label">The goat says</span><p>${h.text}</p>${g ? `<p class="sub"><b>Goal:</b> ${g.text}</p>` : ''}</aside>`;
+  if (h) return `<aside class="coach hint">${clerk(low ? 'worried' : 'neutral')}<span class="label">Azazel says</span><p>${h.text}</p>${g ? `<p class="sub"><b>Goal:</b> ${g.text}</p>` : ''}</aside>`;
   return g ? `<aside class="coach goalonly ${g.done ? 'done' : ''}">${clerk(g.done ? 'impressed' : low ? 'worried' : 'neutral')}<span class="label">${g.done ? 'Contract met' : 'Goal'}</span><p>${g.text}</p></aside>` : '';
 }
 // A tip stays up until your next move, then it's done. No "Got it" tap.
@@ -1854,7 +1854,7 @@ const DEATH_LINES = {
 const DEATH_ANY = [
   'The {m} did not read the contract.',
   'Filed under "lunch" by the {m}.',
-  'The goat has already eaten your bunk.',
+  'Azazel has already eaten your bunk.',
   'Last words: "I can take a {v}." You could not take a {v}.',
   'The {m} sends its regards, and your boots.',
   'Cause of death: {m}. Cause of the {m}: unclear.',
@@ -1863,7 +1863,7 @@ const DEATH_FISTS = ['Punched the {m}. The {m} punched back harder.', 'Brought f
 const DEATH_WEAPON = ['Your weapon did its best. Its best was not enough.', 'You hit the {m} with everything you had. The {m} had more.'];
 const REVOKED = {
   dues: ['Couldn\'t cover the guild dues. The guild accepts gold or resignation, and picked for you.', 'Dues unpaid. Your license is now a very official coaster.'],
-  contract: ['Three missed contracts. The guild tore up your license, and the goat ate the pieces.', 'Third strike. Your license has been filed under "Former".'],
+  contract: ['Three missed contracts. The guild tore up your license, and Azazel ate the pieces.', 'Third strike. Your license has been filed under "Former".'],
   any: ['Struck out. The guild thanks you for your service and asks for the helmet back.', 'License revoked. The monsters send their thanks.'],
 };
 const theName = n => n === 'Rats' ? 'rats' : 'the ' + n;
@@ -1875,7 +1875,7 @@ function epitaph() {
     return { kind: 'revoked', title: 'License revoked', line: pickLine([...REVOKED[dues ? 'dues' : 'contract'], ...REVOKED.any], seed) };
   }
   const h = lastHit;
-  if (!h) return { kind: 'dead', title: 'You fell', line: pickLine(['The goat has already eaten your bunk.'], seed) };
+  if (!h) return { kind: 'dead', title: 'You fell', line: pickLine(['Azazel has already eaten your bunk.'], seed) };
   const pool = [...(DEATH_LINES[h.name] || []), ...(DEATH_LINES[h.name] || []), ...DEATH_ANY, ...(h.mode === 'bare' ? DEATH_FISTS : DEATH_WEAPON)];
   if (s.boss) pool.push(`${s.boss.name} watched the whole thing and took notes.`);
   if (s.floor === 0) pool.push('Floor 1. The guild had barely learned your name. It has now stopped trying.');
@@ -1891,7 +1891,7 @@ function endHTML() {
   const medal = won ? 'gold' : s.floor >= 6 ? 'silver' : s.floor >= 3 ? 'bronze' : 'copper'; // how far you got: act 1, 2, 3 or the end
   const tally = `<p class="muted tally">${img(`ui/medal-${medal}.webp`, 'medal', `${medal[0].toUpperCase() + medal.slice(1)} medal`)}Floor <span class="num">${s.floor + 1}</span> · <span class="num">${runPoints()}</span> points · <span class="num">${s.gold}</span> gold</p>`;
   let top;
-  if (won) top = `${stamp('paid', key)}<div class="endsum">${img('ui/end-victory.webp', 'endart', 'The ledger, closed')}<h2>You made it out. The goat is mildly impressed.</h2><p style="margin:0">${esc(s.lastResult || '')}</p>${tally}</div>`;
+  if (won) top = `${stamp('paid', key)}<div class="endsum">${img('ui/end-victory.webp', 'endart', 'The ledger, closed')}<h2>You made it out. Azazel is mildly impressed.</h2><p style="margin:0">${esc(s.lastResult || '')}</p>${tally}</div>`;
   else {
     const ep = epitaph();
     const pic = ep.kind === 'dead'
@@ -2018,7 +2018,7 @@ function settleHTML() {
   const strike = /strike \d of 3/i.test(r), met = r.startsWith('Contract met');
   const mood = strike ? 'stamping' : met || /pays you/.test(r) ? 'counting' : 'neutral';
   const mark = strike ? stamp('strike', 'floor-' + s.floor) : met ? stamp('paid', 'floor-' + s.floor) : '';
-  return `<section class="settle ${mark ? 'stamped' : ''}">${mark}${clerk(mood)}<div class="say"><span class="label">The goat's tally</span><p class="result">${esc(r)}</p></div></section>`;
+  return `<section class="settle ${mark ? 'stamped' : ''}">${mark}${clerk(mood)}<div class="say"><span class="label">Azazel's tally</span><p class="result">${esc(r)}</p></div></section>`;
 }
 
 // ---------- pause menu and act map ----------

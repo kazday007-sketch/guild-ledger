@@ -8,6 +8,13 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.38.0 (2026-10-14)
+The goat has a name: **Azazel**, after the original scapegoat.
+
+- He introduces himself in the story intro ("I'm Azazel. Years ago, the guild threw me down here to take the blame. Rude."), and the last button reads **Follow Azazel**.
+- His tips are labelled "Azazel says", the floor result is "Azazel's tally", and the end screens use his name.
+- The title screen still says "the goat", since you haven't met him yet.
+
 ## 1.37.0 (2026-10-14)
 - The goat now tells the story intro himself, in his own dry voice, with his crest and name over each line.
 
