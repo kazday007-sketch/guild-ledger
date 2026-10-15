@@ -756,6 +756,7 @@ header .pause img { width: 24px; height: 24px; }
 .pausebox { display: grid; gap: 12px; width: min(100%, 320px); padding: 22px 22px 24px; text-align: center; border: 1px solid transparent; border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; box-shadow: 0 12px 40px rgba(0,0,0,.6); }
 .pausebox h2 { font-size: 28px; }
 .pausebox .volume { display: flex; align-items: center; gap: 10px; justify-content: center; }
+.pausebox .volume span { width: 54px; text-align: left; }
 .pausebox .volume input { flex: 1; max-width: 180px; accent-color: #c9a45a; }
 .pausebox h2::after { content: ''; display: block; width: 200px; height: 30px; margin: 2px auto 0; background: url(assets/ui/divider.webp) center / contain no-repeat; }
 .pausebox button { font-size: 17px; padding: 11px 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
@@ -1404,7 +1405,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.3.0';
+const VERSION = '2.4.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -1726,44 +1727,104 @@ const store = {
 };
 let seenHints = store.get('hints', {});
 
-// ---------- sound ----------
-// Short sounds in assets/sfx, all made by src/synth_sfx.py: low, soft and heard through a small stone room.
-// Files are fetched at load and decoded on the first tap, since browsers only allow sound after one. Volume lives in the pause menu (and M mutes), and is kept per browser.
+// ---------- sound and music ----------
+// Short sounds in assets/sfx (src/synth_sfx.py) and a slow loop for each place in assets/music (src/synth_music.py),
+// all low and soft. Sounds are fetched at load and decoded on the first tap, since browsers only allow sound after
+// one; a music loop is fetched when its place first comes up. The pause menu has a slider for each, M mutes both,
+// and all three settings are kept per browser.
 const SFX = (() => {
   const LEVEL = { click: .25, open: .35, close: .35, deal: .3, flip: .3, slash: .6, punch: .7, hurt: .7, equip: .5, potion: .6, coins: .45, stamp: .6, flee: .45, break: .55, toll: .6, relic: .6, met: .55, win: .7 };
-  const raw = {}, bufs = {};
-  let ctx = null, master = null, vol = store.get('volume', .7);
+  const raw = {}, bufs = {}, songs = {};
+  let ctx = null, out, sfxBus, musicBus;
+  let vol = store.get('volume', .7), mvol = store.get('music', .5), muted = store.get('muted', false);
+  let want = null, track = null; // the loop this place asks for, and the one playing
   Object.keys(LEVEL).forEach(n => { raw[n] = fetch(`${ART}sfx/${n}.mp3`).then(r => r.ok ? r.arrayBuffer() : null).catch(() => null); });
   function wake() {
     if (!ctx) {
       const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
-      ctx = new AC(); master = ctx.createGain(); master.gain.value = vol; master.connect(ctx.destination);
+      ctx = new AC();
+      out = ctx.createGain(); out.gain.value = muted ? 0 : 1; out.connect(ctx.destination);
+      sfxBus = ctx.createGain(); sfxBus.gain.value = vol; sfxBus.connect(out);
+      musicBus = ctx.createGain(); musicBus.gain.value = mvol; musicBus.connect(out);
       Object.keys(raw).forEach(n => raw[n].then(b => b && ctx.decodeAudioData(b, d => { bufs[n] = d; }, () => {})));
+      music(want, true);
     }
-    if (ctx.state === 'suspended') ctx.resume();
+    if (ctx.state === 'suspended' && !document.hidden) ctx.resume();
   }
   ['pointerdown', 'keydown'].forEach(t => document.addEventListener(t, wake, true));
+  document.addEventListener('visibilitychange', () => { if (ctx) document.hidden ? ctx.suspend() : ctx.resume(); }); // quiet in a background tab
   // gain scales one play; delay is in seconds; each play is pitched a hair differently so repeats don't sound canned
   function play(n, { gain = 1, delay = 0, rate = 1 } = {}) {
-    if (!ctx || !vol || !bufs[n]) return;
+    if (!ctx || muted || !vol || !bufs[n]) return;
     const src = ctx.createBufferSource(), g = ctx.createGain();
     src.buffer = bufs[n]; src.playbackRate.value = rate * (1 + (Math.random() - .5) * .06);
     g.gain.value = Math.min(1.5, gain * LEVEL[n]);
-    src.connect(g); g.connect(master); src.start(ctx.currentTime + Math.max(0, delay));
+    src.connect(g); g.connect(sfxBus); src.start(ctx.currentTime + Math.max(0, delay));
   }
-  function setVolume(v) { vol = Math.max(0, Math.min(1, v)); store.set('volume', vol); if (master) master.gain.value = vol; }
-  return { play, setVolume, get volume() { return vol; } };
+  const song = n => songs[n] || (songs[n] = fetch(`${ART}music/${n}.mp3`).then(r => r.ok ? r.arrayBuffer() : null)
+    .then(b => b && new Promise(res => ctx.decodeAudioData(b, res, () => res(null)))).catch(() => null));
+  // Loops overlap by XF seconds, each fading into the next, so the seam never clicks whatever padding the decoder adds.
+  const XF = 3;
+  function loopFrom(cur, at) {
+    if (track !== cur) return;
+    const len = cur.buf.duration, src = ctx.createBufferSource(), g = ctx.createGain();
+    src.buffer = cur.buf; src.connect(g); g.connect(cur.g);
+    g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(1, at + XF);
+    g.gain.setValueAtTime(1, at + len - XF); g.gain.linearRampToValueAtTime(0, at + len);
+    src.start(at); src.stop(at + len + .1); cur.srcs.push(src);
+    cur.timer = setTimeout(() => loopFrom(cur, at + len - XF), Math.max(0, (at + len - XF - ctx.currentTime - 2) * 1000));
+  }
+  // The place's loop: the old one fades out as the new one fades in. Null is silence.
+  function music(n, force) {
+    if (n === want && !force) return;
+    want = n;
+    if (!ctx) return;
+    const old = track; track = null;
+    if (old) {
+      clearTimeout(old.timer);
+      if (old.g) { old.g.gain.cancelScheduledValues(ctx.currentTime); old.g.gain.setValueAtTime(old.g.gain.value, ctx.currentTime); old.g.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.8); }
+      setTimeout(() => old.srcs.forEach(x => { try { x.stop(); } catch {} }), 2000);
+    }
+    if (!n) return;
+    const cur = track = { name: n, srcs: [] };
+    song(n).then(buf => {
+      if (track !== cur || !buf) return;
+      cur.buf = buf; cur.g = ctx.createGain(); cur.g.connect(musicBus);
+      cur.g.gain.setValueAtTime(0, ctx.currentTime); cur.g.gain.linearRampToValueAtTime(1, ctx.currentTime + 2.5);
+      loopFrom(cur, ctx.currentTime + .05);
+    });
+  }
+  const clamp = v => Math.max(0, Math.min(1, v));
+  return {
+    play, music,
+    setVolume(v) { vol = clamp(v); store.set('volume', vol); if (sfxBus) sfxBus.gain.value = vol; },
+    setMusic(v) { mvol = clamp(v); store.set('music', mvol); if (musicBus) musicBus.gain.setTargetAtTime(mvol, ctx.currentTime, .05); },
+    setMuted(m) { muted = !!m; store.set('muted', muted); if (out) out.gain.setTargetAtTime(muted ? 0 : 1, ctx.currentTime, .05); },
+    get volume() { return vol; }, get musicVolume() { return mvol; }, get muted() { return muted; },
+  };
 })();
-let unmuteTo = .7; // M brings the sound back to where it was
+// Which loop plays: a tune for each act's floors, a tenser one on boss floors, the guild hall's between floors,
+// and silence once you're dead.
+function musicFor() {
+  if (titleOn || introStep != null) return 'hall';
+  if (!s || s.phase === 'lost') return null;
+  if (s.phase === 'won' || s.phase === 'shop' || mapView) return 'hall';
+  if (E.isBossFloor(s.floor) && s.boss) return 'boss';
+  return ['crypt', 'sewers', 'vault'][E.act(s) % 3];
+}
 function toggleSound() {
-  if (SFX.volume) { unmuteTo = SFX.volume; SFX.setVolume(0); } else { SFX.setVolume(unmuteTo); SFX.play('click'); }
-  const r = app.querySelector('[data-volume]'); if (r) r.value = Math.round(SFX.volume * 100);
-  const t = app.querySelector('[data-soundtoggle]'); if (t) t.textContent = SFX.volume ? 'Sound on' : 'Sound off';
+  SFX.setMuted(!SFX.muted); if (!SFX.muted) SFX.play('click');
+  const t = app.querySelector('[data-soundtoggle]'); if (t) t.textContent = SFX.muted ? 'Sound off' : 'Sound on';
+  const m = app.querySelector('.pausebox .mutenote'); if (m) m.textContent = SFX.muted ? 'Muted · M to unmute' : 'M mutes';
 }
 document.addEventListener('keydown', e => {
   if ((e.key === 'm' || e.key === 'M') && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target.closest && e.target.closest('textarea, input:not([type=range])'))) toggleSound();
 });
-document.addEventListener('input', e => { if (e.target.matches && e.target.matches('[data-volume]')) SFX.setVolume(e.target.value / 100); });
+document.addEventListener('input', e => {
+  if (!e.target.matches) return;
+  if (e.target.matches('[data-volume]')) SFX.setVolume(e.target.value / 100);
+  if (e.target.matches('[data-musicvol]')) SFX.setMusic(e.target.value / 100);
+});
 document.addEventListener('change', e => { if (e.target.matches && e.target.matches('[data-volume]')) SFX.play('coins'); }); // a sample at the new volume
 
 // ---------- tutorial ----------
@@ -2427,8 +2488,9 @@ const pauseHTML = () => `<div class="overlay" role="dialog" aria-modal="true" ar
   <button class="primary" data-resume>Resume</button>
   <button data-map>${img('ui/icon-map.webp', 'bi')}Map</button>
   <button data-title>Main menu</button>
-  <label class="volume">Sound <input type="range" min="0" max="100" step="5" value="${Math.round(SFX.volume * 100)}" data-volume aria-label="Sound volume"></label>
-  <p class="muted">${MODES[gameMode()]} · M mutes</p></section></div>`;
+  <label class="volume"><span>Sounds</span><input type="range" min="0" max="100" step="5" value="${Math.round(SFX.volume * 100)}" data-volume aria-label="Sound volume"></label>
+  <label class="volume"><span>Music</span><input type="range" min="0" max="100" step="5" value="${Math.round(SFX.musicVolume * 100)}" data-musicvol aria-label="Music volume"></label>
+  <p class="muted">${MODES[gameMode()]} · <span class="mutenote">${SFX.muted ? 'Muted · M to unmute' : 'M mutes'}</span></p></section></div>`;
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape' || !canPause() || busy) return;
   if (deckOpen) { deckOpen = false; render(); return; }
@@ -2456,13 +2518,13 @@ function renderTitle() {
     ${saved ? `<div class="playrow"><button class="primary play" data-continue${tipAttr('Continue', `Pick up your run where you left it: floor ${saved.s.floor + 1}, ${MODES[saved.rec.mode] || 'Guided start'}.`)}>Continue</button><button class="play newrun" data-play${tipAttr('New run', 'Start over. Your saved run ends.')}>New run</button></div>`
       : `<button class="primary play" data-play${tipAttr('Play', 'Your first Guided start run teaches you as you play.')}>Play</button>`}
     ${boardHTML()}
-    ${syncNote()}<p class="muted version"><button class="link soundtoggle" data-soundtoggle>${SFX.volume ? 'Sound on' : 'Sound off'}</button> · v${VERSION}</p>
+    ${syncNote()}<p class="muted version"><button class="link soundtoggle" data-soundtoggle>${SFX.muted ? 'Sound off' : 'Sound on'}</button> · v${VERSION}</p>
   </section>`;
 }
 let moreOpen = false; // phones: the How to play / Top scores panel
 const narrow = () => !(window.matchMedia && matchMedia('(min-width: 900px) and (min-height: 520px)').matches);
 // Every redraw goes through here, so motion sees what changed whatever caused it.
-function render() { const snap = motionSnap(); drawScreen(); motionPlay(snap); }
+function render() { const snap = motionSnap(); drawScreen(); motionPlay(snap); SFX.music(musicFor()); }
 function drawScreen() {
   hideTip();
   if (titleOn) { renderTitle(); return; }
