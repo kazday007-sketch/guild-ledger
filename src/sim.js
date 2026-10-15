@@ -4,6 +4,7 @@
 //   node sim.js onedeck [runs]        the same curve in One deck mode (the pile isn't reshuffled between floors)
 //   node sim.js relics [runs]         win rate when the bot starts with each relic (vs. none)
 //   node sim.js pairs [runs] [top]    the relic pairs that beat their two singles by the most
+//   node sim.js endless [runs]        how deep each bot gets when it keeps going after a win (Endless)
 const E = require('./engine.js');
 
 function mini(s) {
@@ -22,12 +23,15 @@ function value(m, greed, need) {
 function plan(s, greed) {
   const need = s.contract ? s.contract.target * Math.min(1, (s.roomsCleared + 1) / E.ROOMS_PER_FLOOR) : 0;
   let best = { v: -Infinity, steps: [] };
-  const left = 3 - s.handled;
+  // A boss in the room must die before it ends, so plan one more card and count leaving it as a disaster.
+  const boss = s.room.some(c => c.boss);
+  const left = Math.min(s.room.length, Math.max(3 - s.handled, boss ? 1 : 0));
   (function rec(m, room, steps) {
     if (steps.length === left || m.hp <= 0) {
-      const v = value(m, greed, need); if (v > best.v) best = { v, steps: steps.slice() }; return;
+      const v = value(m, greed, need) - (room.some(c => c.boss) && m.hp > 0 ? 1e5 : 0); if (v > best.v) best = { v, steps: steps.slice() }; return;
     }
     room.forEach((c, i) => {
+      if (c.hidden && !steps.length) return; // the Banshee's face-down card can't be taken first
       const modes = c.kind === 'monster' ? (E.canUseWeapon(m, c) ? ['weapon', 'bare'] : ['bare']) : [null];
       for (const mode of modes) {
         const m2 = { ...m, weapon: m.weapon && { ...m.weapon } };
@@ -49,7 +53,8 @@ function playRun(seed, bot, opts = {}) {
   const s = E.newGame(seed, { oneDeck: !!opts.oneDeck });
   if (opts.relics) opts.relics.forEach(k => E.devGrant(s, k));
   let avg = 42, n = 1, steps = 0;
-  while (s.phase !== 'won' && s.phase !== 'lost') {
+  while (s.phase !== 'won' && s.phase !== 'lost' || (opts.endless && s.phase === 'won' && E.continueEndless(s))) {
+    if (s.phase === 'won' || s.phase === 'lost') break;
     if (++steps > 3000) { s.stalled = true; s.phase = 'lost'; break; }
     if (s.phase === 'bid') {
       const est = (avg / n) * bot.margin + (s.hp - 14) * 0.4;
@@ -116,6 +121,14 @@ if (mode === 'curve' || mode === 'onedeck') {
     const r = batch(runs, bot, { oneDeck: mode === 'onedeck' });
     console.log(`${name.padEnd(9)} win ${pct(r.win)}  died ${pct(r.died / runs)}  struck out ${pct(r.struck / runs)}  avg last floor ${r.avgFloor.toFixed(2)}`);
     console.log(`          ended on floor 1-9: ${r.diedAt.map((d, i) => d + r.struckAt[i]).join(' ')}`);
+  }
+} else if (mode === 'endless') {
+  for (const [name, bot] of Object.entries(BOTS)) {
+    const depth = [];
+    for (let i = 0; i < runs; i++) { const s = playRun(1 + i, bot, { endless: true }); if (s.endless) depth.push(s.floor + 1); }
+    depth.sort((a, b) => a - b);
+    const q = p => depth[Math.min(depth.length - 1, Math.floor(p * depth.length))];
+    console.log(`${name.padEnd(9)} went endless ${depth.length}/${runs}; last floor median ${q(0.5)}, 90th ${q(0.9)}, best ${depth[depth.length - 1]}`);
   }
 } else if (mode === 'relics' || mode === 'pairs') {
   const bot = BOTS.balanced;

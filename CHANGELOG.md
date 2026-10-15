@@ -8,6 +8,17 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.43.0 (2026-10-15)
+Bosses and Endless.
+- **15 bosses of four kinds**, five per act. Each run draws one boss per act, so runs meet different bosses, and no boss is met twice in a run.
+  - **Boss fights** (Warden, Vampire Lord, Skeleton King, Dread Dragon, Cave Troll) wait in the floor's last room as a boss card. You can't flee that room, and it isn't over until the boss is dead.
+  - **Stalkers** (Goblin King, Broodmother, Dungeon Horror, Forest Wyrm) hide in the pile and haunt every room until you find and kill them.
+  - **Boss rules** (Jailer, Mummy, Plague Hag, Bone Golem) change the floor.
+  - **Tricks** (Banshee, Lich Auditor): the Banshee turns cards face down; the Lich takes only Reckless contracts and a miss costs two strikes.
+- Guided runs always meet the Warden first. Bosses without portraits use their monster card's art for now.
+- **Endless:** after winning, tap Keep going. Every act after that makes every monster 1 stronger, adds 3 more elites, raises targets and dues, and brings a boss you haven't met. Top scores already rank depth first, so going deeper beats stopping at the win.
+- Simulator (2,000 runs a bot): wins went from 16 / 23 / 19% to 15 / 18 / 16% (cautious / balanced / greedy). In Endless, bots that win usually fall around floor 12, and the best reach floor 21 to 23.
+
 ## 1.42.0 (2026-10-15)
 Top scores now rank by how deep you got: a win beats everything, then the floor you reached, then points (gold still breaks ties). Each row shows the depth first and the points after it.
 
