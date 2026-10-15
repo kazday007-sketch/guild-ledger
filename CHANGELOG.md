@@ -8,6 +8,13 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.41.0 (2026-10-15)
+Tutorial fixes from the tutorial review (design/tutorial-review-1-40.md):
+- **Weapon order.** After the Owlbear, the tip explains that your sword now only hits monsters up to 9, which is why you hit the biggest first. The dull-weapon tip says the same for players who skip the tutorial.
+- **The run goal.** The tutorial recap ends with "The whole run: get through 9 floors and beat 3 bosses."
+- **Contracts in two steps.** First "tap the contract to sign it", then, in the first room, what the target means and how strikes work.
+- **Last tip.** The goal box has a small "Last tip" link that brings back the tip you just passed.
+
 ## 1.40.0 (2026-10-15)
 The first page of the intro tells a little more of Azazel's story: the guild's gold went missing, they needed someone to blame, and they picked the nearest goat and threw him into the dungeon.
 
