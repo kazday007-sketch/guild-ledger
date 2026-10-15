@@ -8,6 +8,16 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.0.0 (2026-10-15)
+The start of the animation overhaul: the game now moves like one piece instead of jumping between states.
+- **Screens slide in.** Each new screen (contracts, the floor, the relic pick, the shop, the map) rises into place part by part, contract offers and relic choices deal in one after another, and the background dips between places. Pause and deck menus fade and lift in.
+- **Played cards go somewhere.** An equipped weapon flies into your weapon slot (which pops as it lands), a potion flies into your health, and a monster recoils from your blow and drops off the table.
+- **Floating numbers.** Damage floats up red off your health, healing green, gold changes gold, and contract points off the contract.
+- **Hits land.** Taking damage shakes your health box and flashes the screen's edges red, harder for bigger hits; hits of 5 or more jolt the table. Lost health leaves a pale chip on the bar that drains a moment later.
+- **Numbers count.** Health, gold and contract points count to their new value, and the health and contract bars slide instead of snapping.
+- On a mouse, the card you point at lifts off the table.
+- All of it is short, never blocks a click, and is switched off for players whose device asks for reduced motion.
+
 ## 1.47.0 (2026-10-15)
 Relic fixes from the run reports. Dude's Endless run reached floor 19 with 91 flees (30 on one floor), and Executioner was in every deep run.
 - **Warden's Keys** heal 2 when you flee, but no longer on back-to-back flees. With the Smoke Bomb they gave endless healing.

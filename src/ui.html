@@ -308,8 +308,19 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 #fx img { position: absolute; animation: fxpop .6s ease-out forwards; }
 #fx img.fx-ink { animation-duration: .9s; }
 #fx img.fx-smoke { animation-duration: .8s; }
-.card.leaving { transition: transform .26s ease-in, opacity .26s ease-in; transform: translateY(-10px) scale(.94); opacity: 0; pointer-events: none; }
 @keyframes fxpop { 0% { transform: scale(.4); opacity: 0; } 25% { opacity: 1; } 100% { transform: scale(1.15); opacity: 0; } }
+/* motion: floating numbers, the hurt flash, the health chip, cards that lift under the pointer */
+.floatnum { position: absolute; font: 700 26px/1 Cinzel, Georgia, serif; white-space: nowrap; pointer-events: none; text-shadow: 0 2px 0 rgba(0,0,0,.7), 0 0 10px rgba(0,0,0,.6); }
+.floatnum.dmg { color: #ff6b62; font-size: 30px; }
+.floatnum.heal { color: #7fe39a; }
+.floatnum.gold { color: #f3c95c; }
+.floatnum.pts { color: #f1e3bf; }
+.hurtflash { position: fixed; inset: 0; z-index: 4; pointer-events: none; box-shadow: inset 0 0 90px 30px rgba(190,20,20,.9); opacity: 0; }
+.hpbar .chip { position: absolute; top: 0; bottom: 0; background: #f6d2c4; transform-origin: left; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .chamber:not(.preview) .card:not(.idle):not(.hidden) { transition: transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .18s; }
+  .chamber:not(.preview) .card:not(.idle):not(.hidden):hover { transform: translateY(-5px); box-shadow: 0 3px 0 rgba(0,0,0,.35), 0 14px 22px rgba(0,0,0,.5); }
+}
 @media (prefers-reduced-motion: reduce) { .stamp { animation: none; } .offer { transition: none; } }
 
 /* leaderboard */
@@ -1373,7 +1384,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.47.0';
+const VERSION = '2.0.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -1470,6 +1481,7 @@ function setScene() {
   el.style.backgroundImage = `url(${ART}backgrounds/${sc}.webp)`;
   el.classList.toggle('dim', /sewers/.test(sc)); // the sewer art is busy behind cards
   el.classList.toggle('dead', sc === 'defeat');
+  anim(el, [{ opacity: .25 }, { opacity: 1 }], { duration: 600 }); // a quick dip between places
 }
 // Effects: a one-shot sprite over a spot on screen. Skipped for reduced motion.
 const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1484,6 +1496,119 @@ function fx(name, rect) {
   layer.appendChild(el); setTimeout(() => el.remove(), 2000);
 }
 const rectOf = sel => { const el = document.querySelector(sel); return el && el.getBoundingClientRect(); };
+
+// ---------- motion ----------
+// Everything that moves shares a few curves and lengths, so the game feels like one piece. render() takes a
+// snapshot before it redraws and compares after: whatever changed (health, gold, points, the weapon, the screen)
+// gets its motion here, whichever click or timer caused it. With reduced motion, nothing here moves.
+const EASE = { out: 'cubic-bezier(.2,.8,.2,1)', back: 'cubic-bezier(.34,1.56,.64,1)', in: 'cubic-bezier(.55,0,.8,.2)', inOut: 'cubic-bezier(.65,0,.35,1)' };
+const anim = (el, frames, opts) => (el && !reduceMotion && el.animate) ? el.animate(frames, { easing: EASE.out, ...opts }) : null;
+let motionLast = null; // what the last render showed: { run, key, hp, gold, slain, weapon }
+function screenKey() {
+  if (titleOn) return 'title';
+  if (introStep != null) return 'intro';
+  if (!s) return '';
+  if (mapView) return 'map';
+  if (payoutView) return 'payout';
+  return s.phase === 'shop' && s.pick ? 'pick' : s.phase;
+}
+function motionSnap() {
+  const rects = new Map();
+  if (!reduceMotion) app.querySelectorAll('[data-card]').forEach(el => rects.set(el.dataset.card, el.getBoundingClientRect()));
+  return { rects, overlay: !!app.querySelector('.overlay') };
+}
+function motionPlay(snap) {
+  const key = screenKey(), run = typeof s !== 'undefined' ? s : null;
+  const now = run && { run, key, hp: run.hp, gold: run.gold, slain: run.slain, weapon: run.weapon ? run.weapon.v + ':' + run.weapon.limit : '' };
+  const was = motionLast; motionLast = now;
+  if (reduceMotion || !now) return;
+  if (!was || was.key !== key || was.run !== run) { if (key !== 'intro') screenIn(); return; }
+  // same screen: cards that moved glide to their new place
+  app.querySelectorAll('[data-card]').forEach(el => {
+    const r0 = snap.rects.get(el.dataset.card); if (!r0) return;
+    const r = el.getBoundingClientRect(), dx = r0.left - r.left, dy = r0.top - r.top;
+    if (Math.abs(dx) + Math.abs(dy) > 2) anim(el, [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 300 });
+  });
+  const overlay = app.querySelector('.overlay');
+  if (overlay && !snap.overlay) {
+    anim(overlay, [{ opacity: 0 }, { opacity: 1 }], { duration: 200 });
+    anim(overlay.firstElementChild, [{ opacity: 0, transform: 'translateY(12px) scale(.97)' }, { opacity: 1, transform: 'none' }], { duration: 280 });
+  }
+  const dHp = now.hp - was.hp, dGold = now.gold - was.gold, dPts = now.slain - was.slain;
+  if (dHp) {
+    countUp('.stat.hp .num', was.hp, now.hp);
+    barFrom('.stat.hp .hpbar > i', 100 * was.hp / s.maxHp, dHp < 0);
+    floatNum('.stat.hp', dHp < 0 ? `−${-dHp}` : `+${dHp}`, dHp < 0 ? 'dmg' : 'heal');
+    if (dHp < 0) hurt(-dHp); else anim(app.querySelector('.stat.hp'), [{ filter: 'brightness(1.6)' }, { filter: 'none' }], { duration: 500 });
+  }
+  if (dGold) { countUp('.stat.gold .num', was.gold, now.gold); floatNum('.stat.gold', dGold < 0 ? `−${-dGold}` : `+${dGold}`, 'gold'); }
+  if (dPts > 0 && s.contract && !survival()) {
+    countUp('.contract .pts .num', was.slain, now.slain);
+    barFrom('.contract .progress > i', Math.min(100, 100 * was.slain / s.contract.target), false);
+    floatNum('.contract .pts', `+${dPts}`, 'pts');
+  }
+  if (now.weapon !== was.weapon && now.weapon) pop('.stat.weapon');
+}
+// The screen changed: its parts rise into place one after another, and lists of choices deal in.
+function screenIn() {
+  const parts = app.querySelector('.cols') ? [...app.querySelectorAll('.cols > .side > :not(.extras), .cols > .stage > *')] : [...app.children].filter(el => el.tagName !== 'HEADER' && !el.classList.contains('version'));
+  parts.slice(0, 8).forEach((el, i) => anim(el, [{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }], { duration: 380, delay: 40 * i, fill: 'backwards' }));
+  app.querySelectorAll('.offers > .offer, .picks > *').forEach((el, i) =>
+    anim(el, [{ opacity: 0, transform: 'translateY(26px) rotate(-3deg) scale(.92)' }, { opacity: 1, transform: 'none' }], { duration: 460, delay: 160 + 70 * i, easing: EASE.back, fill: 'backwards' }));
+}
+// A number counts from its old value to its new one (the text before any unit stays in step).
+function countUp(sel, from, to) {
+  const el = app.querySelector(sel), t = el && el.firstChild;
+  if (!t || t.nodeType !== 3 || from === to) return;
+  const t0 = performance.now(), ms = Math.min(600, 250 + 25 * Math.abs(to - from));
+  const step = n => { if (!t.isConnected) return; const k = Math.min(1, (n - t0) / ms); t.nodeValue = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(step); };
+  t.nodeValue = from; requestAnimationFrame(step);
+}
+// A bar slides from its old width. A loss leaves a pale chip behind that drains a moment later, as fighting games do.
+function barFrom(sel, fromPct, chip) {
+  const bar = app.querySelector(sel); if (!bar) return;
+  const to = bar.style.width, toPct = parseFloat(to);
+  if (chip && fromPct > toPct) {
+    const c = document.createElement('b'); c.className = 'chip'; c.style.left = to; c.style.width = (fromPct - toPct) + '%';
+    bar.parentElement.appendChild(c);
+    const a = anim(c, [{ opacity: 1, transform: 'scaleX(1)' }, { opacity: 1, transform: 'scaleX(0)' }], { duration: 450, delay: 300, easing: EASE.inOut, fill: 'forwards' });
+    if (a) a.onfinish = () => c.remove(); else c.remove();
+    return;
+  }
+  anim(bar, [{ width: fromPct + '%' }, { width: to }], { duration: 420 });
+}
+// A number floats up off a spot and fades: red for damage, green for healing, gold for gold, ink for points.
+function floatNum(sel, text, kind) {
+  const el = app.querySelector(sel), layer = document.getElementById('fx'); if (!el || !layer) return;
+  const r = el.getBoundingClientRect(), n = document.createElement('span');
+  n.className = 'floatnum ' + kind; n.textContent = text;
+  n.style.left = (r.left + r.width / 2) + 'px'; n.style.top = (r.top + r.height / 2) + 'px';
+  layer.appendChild(n);
+  const a = anim(n, [{ opacity: 0, transform: 'translate(-50%, -30%) scale(.6)' }, { opacity: 1, transform: 'translate(-50%, -70%) scale(1.15)', offset: .18 }, { opacity: 1, transform: 'translate(-50%, -110%) scale(1)', offset: .6 }, { opacity: 0, transform: 'translate(-50%, -170%) scale(.95)' }], { duration: 1100 });
+  if (a) a.onfinish = () => n.remove(); else n.remove();
+}
+const pop = sel => anim(app.querySelector(sel), [{ transform: 'scale(1)' }, { transform: 'scale(1.08)', offset: .35 }, { transform: 'scale(1)' }], { duration: 360, easing: EASE.inOut });
+// Taking a hit: the health box shakes, the screen's edges flash red, and a big hit jolts the whole table.
+function hurt(dmg) {
+  const k = Math.min(1, dmg / 10);
+  anim(app.querySelector('.stat.hp'), [{ transform: 'none' }, { transform: 'translateX(-5px)' }, { transform: 'translateX(4px)' }, { transform: 'translateX(-2px)' }, { transform: 'none' }], { duration: 320, easing: 'linear' });
+  const flash = document.createElement('div'); flash.className = 'hurtflash'; document.body.appendChild(flash);
+  const a = anim(flash, [{ opacity: .35 + .5 * k }, { opacity: 0 }], { duration: 500 });
+  if (a) a.onfinish = () => flash.remove(); else flash.remove();
+  if (dmg >= 5) { const m = 2 + 4 * k; anim(app.querySelector('.stage') || app, [{ transform: 'none' }, { transform: `translate(${-m}px, ${m / 2}px)` }, { transform: `translate(${m * .8}px, ${-m / 2}px)` }, { transform: `translate(${-m / 3}px, 0)` }, { transform: 'none' }], { duration: 300, easing: 'linear' }); }
+}
+// A played card leaves the table its own way: a weapon flies to your weapon slot, a potion into your health,
+// a monster recoils from the blow and drops away. Resolves when it's gone.
+function leaveCard(el, c, mode) {
+  const r = el.getBoundingClientRect();
+  const to = sel => { const t = rectOf(sel); return t ? `translate(${t.left + t.width / 2 - (r.left + r.width / 2)}px, ${t.top + t.height / 2 - (r.top + r.height / 2)}px) scale(${Math.max(.2, t.height / r.height)})` : 'translateY(-20px) scale(.8)'; };
+  let a;
+  el.style.pointerEvents = 'none'; el.style.zIndex = 4;
+  if (c.kind === 'weapon') a = anim(el, [{ transform: 'none' }, { transform: 'translateY(-10px) scale(1.05) rotate(-2deg)', offset: .25 }, { transform: to('.stat.weapon'), opacity: .2 }], { duration: 380, easing: EASE.inOut, fill: 'forwards' });
+  else if (c.kind === 'potion') a = anim(el, [{ transform: 'none' }, { transform: 'translateY(-8px) scale(1.04)', offset: .25 }, { transform: to('.stat.hp'), opacity: .1 }], { duration: 380, easing: EASE.inOut, fill: 'forwards' });
+  else { const dir = mode === 'weapon' ? 1 : -1; a = anim(el, [{ transform: 'none' }, { transform: `translateX(${8 * dir}px) rotate(${3 * dir}deg) scale(.97)`, offset: .2 }, { transform: `translateX(${-4 * dir}px) rotate(${-2 * dir}deg)`, offset: .4, opacity: 1 }, { transform: `translateY(30px) rotate(${6 * dir}deg) scale(.85)`, opacity: 0 }], { duration: 380, easing: 'ease-in', fill: 'forwards' }); }
+  return a ? a.finished.catch(() => {}) : Promise.resolve();
+}
 
 // ---------- per-viewer conveniences (browser storage; may be unavailable) ----------
 const store = {
@@ -2186,7 +2311,9 @@ function renderTitle() {
 }
 let moreOpen = false; // phones: the How to play / Top scores panel
 const narrow = () => !(window.matchMedia && matchMedia('(min-width: 900px) and (min-height: 520px)').matches);
-function render() {
+// Every redraw goes through here, so motion sees what changed whatever caused it.
+function render() { const snap = motionSnap(); drawScreen(); motionPlay(snap); }
+function drawScreen() {
   hideTip();
   if (titleOn) { renderTitle(); return; }
   if (!s) return;
@@ -2541,8 +2668,8 @@ app.addEventListener('click', async e => {
     const c = s.room.find(x => x.id === +d.id); if (!c) return;
     const name = c.kind === 'monster' ? (d.act === 'weapon' ? 'slash' : 'punch') : c.kind === 'potion' && E.potionHeal(s, c) > 0 && s.hp < s.maxHp ? 'heal' : null;
     if (cardEl && !reduceMotion) {
-      busy = true; if (name) fx(name, cardEl.getBoundingClientRect()); cardEl.classList.add('leaving');
-      await new Promise(r => setTimeout(r, 260)); busy = false;
+      busy = true; if (name) fx(name, cardEl.getBoundingClientRect());
+      await leaveCard(cardEl, c, d.act); busy = false;
     }
     if (c.kind === 'weapon' && s.weapon) { const at = rectOf('.stat.weapon'); effect = () => fx('weapon-break', at); } // the old weapon is dropped
     if (c.kind === 'monster') { const w = d.act === 'weapon' && E.canUseWeapon(s, c); lastHit = { name: cardName(c), v: c.v, mode: w ? 'weapon' : 'bare', dmg: E.monsterDamage(s, c, w), card: { ...c } }; }
