@@ -8,6 +8,15 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.5.0 (2026-10-15)
+The relic rework, from design/relics-plan-1-47.md and design/engine-review-1-47.md. Relics now change how you play instead of adding points, some grow during a run, some have a real cost, and you can see each one work.
+- **22 new relics.** Rule-benders: Stash Pouch (set a card aside for a later room), Spyglass (see the next 3 cards), Bait, Blood Price (pay 1 health to swap a card), Greedy Hands (take all 4 cards of a room), Alchemy Kit (equip a potion as a weapon), Twin Blades (hold two weapons and pick one per fight), Cleave, Cursed Contract, Hourglass (undo a card, twice per floor), Mimic's Tongue (drink little monsters, fight potions), Necromancer's Bell. Growing: Notched Hilt, Hardened Knuckles, Compound Purse, Miser's Purse, Scar Tissue, Trophy Belt. With a cost: Glass Blade, Iron Ball, Pact of Hunger. For fleeing: Escape Artist.
+- **17 relics retired**, the "+N points" ones and the dead weight: Blade Oil, Quickdraw, Brawler, Ambush, Trophy Hunter, Down Payment, Crown of Thorns, Bone Crown, Haggler, Quartermaster, Thick Hide, Herbalist, Tithe Box, Scout, Lantern, Loaded Dice, Bounty Ledger. A saved run holding one simply loses it.
+- **Rarity matches power**, measured in the simulator: Grindstone, Tip Jar, Fortune Teller, Oathkeeper and Alchemist are rare now; Second Heart, Warden's Keys and Rulebreaker are common.
+- **You see relics work.** When a relic does something, its icon pulses with a soft chime and a small number floats up from it. Growing relics show their count on the icon.
+- **Raise:** only War Drum gives one now, and a met raised contract pays half its pay again.
+- Contract targets are about 4% lower to make up for the retired point relics. Simulator wins: 12 / 15 / 16% (cautious / balanced / greedy), about where they were.
+
 ## 2.4.1 (2026-10-15)
 Bug fix.
 - **No more "the The Warden":** dying to a boss now reads "Slain by the Warden", and the death lines no longer double up the "The" (or say "a The Warden"). Dying to the Broodmother now gets the Broodmother's own line, and the boss who killed you no longer also "watched the whole thing".
