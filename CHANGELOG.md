@@ -8,6 +8,13 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.2.0 (2026-10-15)
+Quieter, darker sounds that fit a dungeon. Dude found 2.1.0 too sharp and game-like.
+- **Every sound remade** low and soft-edged, with the same small stone-room echo behind each one, so they sound like they happen in the dungeon rather than on a screen.
+- Blades swing and bite with a dull clink instead of a bright ring, fists and hits are felt more than heard, coins drop into a purse, cards slide like old parchment, and the bell for strikes and deaths sounds far below.
+- The bright menu and fanfare sounds from the free pack are gone. Menus open like a heavy wooden lid, a relic hums awake, a met contract rings two low bells, and a win climbs three bells over a low drone.
+- Everything plays a little quieter by default.
+
 ## 2.1.0 (2026-10-15)
 The game has sound.
 - **Cards and combat:** cards swish out of the pile and snap over, a weapon slashes and rings, fists thump, every hit you take lands with a low thud (heavier for bigger hits), a weapon being drawn rings out, a potion pops and gulps, and a broken weapon shatters.
