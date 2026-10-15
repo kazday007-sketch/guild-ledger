@@ -260,6 +260,7 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 .coach .ok { font-size: 17px; padding: 10px 22px; }
 @media (max-width: 560px) { .coach > .clerk { width: 60px; height: 75px; } .coach p { font-size: 19px; } }
 .coach > :not(.clerk) { grid-column: 2; }
+.coach .tipback { font-size: 14px; padding: 0; }
 .coach.nar { grid-template-columns: 1fr; } .coach.nar > * { grid-column: 1; }
 .coach p.retort { font-size: 18px; font-style: italic; color: var(--ash); } .coach p.retort .label { font-style: normal; margin-right: 4px; display: inline !important; } /* compact layouts hide labels, but a line needs its speaker */
 .settle { position: relative; display: flex; gap: 14px; align-items: center; background: var(--panel-bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
@@ -1364,7 +1365,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.40.0';
+const VERSION = '1.41.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -1522,7 +1523,7 @@ const MODES = { guided: 'Guided start', full: 'Full game', onedeck: 'One deck' }
 const gameMode = () => { const m = store.get('mode', 'guided'); return MODES[m] ? m : 'guided'; };
 function startRun(tutorial = gameMode() === 'guided') {
   if (tutorial) { store.set('mode', 'guided'); TUTORIAL_HINTS.forEach(k => { seenHints[k] = k === 'survive'; }); store.set('hints', seenHints); }
-  tut = tutorial ? { step: 0 } : null; lastHit = null; introStep = tutorial ? 0 : null;
+  tut = tutorial ? { step: 0 } : null; lastHit = null; lastTip = null; recall = false; introStep = tutorial ? 0 : null;
   s = E.newGame(undefined, { guided: gameMode() === 'guided', oneDeck: gameMode() === 'onedeck', tutorial }); rec = newRec(); rec.mode = gameMode(); rec.tutorial = tutorial;
   if (tutorial) rec.tut = { intro: null, guided: 0, skipped: false, spared: 0, recap: false }; // where tutorial players get to, for the playtest report
   noteSurvivalFloor(); mapView = 'auto';
@@ -1596,15 +1597,16 @@ function currentHint() {
   const shopNow = s.phase === 'shop' && !s.pick; // the relic pick comes before the shop
   const list = [
     ['spared', s.phase === 'room' && s.spared, 'That should have killed you. You\'re at <b>1 health</b> because the goat begged us to go easy on floor 1. Next time, flee or use your weapon.', '.stat.hp', 'I did not beg.'],
-    ['tutdone', s.phase === 'room' && s.tutorial && s.floor === 0 && s.roomsCleared === 2 && s.handled === 0, '<b>You\'ve got the basics.</b> Use 3 cards a room, hit big monsters with your weapon, drink potions when hurt, and flee rooms you can\'t win. 2 more rooms on your own.', null, 'Took you long enough.'],
-    ['lastpick', s.phase === 'room' && s.tutorial && s.floor === 0 && s.roomsCleared === 0 && s.handled === 2, 'Your sword blocked 7, so you only lost <b>2</b>. Your turn: one more card ends the room.', '.stat.hp'],
+    ['tutdone', s.phase === 'room' && s.tutorial && s.floor === 0 && s.roomsCleared === 2 && s.handled === 0, '<b>You\'ve got the basics.</b> Use 3 cards a room, hit the biggest monsters first, drink potions when hurt, and flee rooms you can\'t win. <b>The whole run:</b> get through 9 floors and beat 3 bosses.', null, 'Took you long enough.'],
+    ['lastpick', s.phase === 'room' && s.tutorial && s.floor === 0 && s.roomsCleared === 0 && s.handled === 2, 'Your sword blocked 7, so you only lost <b>2</b>. Now it only hits monsters up to <b>9</b>, which is why you always hit the <b>biggest first</b>. One more card ends the room.', '.stat.weapon'],
     ['fists', s.phase === 'room' && s.tutorial && s.floor === 0 && s.floorBare && !s.spared, 'Fists block nothing, so you took the <b>full hit</b>. Save them for small monsters.', '.stat.hp'],
     ['flee', s.phase === 'room' && s.handled === 0 && E.canFlee(s) && s.room.filter(c => c.kind === 'monster' && c.v >= 10 && !E.canUseWeapon(s, c)).length >= 2, 'These are too big for your weapon. Tap <b>Flee room</b> to run. You can\'t flee 2 rooms in a row. The goat calls it a tactical retreat. He retreats a lot.', '[data-flee]'],
-    ['limit', s.phase === 'room' && s.weapon && s.weapon.limit != null, 'Your weapon is dull now. It only hits monsters up to the number under <b>Weapon</b>. Bigger ones need <b>Fists</b>.', '.stat.weapon'],
+    ['limit', s.phase === 'room' && s.weapon && s.weapon.limit != null, 'Your weapon is dull now. It only hits monsters up to the number under <b>Weapon</b>, so hit the <b>biggest first</b>. Bigger ones need <b>Fists</b>.', '.stat.weapon'],
     ['potion', s.phase === 'room' && !s.potionUsed && s.hp < s.maxHp && s.room.some(c => c.kind === 'potion'), 'That\'s a <b>potion</b>. Tap <b>Drink</b> to heal. Only 1 potion works per room.', '.stat.hp'],
     ['survive', s.phase === 'room' && survival() && s.floor === 0, '<b>Stay alive</b> for 4 rooms. Use 3 of the 4 cards in each room.', null, 'I do this in my sleep.'],
     ['gold', shopNow && s.floor === 0, '<b>New! Gold.</b> The guild paid you 6 gold for surviving. Don\'t let it go to your head. Spend it here: a <b>Bandage</b> heals 6 health. Then tap <b>Leave shop</b>.', '.stat.gold, .shop .services'],
-    ['contracts', s.phase === 'bid' && !multi, '<b>New! Contracts.</b> Promise to kill this many monster points on this floor. Make it and you get gold. Miss it and you get a <b>strike</b>. Three strikes ends your run.', '.offers'],
+    ['contracts', s.phase === 'bid' && !multi, '<b>New! Contracts.</b> From now on, the guild pays you to kill monsters. Tap the <b>contract</b> to sign it.', '.offers'],
+    ['contract2', s.phase === 'room' && s.contract && !survival() && s.slain === 0 && s.handled === 0, `Kill this many <b>monster points</b> on this floor to get paid.${seenHints.strikes ? '' : ' Miss it and you get a <b>strike</b>. Three strikes ends your run.'}`, '.contract'],
     ['strikes', s.phase === 'bid' && contractsOpen(), 'These are your <b>strikes</b>. Miss a contract and you get one. Three strikes ends your run.', '.stat.guild'],
     ['met', s.phase === 'room' && s.contract && !survival() && s.slain >= s.contract.target, '<b>Contract met!</b> Not bad. Extra points only pay a little more gold, so from here on, <b>protect your health</b>. Take the smallest hits and drink potions.', '.contract'],
     ['relics', s.phase === 'shop' && !!s.pick && !payoutView, '<b>New! Relics.</b> Your real power down here. Pick one after every floor and it works for the rest of the run. Some work well together; finding out which is your job. You can carry 8.', '.picks'],
@@ -1788,18 +1790,20 @@ function peekHTML() {
 const logHTML = () => `<details class="rules"><summary>Log</summary><div class="log">${s.log.map(l => `<p>${esc(l)}</p>`).join('') || '<p class="muted">Your deeds will be recorded here.</p>'}</div></details>`;
 function coachHTML() {
   if (tut && TUTORIAL[tut.step]) { shownHint = null; return `<aside class="coach">${clerk('neutral')}<span class="label">Azazel says</span><p>${TUTORIAL[tut.step].text}</p><button class="link" data-skiptut>Skip tutorial</button></aside>`; }
-  const h = currentHint(), g = goal();
+  let h = currentHint(); const g = goal();
   shownHint = h ? h.key : null;
+  if (h) { lastTip = h; recall = false; } else if (recall && lastTip) h = lastTip; // "Last tip" brings back the one you just passed
   const low = s.phase === 'room' && s.hp <= Math.max(5, s.maxHp / 4); // the clerk worries when you're nearly dead
   // Tips are the dungeon's voice: no name, no face. Now and then Azazel answers back, and only then does he appear.
   if (h) return h.goat
     ? `<aside class="coach hint">${clerk(low ? 'worried' : 'neutral')}<p>${h.text}</p><p class="retort"><span class="label">Azazel</span> “${h.goat}”</p>${g ? `<p class="sub"><b>Goal:</b> ${g.text}</p>` : ''}</aside>`
     : `<aside class="coach hint nar"><p>${h.text}</p>${g ? `<p class="sub"><b>Goal:</b> ${g.text}</p>` : ''}</aside>`;
-  return g ? `<aside class="coach goalonly ${g.done ? 'done' : ''}">${clerk(g.done ? 'impressed' : low ? 'worried' : 'neutral')}<span class="label">${g.done ? 'Contract met' : 'Goal'}</span><p>${g.text}</p></aside>` : '';
+  return g ? `<aside class="coach goalonly ${g.done ? 'done' : ''}">${clerk(g.done ? 'impressed' : low ? 'worried' : 'neutral')}<span class="label">${g.done ? 'Contract met' : 'Goal'}</span><p>${g.text}</p>${lastTip ? '<button class="link tipback" data-lasttip>Last tip</button>' : ''}</aside>` : '';
 }
 // A tip stays up until your next move, then it's done. No "Got it" tap.
 let shownHint = null;
-const hintCovers = { contracts: ['strikes'] }; // tips that also teach another one
+let lastTip = null, recall = false; // the last tip shown, which you can bring back once it's gone
+const hintCovers = { contract2: ['strikes'], lastpick: ['limit'] }; // tips that also teach another one
 function retireHint(key) {
   if (!key) return;
   [key, ...(hintCovers[key] || [])].forEach(k => { seenHints[k] = true; });
@@ -2439,6 +2443,7 @@ app.addEventListener('click', async e => {
     render(); return;
   }
   if ('more' in d) { moreOpen = !moreOpen; render(); return; }
+  if ('lasttip' in d) { recall = true; render(); return; }
   if ('pause' in d) { paused = true; moreOpen = false; render(); return; }
   if ('deck' in d) { deckOpen = true; moreOpen = false; render(); return; }
   if ('deckclose' in d) { deckOpen = false; render(); return; }
@@ -2535,7 +2540,7 @@ app.addEventListener('click', async e => {
   if (acted && rec && rec.tut && s.spared && !rec.tut.spared) rec.tut.spared = 1;
   if (acted && rec && rec.tut && s.tutorial && s.floor === 0 && s.roomsCleared >= 2) rec.tut.recap = true;
   if (acted && s.tutorial && s.floor === 0 && s.phase === 'room' && s.roomsCleared === 2 && s.handled === 0 && !seenHints.tutdone && hintBefore !== 'tutdone' && prev === 'room') effect = (e => () => { if (e) e(); fx('contract-met', rectOf('.coach')); })(effect); // tutorial done: a stamp on the goat's recap
-  if (acted) { afterAction(prev); if (!tut) retireHint(hintBefore); }
+  if (acted) { afterAction(prev); if (!tut) retireHint(hintBefore); recall = false; }
   if (prev === 'room' && s.phase === 'shop') { // the floor is settled: one mark on the clerk's ledger, and coins on your gold
     const r = s.lastResult || '', last = effect;
     const mark = /strike \d of 3/i.test(r) ? 'strike' : E.BOSSES[s.floor] ? 'boss-beaten' : r.startsWith('Contract met') ? 'contract-met' : null;
