@@ -8,6 +8,15 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.3.0 (2026-10-15)
+Big moments: the beats a run is remembered by now land properly.
+- **Bosses walk in.** A boss floor opens on the boss: its picture comes out of the dark, its name and rule fill the screen, a bell tolls and the screen shudders. Tap (or any key) to go on, or it fades by itself.
+- **Boss cards** pulse red with a low bell as they're dealt onto the table.
+- **Bosses fall.** The killing blow freezes the moment for a beat, a white flash bursts from the card, the table shakes, and the card blows apart. The payout then shows the beaten boss's picture with "beaten" across the top.
+- **Contract met** mid-floor: the contract glows gold and gets its stamp, with a bell.
+- **Strikes land hard:** the strike stamp shakes the screen and flashes its edges red. A met contract's payout glows gold as its stamp comes down.
+- **The end of a run.** A win turns slow golden rays behind the screen while gold drifts down. A death drains the colour from the dungeon. Either way the medal spins in last.
+
 ## 2.2.0 (2026-10-15)
 Quieter, darker sounds that fit a dungeon. Dude found 2.1.0 too sharp and game-like.
 - **Every sound remade** low and soft-edged, with the same small stone-room echo behind each one, so they sound like they happen in the dungeon rather than on a screen.
