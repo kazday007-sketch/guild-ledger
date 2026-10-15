@@ -8,6 +8,15 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.4.0 (2026-10-15)
+Music and ambience.
+- **A quiet loop for each place:** a low drone, a slow pad and a few far-off bells, with the place's own sounds underneath. The crypt has wind, the sewers have running water and drips, the vault has a deep hum and distant chains, and the guild hall (title, map, payout and shop) is warmer, with candles crackling.
+- **Boss floors** get their own tenser loop with a slow heartbeat under it.
+- The music fades from one place to the next, and stops when you die so the bell tolls alone.
+- **Music has its own slider** in the pause menu next to Sounds. **M** and the title's Sound switch now mute everything, and your choice is kept.
+- Music goes quiet while the game's tab is in the background.
+- All loops are made by `src/synth_music.py`, about 380 KB each.
+
 ## 2.3.0 (2026-10-15)
 Big moments: the beats a run is remembered by now land properly.
 - **Bosses walk in.** A boss floor opens on the boss: its picture comes out of the dark, its name and rule fill the screen, a bell tolls and the screen shudders. Tap (or any key) to go on, or it fades by itself.
