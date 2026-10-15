@@ -1,5 +1,6 @@
-# Renders the card, combat and coin sounds in assets/sfx: python3 src/synth_sfx.py assets/sfx (needs numpy and ffmpeg).
-# Built from filtered noise and tones with a fixed seed, so a re-run gives the same files.
+# Renders every sound in assets/sfx: python3 src/synth_sfx.py assets/sfx (needs numpy and ffmpeg).
+# Built from filtered noise and tones with a fixed seed, so a re-run gives the same files. The aim is a quiet stone
+# dungeon: dull, low and soft-edged, everything heard through the same small stone-room echo.
 import numpy as np, subprocess, sys, os
 SR = 44100
 rng = np.random.default_rng(7)
@@ -7,9 +8,9 @@ out = sys.argv[1]
 def t(d): return np.arange(int(SR * d)) / SR
 def noise(d): return rng.uniform(-1, 1, int(SR * d))
 def env(d, a=.005, decay=.1):
-    x = t(d); e = np.minimum(1, x / max(a, 1e-4)) * np.exp(-np.maximum(0, x - a) / decay); return e
+    x = t(d); return np.minimum(1, x / max(a, 1e-4)) * np.exp(-np.maximum(0, x - a) / decay)
 def biquad(x, kind, f, q=.7):
-    # f may be an array (sweep); recompute coefficients every 64 samples
+    # f may be an array (a sweep); coefficients are refreshed every 64 samples
     f = np.broadcast_to(np.asarray(f, float), x.shape)
     y = np.zeros_like(x); x1 = x2 = y1 = y2 = 0.0
     for s in range(0, len(x), 64):
@@ -25,60 +26,75 @@ def biquad(x, kind, f, q=.7):
     return y
 def sweep(f0, f1, d, curve=2): x = t(d) / d; return f0 + (f1 - f0) * (1 - (1 - x) ** curve)
 def tone(freqs, d):
-    ph = 2 * np.pi * np.cumsum(np.broadcast_to(np.asarray(freqs, float), t(d).shape)) / SR; return np.sin(ph)
-def metal(partials, d, decays, amps):
-    return sum(a * np.sin(2 * np.pi * f * t(d) + rng.uniform(0, 6)) * np.exp(-t(d) / dc) for f, dc, a in zip(partials, decays, amps))
+    return np.sin(2 * np.pi * np.cumsum(np.broadcast_to(np.asarray(freqs, float), t(d).shape)) / SR)
+def bell(partials, d, decays, amps, attack=.004):
+    a = np.minimum(1, t(d) / attack)
+    return a * sum(g * np.sin(2 * np.pi * f * t(d) + rng.uniform(0, 6)) * np.exp(-t(d) / dc) for f, dc, g in zip(partials, decays, amps))
 def mix(d, *parts):
     y = np.zeros(int(SR * d))
     for at, sig in parts:
         i = int(SR * at); n = min(len(sig), len(y) - i); y[i:i + n] += sig[:n]
     return y
-def save(name, y, gain_db=-3):
-    y = y - np.mean(y); n = int(SR * .004); y[-n:] *= np.linspace(1, 0, n)
+# The room: a few early bounces off near walls, then a dark tail about a second long.
+ir = biquad(noise(1.4), 'lp', 2200) * np.exp(-t(1.4) / .22)
+for ms, g in [(9, .5), (17, .35), (29, .28), (43, .2)]: ir[int(SR * ms / 1000)] += g * 4
+ir /= np.sqrt(np.sum(ir ** 2))
+def room(y, wet=.3, tail=1.0):
+    n = len(y) + int(SR * tail)
+    r = np.fft.irfft(np.fft.rfft(y, 2 ** int(np.ceil(np.log2(n + len(ir))))) * np.fft.rfft(ir, 2 ** int(np.ceil(np.log2(n + len(ir))))))[:n]
+    dry = np.concatenate([y, np.zeros(n - len(y))])
+    return dry * (1 - wet) + r * wet * (np.max(np.abs(y)) / (np.max(np.abs(r)) + 1e-9))
+def save(name, y, wet=.3, tail=.8, lp=4200, gain_db=-6):
+    y = room(biquad(y, 'lp', lp, .6), wet, tail)
+    y = y - np.mean(y); n = int(SR * .02); y[-n:] *= np.linspace(1, 0, n)
     y = y / (np.max(np.abs(y)) + 1e-9) * 10 ** (gain_db / 20)
     pcm = (np.clip(y, -1, 1) * 32767).astype('<i2').tobytes()
-    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-f', 's16le', '-ar', str(SR), '-ac', '1', '-i', '-', '-af', 'lowpass=f=9000', '-c:a', 'libmp3lame', '-q:a', '4', os.path.join(out, name + '.mp3')], input=pcm, check=True)
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-f', 's16le', '-ar', str(SR), '-ac', '1', '-i', '-', '-c:a', 'libmp3lame', '-q:a', '4', os.path.join(out, name + '.mp3')], input=pcm, check=True)
+thump = lambda f0, f1, d, dec: tone(sweep(f0, f1, d, 3), d) * env(d, .004, dec)
+hush = lambda d, f, q, a, dec: biquad(noise(d), 'bp', f, q) * env(d, a, dec)
 
-# deal: a card slides off the pile (soft paper swish) and taps down
-d = .16; swish = biquad(noise(d), 'bp', sweep(4500, 1800, d), 1.2) * env(d, .03, .05)
-tap = biquad(noise(.03), 'bp', 1800, 2) * env(.03, .001, .006)
-save('deal', mix(.2, (0, swish), (.13, tap * 1.5)))
-# flip: a crisp card snap
-save('flip', mix(.08, (0, biquad(noise(.05), 'bp', 2600, 1.5) * env(.05, .001, .01)), (.012, biquad(noise(.04), 'bp', 1400, 2) * env(.04, .001, .012) * .6)))
-# slash: a blade whooshes through and bites
-d = .18; whoosh = biquad(noise(d), 'bp', sweep(700, 5000, d, 1), 2.5) * env(d, .12, .04)
-bite = mix(.35, (0, metal([1170, 2730, 4130, 5610], .35, [.09, .07, .05, .04], [.5, .6, .4, .3])), (0, biquad(noise(.04), 'hp', 2500) * env(.04, .001, .01) * 1.2))
-save('slash', mix(.5, (0, whoosh * .9), (.15, bite)))
-# punch: a dull body blow
-d = .25; body = tone(sweep(150, 45, d, 3), d) * env(d, .002, .07)
-smack = biquad(noise(.05), 'lp', 1400) * env(.05, .001, .012)
-save('punch', np.tanh(2.2 * mix(.28, (0, body), (0, smack * 1.4))))
-# hurt: a heavy low thump under the hit
-d = .45; boom = tone(sweep(95, 32, d, 2), d) * env(d, .004, .13)
-rumble = biquad(noise(d), 'lp', 260) * env(d, .004, .09) * 2.5
-save('hurt', np.tanh(1.8 * (boom + rumble)))
-# equip: a blade drawn from its sheath, ringing
-d = .22; scrape = biquad(noise(d), 'bp', sweep(1500, 7000, d, 1), 4) * env(d, .16, .05)
-ring = metal([2210, 3480, 5320, 7050], .7, [.25, .18, .12, .08], [.5, .45, .3, .2]) * (1 + .15 * np.sin(2 * np.pi * 6 * t(.7)))
-save('equip', mix(.85, (0, scrape), (.17, ring * .8)))
-# potion: a cork pop, then a few gulps
-pop = tone(sweep(900, 350, .03), .03) * env(.03, .001, .008)
-gulps = [(.12 + .13 * i + rng.uniform(-.01, .01), np.tanh(3 * tone(sweep(220 + 30 * i, 520 + 40 * i, .07, 1), .07) * env(.07, .01, .025)) * .8) for i in range(3)]
-save('potion', mix(.55, (0, pop), *gulps))
-# coins: a few coins clinking onto a pile
-def coin(f): return mix(.25, (0, metal([f, f * 2.76, f * 5.4], .25, [.07, .05, .03], [.6, .5, .3])), (0, biquad(noise(.01), 'hp', 4000) * env(.01, .0005, .002) * .5))
-save('coins', mix(.45, *[(.055 * i + rng.uniform(0, .02), coin(rng.uniform(2300, 3300)) * (1 - .12 * i)) for i in range(5)]))
-# stamp: a wooden stamp pressed onto paper
-thud = tone(sweep(170, 90, .12), .12) * env(.12, .001, .03)
-paper = biquad(noise(.09), 'bp', 2200, .8) * env(.09, .001, .03) * .5
-save('stamp', np.tanh(1.6 * mix(.2, (0, thud), (0, biquad(noise(.04), 'lp', 900) * env(.04, .001, .01)), (.01, paper))))
-# flee: a fast rush of air
-d = .4; save('flee', biquad(noise(d), 'bp', sweep(3500, 500, d, 1.5), 1.5) * env(d, .08, .12))
-# break: a blade snaps and the pieces clatter
-crack = biquad(noise(.03), 'hp', 1500) * env(.03, .0005, .006) * 1.5
-shard = lambda f: metal([f, f * 1.73, f * 2.91], .2, [.05, .04, .03], [.5, .4, .3])
-save('break', mix(.55, (0, crack), (0, metal([840, 1910, 3120], .3, [.04, .03, .02], [.6, .5, .4])), (.12, shard(2600)), (.2, shard(3400) * .7), (.31, shard(2950) * .5)))
-# toll: the dungeon's bell for a strike or a death
-d = 2.2; bell = metal([110, 146.8, 222, 297, 402], d, [1.2, .9, .6, .4, .25], [.7, .5, .45, .3, .2])
-save('toll', np.tanh(1.3 * mix(d, (0, bell), (0, tone(sweep(70, 40, .5), .5) * env(.5, .003, .15) * .8))))
+# click: a fingertip on stone
+save('click', mix(.08, (0, thump(260, 180, .06, .012)), (0, biquad(noise(.03), 'lp', 900) * env(.03, .002, .006) * .5)), wet=.25, tail=.4, lp=2500)
+# open / close: a heavy wooden lid lifted, then let down
+save('open', mix(.4, (0, hush(.3, sweep(300, 800, .3), 1.2, .08, .08)), (0, thump(110, 85, .2, .05) * .6)), wet=.35, lp=2200)
+save('close', mix(.35, (0, hush(.15, sweep(700, 300, .15), 1.2, .02, .04) * .6), (.08, thump(120, 60, .25, .06))), wet=.35, lp=2200)
+# deal: old card slid across the table
+save('deal', mix(.22, (0, hush(.18, sweep(1400, 700, .18), 1.0, .04, .05)), (.15, biquad(noise(.03), 'lp', 700) * env(.03, .002, .008) * .7)), wet=.22, tail=.4, lp=3000)
+# flip: a card laid face up
+save('flip', mix(.08, (0, hush(.06, 1100, 1.2, .004, .015))), wet=.2, tail=.3, lp=2800)
+# slash: a blade swung through the air and biting home
+whoosh = hush(.2, sweep(350, 1600, .2, 1), 1.6, .13, .04)
+bite = mix(.3, (0, bell([430, 980, 1610], .3, [.06, .04, .03], [.6, .35, .2])), (0, biquad(noise(.05), 'lp', 1500) * env(.05, .002, .015)))
+save('slash', mix(.55, (0, whoosh * .8), (.16, bite)), wet=.3)
+# punch: a dull blow to the body
+save('punch', np.tanh(1.4 * mix(.3, (0, thump(120, 45, .25, .07)), (0, biquad(noise(.05), 'lp', 600) * env(.05, .002, .014) * 1.2))), wet=.28, lp=2000)
+# hurt: the hit you take, felt more than heard
+save('hurt', np.tanh(1.3 * (thump(80, 30, .5, .14) + biquad(noise(.5), 'lp', 180) * env(.5, .006, .1) * 2 + hush(.5, 420, 1.2, .004, .05) * 1.2)), wet=.25, lp=1400) # the 420 Hz knock keeps it audible on phone speakers
+# equip: a blade taken up from the floor, a short muted ring
+scrape = hush(.2, sweep(700, 1800, .2, 1), 3, .12, .05) * .5
+ring = bell([880, 1320, 1990], .6, [.18, .12, .08], [.5, .35, .2], .006)
+save('equip', mix(.75, (0, scrape), (.15, ring), (.15, thump(160, 120, .08, .02) * .5)), wet=.35)
+# potion: a cork drawn, then slow swallows
+gulps = [(.14 + .16 * i, np.tanh(2 * tone(sweep(150 + 20 * i, 320 + 25 * i, .08, 1), .08) * env(.08, .012, .03)) * .7) for i in range(3)]
+save('potion', mix(.65, (0, tone(sweep(520, 260, .04), .04) * env(.04, .002, .012) * .8), *gulps), wet=.25, lp=2400)
+# coins: a few coins dropped into a purse
+def coin(f): return mix(.2, (0, bell([f, f * 2.4], .2, [.05, .03], [.5, .25], .002)), (0, biquad(noise(.015), 'bp', 2500, 1) * env(.015, .001, .004) * .3))
+save('coins', mix(.4, *[(.07 * i + rng.uniform(0, .02), coin(rng.uniform(1300, 1900)) * (1 - .15 * i)) for i in range(4)], (0, hush(.3, 1200, .8, .02, .08) * .25)), wet=.3, lp=3200)
+# stamp: wax and a heavy seal pressed down
+save('stamp', np.tanh(1.3 * mix(.2, (0, thump(140, 80, .14, .035)), (0, biquad(noise(.05), 'lp', 700) * env(.05, .002, .012)), (.01, hush(.08, 1500, .8, .002, .025) * .3))), wet=.3, lp=2200)
+# flee: a rush of air down a corridor
+save('flee', hush(.5, sweep(1400, 300, .5, 1.5), 1.2, .12, .15), wet=.4, tail=1.0, lp=2500)
+# break: a blade snapping, the pieces falling on stone
+shard = lambda f: bell([f, f * 1.7], .15, [.03, .02], [.4, .25], .002)
+save('break', mix(.6, (0, biquad(noise(.04), 'lp', 1800) * env(.04, .001, .01)), (0, bell([520, 1180, 1900], .25, [.05, .035, .025], [.6, .4, .25])), (.13, shard(1500)), (.22, shard(1900) * .7), (.33, shard(1700) * .5)), wet=.35)
+# toll: a far bell somewhere deep below, for a strike or a death
+save('toll', np.tanh(1.2 * mix(2.6, (0, bell([98, 131, 196, 247, 330], 2.6, [1.4, 1.0, .7, .5, .3], [.7, .45, .4, .25, .15], .01)), (0, thump(60, 40, .6, .2) * .6))), wet=.5, tail=1.4, lp=1600)
+# relic: something old waking up, a low hum and a soft chime
+hum = tone(110, 1.4) * np.minimum(1, t(1.4) / .3) * np.exp(-t(1.4) / .5) * .5
+save('relic', mix(1.6, (0, hum), (.1, bell([392, 588, 784], 1.3, [.6, .45, .3], [.5, .3, .15], .03))), wet=.5, tail=1.2, lp=2400)
+# met: two low bells, the guild's quiet approval
+save('met', mix(1.6, (0, bell([196, 392, 588], 1.2, [.6, .4, .25], [.6, .3, .15], .008)), (.28, bell([294, 588, 882], 1.3, [.6, .4, .25], [.6, .3, .15], .008))), wet=.45, tail=1.2, lp=2200)
+# win: three bells climbing out of the dark over a low drone
+drone = tone(73.4, 2.4) * np.minimum(1, t(2.4) / .4) * np.exp(-t(2.4) / 1.0) * .4
+save('win', mix(2.6, (0, drone), *[(.35 * i, bell([f, f * 2, f * 3], 1.8, [.9, .5, .3], [.6, .3, .12], .01)) for i, f in enumerate([147, 196, 294])]), wet=.5, tail=1.5, lp=2600)
 print('ok')
