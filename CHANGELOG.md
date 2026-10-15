@@ -8,6 +8,9 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.45.0 (2026-10-15)
+- **Main menu button after a run.** The end screen (win, death or struck out) now has Main menu next to New run. It sends your run report, with your name and note, just like New run, then takes you back to the title screen instead of starting a new run.
+
 ## 1.44.0 (2026-10-15)
 Shop reroll and a bigger skip reward.
 - **Reroll the shop's relic.** The relic niche has a Reroll button that swaps the relic for another rare one. The first reroll on a visit costs 2 gold and each one after costs 2 more (2, 4, 6...). The price starts over at your next shop. A relic you already bought can be rerolled too, so you can buy a second one.
