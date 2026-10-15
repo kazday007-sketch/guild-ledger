@@ -8,6 +8,16 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.6.0 (2026-10-15)
+Small touches.
+- **Boss screens wait for you.** The boss intro stays up until you tap it (or press Enter, Space or Esc), instead of fading by itself.
+- **Big hits land harder:** striking a monster of 10 or more holds the moment for a split second before the card gives way.
+- **The art breathes:** the pictures on the table's cards drift very slightly, each at its own pace.
+- **Dust** hangs and drifts in the air of the dungeon.
+- **Low health closes in:** below about a third of your health, the screen's edges darken to red, deeper the lower you go. Below a quarter they pulse with a slow heartbeat you can hear.
+- All of it is off for players whose device asks for reduced motion (the heartbeat sound stays).
+- **Music with a bit more drive:** each dungeon loop now has a low plucked bass walking the chords and a soft, muffled drum keeping a slow pulse, with a few more bell notes and a touch more brightness. The boss loop's heartbeat gets a pulsing bass under it; the hall gets a gentle bass line only.
+
 ## 2.5.0 (2026-10-15)
 The relic rework, from design/relics-plan-1-47.md and design/engine-review-1-47.md. Relics now change how you play instead of adding points, some grow during a run, some have a real cost, and you can see each one work.
 - **22 new relics.** Rule-benders: Stash Pouch (set a card aside for a later room), Spyglass (see the next 3 cards), Bait, Blood Price (pay 1 health to swap a card), Greedy Hands (take all 4 cards of a room), Alchemy Kit (equip a potion as a weapon), Twin Blades (hold two weapons and pick one per fight), Cleave, Cursed Contract, Hourglass (undo a card, twice per floor), Mimic's Tongue (drink little monsters, fight potions), Necromancer's Bell. Growing: Notched Hilt, Hardened Knuckles, Compound Purse, Miser's Purse, Scar Tissue, Trophy Belt. With a cost: Glass Blade, Iron Ball, Pact of Hunger. For fleeing: Escape Artist.

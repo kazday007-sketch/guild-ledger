@@ -1,6 +1,6 @@
 # Renders the music loops in assets/music: python3 src/synth_music.py assets/music (needs numpy and ffmpeg).
-# Each loop is a slow, low piece for one place: a drone, a soft pad moving through four chords, a few far-off bell
-# notes, and the sound of the place itself (wind, water, a hum). Loops are seamless: the reverb tail past the end is
+# Each loop is a low piece for one place: a drone, a soft pad moving through four chords, a plucked bass and a muffled
+# drum keeping a slow pulse, a few far-off bell notes, and the sound of the place itself (wind, water, a hum). Loops are seamless: the reverb tail past the end is
 # folded back onto the start. Fixed seeds, so a re-run gives the same files.
 import numpy as np, subprocess, sys, os
 SR = 22050
@@ -40,6 +40,22 @@ def reverb(y, wet):
     r = np.fft.irfft(np.fft.rfft(y) * np.fft.rfft(IR, len(y)), len(y))
     return y * (1 - wet) + r * wet * np.std(y) / (np.std(r) + 1e-9)
 
+def pulse(root, chords, beats, pattern, bass_gain, drum_gain, drum_on=(0, 2)):
+    # the drive: a low plucked bass walking each chord's root, and a muffled drum, on a grid that fits the loop exactly
+    y = np.zeros(N); beat = L / beats; per = beats // 8
+    for b in range(beats):
+        chord = chords[(b // per) % len(chords)]; bar = b % 4
+        for at, semis, g in pattern:
+            if int(at) == bar:
+                f = hz(chord[0] + semis, root); d = 1.2; x = t(d)
+                place(y, (b + at - bar) * beat, soft(f, d, 6, 1.3) * np.exp(-x / .3) * np.minimum(1, x / .008) * g * bass_gain)
+        if bar in drum_on:
+            x = t(.5); g = 1 if bar == 0 else .55
+            boom = np.sin(2 * np.pi * np.cumsum(95 * (1 - .45 * np.minimum(1, x / .12))) / SR) * np.exp(-x / .14)
+            skin = spectral(rng.uniform(-1, 1, len(x)), band(150, 700)) * np.exp(-x / .03) * .25
+            place(y, b * beat, (boom + skin) * g * drum_gain)
+    return y
+WALK = [(0, 0, 1), (1.5, 0, .55), (2, 7, .75), (3.5, 12, .45)]
 def track(name, root, chords, scale, ambience, notes=10, drone_gain=.5, pad_gain=.35, bell_gain=.18, extra=None):
     y = np.zeros(N)
     # drone: root and fifth, breathing slowly
@@ -57,7 +73,7 @@ def track(name, root, chords, scale, ambience, notes=10, drone_gain=.5, pad_gain
         place(y, at, bell(hz(rng.choice(scale), root * 4)) * bell_gain * rng.uniform(.6, 1))
         at += rng.uniform(3.5, 8.5)
     if extra: y += extra()
-    y = spectral(y, lowpass(1400, 1.5))
+    y = spectral(y, lowpass(1700, 1.5))
     y = reverb(y, .45)
     y += ambience()
     y = y / (np.max(np.abs(y)) + 1e-9) * 10 ** (-9 / 20)
@@ -96,15 +112,20 @@ def candles():
         x = t(.01); place(c, at, spectral(rng.uniform(-1, 1, len(x)), band(1500, 5000)) * np.exp(-x / .002) * rng.uniform(.01, .04)); at += rng.exponential(.35)
     return c + spectral(noise(), band(200, 800)) * .01
 def heartbeat():
-    y = np.zeros(N); beat = 60 / 52
+    y = np.zeros(N); beat = L / 56  # about 52 a minute, a whole number of beats per loop
     for i in range(int(L / beat)):
         for off, g in [(0, 1), (.28, .6)]:
             x = t(.35); place(y, i * beat + off, np.sin(2 * np.pi * np.cumsum(70 * (1 - .4 * x / .35)) / SR) * np.exp(-x / .08) * g * .35)
     return y
 
 minor = [0, 3, 5, 7, 10]
-track('crypt', 73.42, [[0, 3, 7], [-4, 0, 3], [-7, -4, 0], [-5, -1, 2]], minor, wind)            # D minor: Dm Bb Gm A
-track('sewers', 65.41, [[0, 3, 7], [-4, 0, 3], [-7, -4, 0], [-5, -2, 2]], minor, water, notes=8)  # C minor: Cm Ab Fm Gm
-track('vault', 82.41, [[0, 3, 7], [-4, 0, 3], [-7, -4, 0], [-1, 3, 6]], minor, hum, notes=9)     # E minor: Em C Am B dim
-track('boss', 73.42, [[0, 1, 7], [0, 3, 6], [-2, 1, 5], [0, 1, 7]], [0, 1, 3, 6, 7], wind, notes=5, pad_gain=.4, bell_gain=.12, extra=heartbeat)
-track('hall', 87.31, [[0, 4, 7], [-3, 0, 4], [-7, -3, 0], [-5, -1, 2]], [0, 2, 4, 7, 9], candles, notes=12, drone_gain=.35, bell_gain=.15)  # F: F Dm Bb C
+track('crypt', 73.42, [[0, 3, 7], [-4, 0, 3], [-7, -4, 0], [-5, -1, 2]], minor, wind, notes=14, drone_gain=.4,                 # D minor: Dm Bb Gm A
+      extra=lambda: pulse(73.42, [[0, 3, 7], [-4, 0, 3], [-7, -4, 0], [-5, -1, 2]], 96, WALK, .45, .75))
+track('sewers', 65.41, [[0, 3, 7], [-4, 0, 3], [-7, -4, 0], [-5, -2, 2]], minor, water, notes=12, drone_gain=.4,               # C minor: Cm Ab Fm Gm
+      extra=lambda: pulse(65.41, [[0, 3, 7], [-4, 0, 3], [-7, -4, 0], [-5, -2, 2]], 96, [(0, 0, 1), (.5, 0, .35), (2, 7, .7), (3, 10, .5), (3.5, 12, .4)], .45, .6, (0,)))
+track('vault', 82.41, [[0, 3, 7], [-4, 0, 3], [-7, -4, 0], [-1, 3, 6]], minor, hum, notes=13, drone_gain=.4,                   # E minor: Em C Am B dim
+      extra=lambda: pulse(82.41, [[0, 3, 7], [-4, 0, 3], [-7, -4, 0], [-1, 3, 6]], 96, [(0, 0, 1), (1, 7, .5), (2, 0, .8), (2.5, 3, .45), (3, 7, .6), (3.5, 12, .4)], .4, .65, (0, 2, 3)))
+track('boss', 73.42, [[0, 1, 7], [0, 3, 6], [-2, 1, 5], [0, 1, 7]], [0, 1, 3, 6, 7], wind, notes=7, pad_gain=.4, bell_gain=.12,
+      extra=lambda: heartbeat() + pulse(73.42, [[0, 1, 7], [0, 3, 6], [-2, 1, 5], [0, 1, 7]], 112, [(0, 0, 1), (.5, 0, .5), (1, 12, .6), (1.5, 0, .5), (2, 1, .8), (2.5, 0, .5), (3, 12, .6), (3.5, 0, .5)], .35, 0))
+track('hall', 87.31, [[0, 4, 7], [-3, 0, 4], [-7, -3, 0], [-5, -1, 2]], [0, 2, 4, 7, 9], candles, notes=14, drone_gain=.3, bell_gain=.15,  # F: F Dm Bb C
+      extra=lambda: pulse(87.31, [[0, 4, 7], [-3, 0, 4], [-7, -3, 0], [-5, -1, 2]], 64, [(0, 0, .8), (2, 7, .5), (3, 12, .35)], .32, 0))
