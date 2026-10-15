@@ -345,6 +345,20 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 .floatnum.heal { color: #7fe39a; }
 .floatnum.gold { color: #f3c95c; }
 .floatnum.pts { color: #f1e3bf; }
+.floatnum.relic { color: #9fd8cf; font-size: 17px; }
+.relic { position: relative; }
+.relic .stack { position: absolute; right: -2px; bottom: -2px; font: 700 11px/1 Cinzel, Georgia, serif; color: var(--bone); background: rgba(0,0,0,.72); border-radius: 6px; padding: 2px 3px; pointer-events: none; }
+.stashbox { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 13px; }
+.stashbox .ico, .stashbox svg { width: 24px; height: 24px; flex: none; }
+.stashbox .sname { white-space: nowrap; color: var(--ash); } .stashbox .sname b { color: var(--bone); }
+.stashbox .sacts { display: flex; gap: 4px; flex-wrap: wrap; } .belt .stashbox .sacts button { padding: 2px 6px; font-size: 12px; min-height: 0; white-space: nowrap; }
+.stashbox .sacts .sm { display: inline; } .stashbox .sacts .lg { display: none; }
+.card .acts .xact { font-size: 12px; padding: 2px 4px; min-height: 0; background: none; border-color: transparent; color: var(--verdigris); text-align: center; }
+.stat.weapon .off { font-size: .7em; }
+.card .acts.many { grid-template-columns: 1fr 1fr; } .card .acts.many .lg { display: none; } .card .acts.many .sm { display: inline; }
+.card .acts.many button { text-align: center; padding: 5px 3px; } .card .acts .xact { grid-column: 1 / -1; }
+.peek svg { width: 20px; height: 20px; vertical-align: -5px; margin-right: 4px; }
+.belt:has(.stashbox) { flex-wrap: wrap; row-gap: 4px; } .belt .stashbox { flex: 1 1 100%; order: 3; justify-content: center; }
 .hurtflash { position: fixed; inset: 0; z-index: 4; pointer-events: none; box-shadow: inset 0 0 90px 30px rgba(190,20,20,.9); opacity: 0; }
 .hpbar .chip { position: absolute; top: 0; bottom: 0; background: #f6d2c4; transform-origin: left; }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
@@ -1417,7 +1431,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.5.0';
+const VERSION = '2.6.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -1453,7 +1467,10 @@ const iconOf = k => E.RELICS[k] ? `icons/relic-${k === 'keenedge' ? 'keen-edge' 
 const PAINTED = new Set('whetstone keenedge grindstone ironskin buckler hide herbalist fang bloodpact secondwind scout lantern fortune trophy brawler ambush berserk thorns alchemist ledger seal loaded taxman tithe pickpocket loanshark'.split(' '));
 const MARKS = { oil: '☄', quickdraw: '⚡︎', quartermaster: '⚒︎', masterwork: '✠', executioner: '⚔︎', unbreaking: '⛨', knuckles: '❂', pitfighter: '♜', ironfist: '⚙︎',
   haymaker: '✺', giantsgrip: '⛰︎', bloodstone: '◆', bedroll: '☾', secondheart: '♥', hagheart: '⚘', tipjar: '⚱︎', haggler: '⚖︎', idol: '♛', bribe: '✉︎',
-  lichledger: '☠︎', oathkeeper: '✒︎', downpayment: '⚑', wardrum: '◎', rulebreaker: '✂︎', bonecrown: '♚', smokebomb: '☁︎', wardenkeys: '⚷' };
+  lichledger: '☠︎', oathkeeper: '✒︎', downpayment: '⚑', wardrum: '◎', rulebreaker: '✂︎', bonecrown: '♚', smokebomb: '☁︎', wardenkeys: '⚷',
+  notched: '⚔︎', twinblades: '⚚', cleave: '⚡︎', glassblade: '◇', hardknuckles: '✊︎', bell: '🔔︎', scar: '⚕︎', ironball: '●', alchemykit: '⚗︎',
+  hunger: '☽', mimic: '☊', miser: '¤', compound: '⊕', cursed: '✗', trophybelt: '♚', greedy: '✋︎', stash: '▣', spyglass: '⌕', bait: '⚓︎',
+  bloodprice: '♦', escape: '➶', hourglass: '⧗' };
 function relicIcon(k, cls = 'ico') {
   const r = E.RELICS[k];
   if (!r || PAINTED.has(k)) return img(iconOf(k), cls);
@@ -1592,6 +1609,20 @@ function motionPlay(snap) {
       anim(app.querySelector('.contract.paper'), [{ boxShadow: '0 0 0 0 rgba(243,201,92,0)' }, { boxShadow: '0 0 0 3px rgba(243,201,92,.9), 0 0 40px rgba(243,201,92,.6)', offset: .3 }, { boxShadow: '0 0 0 0 rgba(243,201,92,0)' }], { duration: 1600, delay: 200 });
   }
   if (now.weapon !== was.weapon && now.weapon) pop('.stat.weapon');
+  relicsFired(run);
+}
+// Relics that did something on this move: the icon in the belt pulses and its label floats up from it, one after another.
+function relicsFired(run) {
+  const fired = (run.fired || []).filter((f, i, a) => a.findIndex(g => g.k === f.k) === i); // once per relic per move
+  run.fired = [];
+  if (fired.some(f => app.querySelector(`.relic[data-relic="${f.k}"]`))) SFX.play('relic', { gain: .35, rate: 1.25, delay: .08 }); // a soft chime
+  fired.slice(0, 4).forEach((f, i) => {
+    const sel = `.relic[data-relic="${f.k}"]`, el = app.querySelector(sel); if (!el) return;
+    setTimeout(() => {
+      anim(el, [{ transform: 'scale(1)', filter: 'none' }, { transform: 'scale(1.28)', filter: 'brightness(1.7) drop-shadow(0 0 8px var(--gold))', offset: .3 }, { transform: 'scale(1)', filter: 'none' }], { duration: 520, easing: EASE.back });
+      if (f.t) floatNum(sel, f.t, 'relic');
+    }, 140 * i);
+  });
 }
 // What changed also gets heard: hits, a contract met, menus opening and closing, the end of a run.
 function motionSound(was, now, snap) {
@@ -1741,6 +1772,25 @@ function endMoment(won) {
     const a = anim(m, [{ transform: 'translate(0, 0)', opacity: 0 }, { opacity: 1, offset: .1 }, { transform: `translate(${(Math.random() - .5) * 120}px, 105vh)`, opacity: .2 }], { duration: 3500 + Math.random() * 3000, delay: 400 + Math.random() * 2600, easing: 'linear', fill: 'backwards' });
     if (a) a.onfinish = () => m.remove(); else m.remove();
   }
+}
+// Play a card's leaving effect, then return the effect to show once the move resolves. A card leaves the way it's
+// played: a fought potion leaves like a monster, an equipped potion like a weapon, a drunk monster like a potion.
+async function playCard(c, mode, el) {
+  const fought = mode === 'weapon' || mode === 'weapon2' || mode === 'bare';
+  const kind = fought ? 'monster' : mode === 'equip' || c.kind === 'weapon' ? 'weapon' : 'potion';
+  const name = kind === 'monster' ? (mode === 'bare' ? 'punch' : 'slash') : kind === 'potion' && E.potionHeal(s, c) > 0 && s.hp < s.maxHp ? 'heal' : null;
+  SFX.play(kind === 'weapon' ? 'equip' : name === 'heal' ? 'potion' : name || 'flip');
+  if (el && !reduceMotion) {
+    busy = true; if (name) fx(name, el.getBoundingClientRect());
+    await (isBossCard(c) && fought ? bossFalls(el) : leaveCard(el, { ...c, kind }, mode === 'weapon2' ? 'weapon' : mode)); busy = false;
+  }
+  if (fought) {
+    const off = mode === 'weapon2', st = off ? { ...s, weapon: s.weapon2 } : s;
+    const w = mode !== 'bare' && E.canUseWeapon(st, c);
+    lastHit = { name: cardName(c), v: c.v, mode: w ? 'weapon' : 'bare', dmg: E.monsterDamage(st, c, w), card: { ...c } };
+  }
+  if (kind === 'weapon' && s.weapon && !s.relics.includes('twinblades')) { const at = rectOf('.stat.weapon'); return () => fx('weapon-break', at); } // the old weapon is dropped
+  return null;
 }
 // A played card leaves the table its own way: a weapon flies to your weapon slot, a potion into your health,
 // a monster recoils from the blow and drops away. Resolves when it's gone.
@@ -2132,8 +2182,9 @@ const dual = (long, short) => `<span class="lg">${long}</span><span class="sm">$
 const DIGIT_W = [.91, .45, .8, .8, .89, .81, .84, .81, .81, .83];
 const digits = v => String(v).split('').map(d => `<i class="dg" style="--g:url(${ART}ui/num-${d}.webp);width:${DIGIT_W[d]}em"></i>`).join('');
 const skull = '<i class="skull" aria-label="fatal"></i>';
-function fightLabel(c, weapon) {
-  const d = E.monsterDamage(s, c, weapon), w = weapon ? 'Weapon' : 'Fists';
+function fightLabel(c, weapon, off) {
+  const st = off ? { ...s, weapon: s.weapon2 } : s; // Twin Blades: the off-hand weapon
+  const d = E.monsterDamage(st, c, weapon), w = weapon ? (off ? `Blade ${s.weapon2.v}` : s.weapon2 ? `Blade ${s.weapon.v}` : 'Weapon') : 'Fists';
   if (d >= s.hp && !E.safeFloor(s)) return dual(`${skull}${w}: lose ${d} (fatal)`, `${w} −${d} ${skull}`);
   return dual(`${w}: lose ${d} health`, `${w} −${d}`);
 }
@@ -2151,20 +2202,39 @@ function allowed(c, mode) {
 function cardHTML(c, active) {
   if (c.hidden) return `<article class="card hidden ${active ? '' : 'idle'}" data-card="${c.id}"${tipAttr('Face down', 'The Banshee hides this card. Take another card first, and it turns over.')}>
     <div class="art">${img('cards/back.webp')}</div><div class="name"><span class="face">Face down</span></div><div class="acts"><button disabled>${dual('Take another card first', 'Hidden')}</button></div></article>`;
-  const btn = (mode, label, tip = '') => `<button data-act="${mode || 'take'}" data-id="${c.id}" ${allowed(c, mode) ? '' : 'disabled'}${c.kind === 'monster' && E.monsterDamage(s, c, mode === 'weapon') >= s.hp && !E.safeFloor(s) ? ' class="fatal"' : ''}${tip}>${label}</button>`;
+  return cardShell(c, active, cardActs(c, 'act'));
+}
+// The buttons for playing a card, one per way it can be played (see E.modes). `attr` is the click's data key:
+// 'act' for a card in the room, 'sact' for the card in the Stash Pouch.
+function cardActs(c, attr) {
+  const fatal = mode => (c.kind === 'monster' || ['weapon', 'weapon2', 'bare'].includes(mode)) && mode !== 'drink' &&
+    E.monsterDamage(mode === 'weapon2' ? { ...s, weapon: s.weapon2 } : s, c, mode === 'weapon' || mode === 'weapon2') >= s.hp && !E.safeFloor(s);
+  const btn = (mode, label, tip = '') => `<button data-${attr}="${mode || 'take'}" data-id="${c.id}" ${allowed(c, mode) ? '' : 'disabled'}${fatal(mode) ? ' class="fatal"' : ''}${tip}>${label}</button>`;
+  const ms = E.modes(s, c);
   let acts = '';
-  if (c.kind === 'monster') {
-    if (E.canUseWeapon(s, c)) acts += btn('weapon', fightLabel(c, true));
-    acts += btn('bare', fightLabel(c, false));
-  } else if (c.kind === 'weapon') {
+  if (c.kind === 'weapon') {
     const v = c.v + (s.relics.includes('grindstone') ? 1 : 0);
-    acts = btn(null, 'Equip', tipAttr(`Equip the ${cardName(c)}`, `Blocks up to <b>${v}</b> damage per fight.${s.weapon ? ` Drops your ${s.weapon.v}.` : ''}`));
-  } else acts = btn(null, potionPreview(c));
+    acts = btn(null, 'Equip', tipAttr(`Equip the ${cardName(c)}`, `Blocks up to <b>${v}</b> damage per fight.${s.weapon ? s.weapon2 ? ` Your ${s.weapon.v} moves to your off hand.` : ` Drops your ${s.weapon.v}.` : ''}`));
+  } else {
+    if (c.kind === 'potion') acts += btn(null, potionPreview(c));
+    if (ms.includes('equip')) acts += btn('equip', dual(`Equip as a ${c.v} weapon`, `Equip ${c.v}`), tipAttr('Alchemy Kit', 'Equip this potion as a weapon of its value.'));
+    if (ms.includes('weapon')) acts += btn('weapon', fightLabel(c, true));
+    if (ms.includes('weapon2')) acts += btn('weapon2', fightLabel(c, true, true));
+    if (ms.includes('bare')) acts += btn('bare', fightLabel(c, false));
+    if (ms.includes('drink')) acts += btn('drink', dual(`Drink: heal ${Math.min(E.potionHeal(s, c), s.maxHp - s.hp)}`, `Drink +${Math.min(E.potionHeal(s, c), s.maxHp - s.hp)}`), tipAttr("Mimic's Tongue", 'Drink this little monster as a potion.'));
+  }
+  if (attr === 'act' && !tut) { // relics that work on a card in the room
+    if (E.canStash(s, c.id)) acts += `<button class="link xact" data-stash="${c.id}"${tipAttr('Stash Pouch', 'Set this card aside. It counts as taken, and you can play it in any later room on this floor.')}>Stash</button>`;
+    if (E.canSwap(s, c.id)) acts += `<button class="link xact" data-swap="${c.id}"${tipAttr('Blood Price', 'Pay 1 health: this card goes to the bottom of the pile and the next one takes its place. Once a room.')}>Swap −1</button>`;
+  }
+  return acts;
+}
+function cardShell(c, active, acts) {
   const lit = tut && TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.v === c.v && s.phase === 'room';
   return `<article class="card ${c.kind} ${c.v >= 15 || c.bossKey ? 'elite' : ''} ${c.boss ? 'bosscard' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''}" data-card="${c.id}"${isBossCard(c) ? ' data-boss="1"' : ''}${c.boss ? tipAttr(cardName(c), 'Must die before you can leave this room.') : ''}>
     <div class="art">${img(cardArt(c))}<span class="rank" role="img" aria-label="${c.v}">${digits(c.v)}</span></div>
     <div class="name"><span class="face">${cardName(c)}</span></div>
-    <div class="acts">${acts}</div></article>`;
+    <div class="acts ${(acts.match(/data-act=/g) || []).length > 2 ? 'many' : ''}">${acts}</div></article>`;
 }
 // The Guild box's dues: the next dues ahead (in the shop, the coming act's), or none once the last are paid.
 function duesCell() {
@@ -2173,7 +2243,8 @@ function duesCell() {
 }
 function statusHTML() {
   const reach = E.weaponReach(s); // Keen Edge and Whetstone stretch what the weapon can hit
-  const w = s.weapon ? `${s.weapon.v}${reach == null ? '' : ` <span class="muted lim"><span class="lg">hits up to</span><span class="sm">max</span> ${reach}</span>`}` : '<span class="muted">none</span>';
+  const off = s.weapon2 ? ` <span class="muted off"${tipAttr('Twin Blades', `Your off hand holds a <b>${s.weapon2.v}</b>${s.weapon2.limit == null ? '' : ` that hits up to ${s.weapon2.limit}`}.`)}>+ ${s.weapon2.v}${s.weapon2.limit == null ? '' : `<span class="sm">/${s.weapon2.limit}</span>`}</span>` : '';
+  const w = s.weapon ? `${s.weapon.v}${reach == null ? '' : ` <span class="muted lim"><span class="lg">hits up to</span><span class="sm">max</span> ${reach}</span>`}${off}` : '<span class="muted">none</span>';
   const cells = [
     `<div class="stat hp"><span class="label">${img('icons/hud-hp.webp')}Health</span><span class="num">${s.hp}<span class="muted">/${s.maxHp}</span></span><div class="hpbar"><i style="width:${100 * s.hp / s.maxHp}%"></i></div></div>`,
     goldOpen() && `<div class="stat gold"><span class="label">${img('icons/hud-gold.webp')}Gold</span><span class="num price">${s.gold}</span></div>`,
@@ -2189,7 +2260,8 @@ function relicsHTML(withDrop, slots = withDrop) {
   if (!relicsOpen()) return '';
   if (!s.relics.length && !slots) return '';
   const empty = slots ? Array.from({ length: E.MAX_RELICS - s.relics.length }, () => `<div class="relic empty"${tipAttr('Empty slot', 'You get a free relic after every floor. The shop sells one too.')}>${img('icons/hud-relic-slot.webp', 'ico', 'Empty slot')}</div>`).join('') : '';
-  return `<div class="relics">${s.relics.map(k => `<div class="relic" tabindex="0" role="group" aria-label="${E.RELICS[k].name}: ${E.RELICS[k].text}"${tipAttr(E.RELICS[k].name, relicTip(k))}>${relicIcon(k)}${withDrop ? `<button class="link" data-drop="${k}">Drop</button>` : ''}</div>`).join('')}${empty}</div>`;
+  const stack = k => { const n = E.relicStack(s, k); return n == null ? '' : `<span class="stack">${n}</span>`; }; // a growing relic's count so far
+  return `<div class="relics">${s.relics.map(k => `<div class="relic" data-relic="${k}" tabindex="0" role="group" aria-label="${E.RELICS[k].name}: ${E.RELICS[k].text}"${tipAttr(E.RELICS[k].name, relicTip(k))}>${relicIcon(k)}${stack(k)}${withDrop ? `<button class="link" data-drop="${k}">Drop</button>` : ''}</div>`).join('')}${empty}</div>`;
 }
 const roomsOnFloor = () => E.ROOMS_PER_FLOOR;
 function contractHTML() {
@@ -2204,10 +2276,16 @@ function contractHTML() {
     <div class="progress ${s.slain >= c.target ? 'met' : ''}"><i style="width:${pct}%"></i></div>
   </section>`;
 }
+// Spyglass: the next 3 cards in the pile. Stash Pouch: the card set aside, with its buttons.
 function peekHTML() {
-  if (!s.relics.includes('lantern') || !s.draw.length) return '';
-  const n = s.draw[0];
-  return `<p class="peek muted" style="margin:0"${tipAttr('Lantern', 'The next card in the pile.')}>${img(iconOf('lantern'))}<span class="pk-long">Next: <b style="color:var(--bone)">${cardName(n)} ${n.v}</b></span><b class="pk-short" style="color:var(--bone)">${n.v}${n.suit}</b></p>`;
+  if (!s.relics.includes('spyglass') || !s.draw.length) return '';
+  const ns = E.nextCards(s), mark = { monster: '', weapon: '⚔︎', potion: '♥' };
+  return `<p class="peek muted" style="margin:0"${tipAttr('Spyglass', `The next cards in the pile: ${ns.map(n => `${cardName(n)} ${n.v}`).join(', ')}.`)}>${relicIcon('spyglass')}<span class="pk-long">Next: <b style="color:var(--bone)">${ns.map(n => `${mark[n.kind]}${n.v}`).join(' · ')}</b></span><b class="pk-short" style="color:var(--bone)">${ns.map(n => `${mark[n.kind]}${n.v}`).join(' ')}</b></p>`;
+}
+function stashHTML() {
+  if (!s.stash) return '';
+  const c = s.stash;
+  return `<div class="stashbox"${tipAttr('Stash Pouch', `Your stashed ${cardName(c)} ${c.v}. Play it in any room on this floor; it doesn't count toward the room's cards. It's lost when the floor ends.`)}>${relicIcon('stash')}<span class="sname">${cardName(c)} <b>${c.v}</b></span><span class="sacts">${cardActs(c, 'sact')}</span></div>`;
 }
 const logHTML = () => `<details class="rules"><summary>Log</summary><div class="log">${s.log.map(l => `<p>${esc(l)}</p>`).join('') || '<p class="muted">Your deeds will be recorded here.</p>'}</div></details>`;
 function coachHTML() {
@@ -2605,8 +2683,8 @@ function drawScreen() {
     const up = E.canRaise(s) && { tier: s.contract.tier + 1, target: E.target(s, s.contract.tier + 1), pay: E.payout(s, s.contract.tier + 1, s.contract.clause) };
     const fleeOk = E.canFlee(s) && !tut; // the tutorial's guided moves come first
     body = cols(`${coachHTML()}${statusHTML()}${bossHTML()}${survival() ? '' : contractHTML()}${duesWarning()}`, `
-      ${roomHTML(true, `${up ? `<button data-raise${tipAttr('Raise your contract', `Kill <b>${up.target}</b> points instead, for <b>${up.pay}</b> gold. Between rooms, ${E.raisesPerFloor(s) > 1 ? 'twice' : 'once'} per floor (your ${['loaded', 'wardrum'].filter(k => s.relics.includes(k)).map(k => E.RELICS[k].name).join(' and ')}).`)}>${img('icons/hud-raise.webp', 'bi')}${s.contract.clause ? 'Raise' : `Raise<span class="rto"> to ${E.TIERS[up.tier]}</span>`}</button>` : ''}
-        ${E.canRedraw(s) ? `<button data-redraw${tipAttr('Fortune Teller', 'Redraw this room. Once per floor, before you pick a card.')}>Redraw room</button>` : ''}<button data-flee ${fleeOk ? '' : 'disabled'}>${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room</button>`)}<div class="belt">${relicsHTML(false)}${peekHTML()}</div>`, `${rulesHTML()}${boardHTML()}${statsHTML()}`);
+      ${roomHTML(true, `${up ? `<button data-raise${tipAttr('Raise your contract', `Kill <b>${up.target}</b> points instead, for <b>${up.pay}</b> gold. Between rooms, once per floor (your War Drum). Meet it and it pays half again.`)}>${img('icons/hud-raise.webp', 'bi')}${s.contract.clause ? 'Raise' : `Raise<span class="rto"> to ${E.TIERS[up.tier]}</span>`}</button>` : ''}
+        ${E.canRedraw(s) ? `<button data-redraw${tipAttr('Fortune Teller', 'Redraw this room. Once per floor, before you pick a card.')}>Redraw room</button>` : ''}${E.canUndo(s) ? `<button data-undo${tipAttr('Hourglass', 'Take back the last card you played. Twice per floor.')}>Undo</button>` : ''}<button data-flee ${fleeOk ? '' : 'disabled'}>${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room</button>`)}<div class="belt">${relicsHTML(false)}${stashHTML()}${peekHTML()}</div>`, `${rulesHTML()}${boardHTML()}${statsHTML()}`);
   } else if (s.phase === 'shop' && payoutView && s.payout) {
     body = payoutHTML();
   } else if (s.phase === 'shop' && s.pick) {
@@ -2679,10 +2757,12 @@ function payTip(p, l) {
     contract: p.survival ? ['Survival pay', `No contract on this floor, so the guild pays <b>${g}</b> gold just for getting through.`]
       : ['Contract', `You killed <b>${p.slain}</b> of the <b>${p.target}</b> points you signed for, so the guild pays the contract's <b>${g}</b> gold.`],
     overkill: ['Overkill', `Every <b>${has('taxman') ? 2 : 5}</b> points past the target pays 1 extra gold${has('taxman') ? ' (the Taxman)' : ''}. You went <b>${over}</b> over.`],
-    interest: ['Interest', `The guild pays 1 gold for every 5 you hold when a floor ends, ${has('lichledger') ? "with no cap (the Lich's Ledger)" : `up to <b>${has('tithe') ? 6 : 3}</b>${has('tithe') ? ' (the Tithe Box)' : ''}`}. Saving gold earns more.`],
+    interest: ['Interest', `The guild pays 1 gold for every 5 you hold when a floor ends, ${has('lichledger') ? "with no cap (the Lich's Ledger)" : `up to <b>${E.interestCap(s)}</b>${has('compound') ? ' (the Compound Purse)' : ''}`}. Saving gold earns more.`],
     dues: l.label.includes('strike') ? ['Guild dues', `Dues are collected at the end of each act. You couldn't pay, so it's a strike and the guild took what you had (<b>${g}</b>).`]
       : ['Guild dues', `Dues are collected at the end of each act, after the boss floor. You paid <b>${g}</b>.`],
     loanshark: ['Loan Shark', `Your Loan Shark gives 4 gold at the start of each floor, but a missed contract costs 8. It took <b>${g}</b>.`],
+    raise: ['Raised contract bonus', `You raised this contract and met it, so it pays half its pay again: <b>${g}</b>.`],
+    cursed: ['Cursed Contract', 'Your Cursed Contract pays double, but a missed one costs 5 max health.'],
     bloodpact: ['Blood Pact', 'Meeting a contract gives +2 max health and heals 2.'],
     bribe: ['Bribe', 'You missed the contract, so your Bribe paid the guild <b>10</b> gold to forget the strike.'],
   }[l.key];
@@ -2925,6 +3005,7 @@ app.addEventListener('click', async e => {
   if ('mapgo' in d) { mapView = null; paused = false; render(); return; }
   if (moreOpen && !e.target.closest('.extras')) moreOpen = false;
   let acted = true, effect = null;
+  if (s) s.fired = []; // relics that fire on this move pulse once it renders
   const cardEl = b.closest('.card');
   if (d.bid !== undefined) {
     if (!E.bid(s, +d.bid)) return;
@@ -2934,15 +3015,24 @@ app.addEventListener('click', async e => {
   } else if (d.act) {
     // The effect plays on the card while it leaves the table, then the move resolves.
     const c = s.room.find(x => x.id === +d.id); if (!c) return;
-    const name = c.kind === 'monster' ? (d.act === 'weapon' ? 'slash' : 'punch') : c.kind === 'potion' && E.potionHeal(s, c) > 0 && s.hp < s.maxHp ? 'heal' : null;
-    SFX.play(c.kind === 'weapon' ? 'equip' : name === 'heal' ? 'potion' : name || 'flip');
-    if (cardEl && !reduceMotion) {
-      busy = true; if (name) fx(name, cardEl.getBoundingClientRect());
-      await (isBossCard(c) && c.kind === 'monster' ? bossFalls(cardEl) : leaveCard(cardEl, c, d.act)); busy = false;
-    }
-    if (c.kind === 'weapon' && s.weapon) { const at = rectOf('.stat.weapon'); effect = () => fx('weapon-break', at); } // the old weapon is dropped
-    if (c.kind === 'monster') { const w = d.act === 'weapon' && E.canUseWeapon(s, c); lastHit = { name: cardName(c), v: c.v, mode: w ? 'weapon' : 'bare', dmg: E.monsterDamage(s, c, w), card: { ...c } }; }
-    if (!E.handle(s, +d.id, d.act === 'take' ? null : d.act)) { render(); return; }
+    const mode = d.act === 'take' ? null : d.act;
+    effect = await playCard(c, mode, cardEl);
+    if (!E.handle(s, +d.id, mode)) { render(); return; }
+  } else if (d.sact) { // the card in the Stash Pouch
+    const c = s.stash; if (!c) return;
+    const mode = d.sact === 'take' ? null : d.sact;
+    effect = await playCard(c, mode, b.closest('.stashbox'));
+    if (!E.useStash(s, mode)) { render(); return; }
+  } else if (d.stash) {
+    if (!E.stash(s, +d.stash)) return;
+    effect = () => fx('smoke', rectOf('.stashbox'));
+  } else if (d.swap) {
+    const at = cardEl && cardEl.getBoundingClientRect();
+    if (!E.swapCard(s, +d.swap)) return;
+    effect = () => fx('smoke', at);
+  } else if ('undo' in d) {
+    if (!E.undo(s)) return;
+    lastHit = null;
   } else if ('flee' in d) {
     const at = rectOf('.room'), p = rectOf('.chamber .pile');
     if (p && !reduceMotion) {
@@ -3058,7 +3148,8 @@ render();
     if (s.contract && s.contract.clause === 'sworn') return 'Your Wildcard (Sworn) forbids fleeing.';
     if (s.room.some(c => c.boss)) return `You can't flee while ${s.room.find(c => c.boss).name} is in the room.`;
     if (s.boss && s.boss.key === 'jailer' && s.jailFled) return 'The Jailer allows only one flee on this floor.';
-    if (s.handled > (has('scout') ? 1 : 0)) return 'You can only flee before touching a room.';
+    if (has('ironball')) return 'The Iron Ball: you can never flee.';
+    if (s.handled > 0) return 'You can only flee before touching a room.';
     if (fleeToll() && s.hp <= 4) return 'Too hurt to pay the Warden 4 health.';
     return "You can't flee two rooms in a row.";
   }
