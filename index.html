@@ -353,6 +353,7 @@ main .titlecard .logo::after { display: none; } /* the logo has its own letterin
 .titlecard .mode.big button { flex: 1; padding: 11px 8px; text-align: center; font-size: clamp(16px, 1.2vw, 18px); }
 .titlecard .mode.big b { font-weight: 700; }
 .titlecard .play { width: 100%; font-size: clamp(24px, 2vw, 30px); padding: 12px; font-family: var(--display); font-weight: 400; letter-spacing: .05em; }
+.titlecard .playrow { display: flex; gap: 10px; } .titlecard .playrow .play { flex: 2; } .titlecard .playrow .newrun { flex: 1; font-size: clamp(16px, 1.4vw, 21px); }
 .titlecard details.lb { width: 100%; box-sizing: border-box; text-align: left; }
 .titlecard details.lb > summary { justify-content: center; font-size: 17px; }
 .titlecard .lbbody { max-height: 34vh; max-height: 34svh; overflow-y: auto; }
@@ -1499,12 +1500,22 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 
   function rng(seed) { // mulberry32
     let a = seed >>> 0;
-    return function () {
+    const r = function () {
       a |= 0; a = (a + 0x6d2b79f5) | 0;
       let t = Math.imul(a ^ (a >>> 15), 1 | a);
       t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
+    r.state = () => a >>> 0; // where the sequence has got to, so a saved run carries on with the same luck
+    return r;
+  }
+  // A run as plain data, for the browser to keep across a refresh, and back again.
+  function saveGame(s) { const { r, ...rest } = s; return JSON.parse(JSON.stringify({ ...rest, rngState: r.state() })); }
+  function loadGame(data) {
+    const { rngState, ...rest } = data;
+    // A fresh page counts card ids from 1 again: start past every card the run already has, so new ones never share an id.
+    JSON.stringify(rest, (k, v) => { if (k === 'id' && typeof v === 'number' && v >= nextId) nextId = v + 1; return v; });
+    return { ...rest, r: rng(rngState) };
   }
   function shuffle(arr, r) {
     for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
@@ -2061,7 +2072,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
     MAX_HP, ROOMS_PER_FLOOR, FLOORS, UNLOCK, SURVIVAL_PAY, MAX_RELICS, TIERS, TARGETS, DUES, BOSSES, BOSS_TYPES, RELICS, SERVICES, CLAUSES, WILDCARD_MULT,
     bossFor, isBossFloor, targetRow, continueEndless,
     RARITIES, PICK_SIZE, SKIP_GOLD, REROLL_BASE, REROLL_STEP, rerollCost, canReroll, rerollShop,
-    newGame, safeFloor, bid, flee, canFlee, handle, buy, cost, choose, skipPick, relicsFull, target, duesFor, interestCap, dropRelic, leaveShop, allowedTiers, payout,
+    newGame, saveGame, loadGame, safeFloor, bid, flee, canFlee, handle, buy, cost, choose, skipPick, relicsFull, target, duesFor, interestCap, dropRelic, leaveShop, allowedTiers, payout,
     canRaise, raise, raisesPerFloor, canRedraw, redraw,
     canUseWeapon, monsterDamage, contractPoints, potionHeal, resolveCard, rankLabel, act,
     duesAhead, weaponReach, nextCard, deckView, devJump, devRoom, devGrant, devEndFloor,
@@ -2074,7 +2085,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.45.0';
+const VERSION = '1.46.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
@@ -2190,6 +2201,7 @@ const rectOf = sel => { const el = document.querySelector(sel); return el && el.
 const store = {
   get(k, d) { try { const v = localStorage.getItem('gl-' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem('gl-' + k, JSON.stringify(v)); } catch {} },
+  drop(k) { try { localStorage.removeItem('gl-' + k); } catch {} },
 };
 let seenHints = store.get('hints', {});
 
@@ -2249,6 +2261,30 @@ function noteSurvivalFloor() { // a floor with no contract starts without a bid,
   const f = rec.floors[rec.floors.length - 1];
   if (f && f.floor === s.floor + 1) return;
   rec.floors.push({ floor: s.floor + 1, tier: null, survival: true, clause: null, target: 0, boss: s.boss ? s.boss.key : null, hpStart: s.hp, goldStart: s.gold, raises: 0, flees: 0 });
+}
+// ---------- the saved run ----------
+// The run in play is kept in the browser after every move, so a refresh or a closed tab doesn't lose it:
+// the title screen offers Continue. It's dropped the moment the run ends, so a lost fight can't be taken back.
+const runLive = () => !!(s && rec && ['bid', 'room', 'shop'].includes(s.phase));
+function keepRun() {
+  if (DEV || !s || !rec) return;
+  if (!runLive()) { store.drop('run'); return; }
+  store.set('run', { v: VERSION, s: E.saveGame(s), rec, tut, map: mapView === 'auto' });
+}
+const savedRun = () => { const v = store.get('run', null); return v && v.s && v.rec ? v : null; };
+function resumeRun() {
+  if (!runLive()) { // a fresh page: bring the run back from the browser
+    const v = savedRun(); if (!v) return false;
+    try { s = E.loadGame(v.s); } catch { store.drop('run'); return false; }
+    rec = v.rec; tut = v.tut || null; mapView = v.map ? 'auto' : null;
+  }
+  titleOn = false; introStep = null; lastHit = null; lastTip = null; recall = false; paused = false; moreOpen = false;
+  return true;
+}
+function dropSavedRun() { // starting over: the old run ends as abandoned, and its report goes out
+  if (!runLive()) { const v = savedRun(); if (v) rec = v.rec; }
+  if (rec && rec.status === 'in_progress' && rec.floors.length) { rec.status = 'abandoned'; save(); sendReport(rec); }
+  store.drop('run'); s = null; rec = null;
 }
 function startTutorial() { readReportForm(); if (rec && rec.status === 'in_progress' && rec.floors.length) { rec.status = 'abandoned'; save(); } sendReport(rec); moreOpen = false; startRun(true); }
 
@@ -2663,7 +2699,10 @@ function sendReport(r) {
     else fetch(REPORT.url, { method: 'POST', mode: 'no-cors', body }).catch(() => {});
   } catch {}
 }
-window.addEventListener('pagehide', () => { readReportForm(); if (rec && rec.status === 'in_progress') rec.status = 'abandoned'; sendReport(rec); });
+window.addEventListener('pagehide', () => { // a run still in play is saved for Continue, so it isn't abandoned yet
+  readReportForm(); if (runLive() && !DEV) { keepRun(); return; }
+  if (rec && rec.status === 'in_progress') rec.status = 'abandoned'; sendReport(rec);
+});
 function runReport(r = rec) {
   const out = { won: 'Won', died: 'Died', struck_out: 'Struck out' }[r.outcome] || (r.status === 'abandoned' ? 'Abandoned' : 'Ended');
   const floors = r.floors.map(f => f.survival ? `F${f.floor} Survival ${f.died ? 'died' : f.hpEnd != null ? 'survived' : ''}`.trim() : `F${f.floor} ${E.TIERS[f.tier]}${f.clause ? '+' + E.CLAUSES[f.clause].name : ''} ${f.slain ?? '?'}/${f.target}${f.met ? ' met' : f.met === false ? ' missed' : ''}${f.raises ? ' raised' : ''}${f.flees ? ` fled${f.flees}` : ''}`).join('; ');
@@ -2846,11 +2885,13 @@ function renderTitle() {
   const modes = `<div class="mode big" role="group" aria-label="Game mode">${[['guided', 'Guided start', 'Learn as you go: new rules unlock floor by floor.'], ['full', 'Full game', 'Every rule from floor 1.'], ['onedeck', 'One deck', 'The full game, but the dungeon deck isn\'t reshuffled each floor. Cards you\'ve dealt stay gone until the next act.']].map(([k, label, sub]) =>
     `<button data-mode="${k}" aria-pressed="${gameMode() === k}"${tipAttr(label, sub)}><b>${label}</b></button>`).join('')}</div>`;
   app.className = 'title'; delete app.dataset.place; setAmbient(null);
+  const saved = runLive() || DEV ? (runLive() ? { s, rec } : null) : savedRun();
   app.innerHTML = `<section class="titlecard">
     <div class="logo"><h1>${img('ui/logo.webp', 'logoart', 'Scapegrace')}</h1></div>
     <p class="tagline">The goat knows the way down. Sign contracts, clear the dungeon, get paid. Try to keep up.</p>
     ${modes}
-    <button class="primary play" data-play${tipAttr('Play', 'Your first Guided start run teaches you as you play.')}>Play</button>
+    ${saved ? `<div class="playrow"><button class="primary play" data-continue${tipAttr('Continue', `Pick up your run where you left it: floor ${saved.s.floor + 1}, ${MODES[saved.rec.mode] || 'Guided start'}.`)}>Continue</button><button class="play newrun" data-play${tipAttr('New run', 'Start over. Your saved run ends.')}>New run</button></div>`
+      : `<button class="primary play" data-play${tipAttr('Play', 'Your first Guided start run teaches you as you play.')}>Play</button>`}
     ${boardHTML()}
     ${syncNote()}<p class="muted version">v${VERSION}</p>
   </section>`;
@@ -2941,7 +2982,7 @@ function render() {
   if ((s.phase === 'won' || s.phase === 'lost') && boardState !== 'off' && boardState !== 'loading' && Date.now() - boardAt > 60000) { boardMode = null; loadBoard(); } // fresh scores on the end screen
   const focus = tut ? TUTORIAL[tut.step] && TUTORIAL[tut.step].focus : (currentHint() || {}).focus;
   if (focus) app.querySelectorAll(focus).forEach(el => el.classList.add('tut-focus'));
-  showClerk();
+  showClerk(); keepRun();
 }
 // When the clerk says something new and it's out of view (mostly on phones), scroll up to it.
 let lastClerkLine = null;
@@ -3164,7 +3205,14 @@ app.addEventListener('click', async e => {
     const d = b.dataset;
     if (d.mode) { store.set('mode', d.mode); boardMode = null; render(); }
     else if (d.board) { boardMode = d.board; paintBoards(); }
-    else if ('play' in d) { titleOn = false; startRun(); render(); }
+    else if ('continue' in d) {
+      try { if (!resumeRun()) titleOn = true; render(); }
+      catch { store.drop('run'); s = null; rec = null; titleOn = true; render(); } // a save this version can't read
+    }
+    else if ('play' in d) {
+      if ((runLive() || savedRun()) && !confirm('Start a new run? Your saved run will end.')) return;
+      dropSavedRun(); titleOn = false; startRun(); render();
+    }
     return;
   }
   const d = b.dataset, prev = s.phase, hintBefore = shownHint;
@@ -3252,8 +3300,8 @@ app.addEventListener('click', async e => {
     startRun(); acted = false;
   }
   else if ('title' in d) { // back to the title screen, where the game mode is picked
+    if (runLive()) { keepRun(); moreOpen = false; paused = false; mapView = null; titleOn = true; render(); return; } // the run waits there under Continue
     const underway = rec && rec.status === 'in_progress' && (rec.floors.length > 1 || s.handled > 0 || s.roomsCleared > 0);
-    if (underway && !confirm('Go back to the main menu? This run will end.')) return;
     readReportForm();
     if (underway) { rec.status = 'abandoned'; save(); } // an untouched run isn't worth a report
     if (underway || (rec && rec.status === 'finished')) sendReport(rec);

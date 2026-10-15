@@ -322,5 +322,26 @@ function bossGame(key, f = 2, seed = 1) {
   ok(E.targetRow(9)[0] > E.TARGETS[8][0], 'endless: targets keep climbing'); ok(E.duesFor(s, 3) > E.DUES[2], 'endless: dues keep climbing');
   eq(E.duesAhead(s).floor, 12, 'endless: dues after floor 12'); ok(E.bossFor(s, 11) && !s.bossKeys.slice(0, 3).includes(E.bossFor(s, 11).key), 'endless: a boss not met before'); }
 
+// ---------- saving a run ----------
+// A run saved mid-floor and loaded again plays out exactly like the one that never stopped.
+function step(s) {
+  if (s.phase === 'bid') return E.bid(s, 0);
+  if (s.phase === 'room') { const c = s.room[0]; return E.handle(s, c.id, c.kind === 'monster' && E.canUseWeapon(s, c) ? 'weapon' : c.kind === 'monster' ? 'bare' : null); }
+  if (s.phase === 'shop') return s.pick ? E.skipPick(s) : E.leaveShop(s);
+}
+for (const [seed, at] of [[7, 5], [11, 30], [23, 60], [31, 90]]) {
+  const a = E.newGame(seed, { oneDeck: seed === 23 }); a.hp = a.maxHp = 999;
+  for (let n = 0; n < at && !['won', 'lost'].includes(a.phase); n++) step(a);
+  const b = E.loadGame(JSON.parse(JSON.stringify(E.saveGame(a))));
+  ok(typeof b.r === 'function' && !('rngState' in b) && !['won', 'lost'].includes(b.phase), `save ${seed}: saved mid-run and the dice come back`);
+  for (let n = 0; n < 2000 && !['won', 'lost'].includes(a.phase); n++) { step(a); step(b); }
+  const noIds = g => JSON.stringify(E.saveGame(g), (k, v) => k === 'id' ? undefined : v); // both runs share one id counter here
+  eq(noIds(b), noIds(a), `save ${seed}: a loaded run plays out the same`);
+  ok(a.floor > 2, `save ${seed}: played on past floor 3`);
+}
+{ const data = E.saveGame(E.newGame(3)); data.deck[0].id = 5e6; const s = E.loadGame(data); E.devJump(s, 3);
+  ok(s.deck.some(c => c.id > 5e6), 'save: cards added after loading get new ids');
+  eq(new Set(s.deck.map(c => c.id)).size, s.deck.length, 'save: no two cards share an id'); }
+
 console.log(`${passes} passed, ${fails} failed`);
 process.exit(fails ? 1 : 0);

@@ -130,12 +130,22 @@
 
   function rng(seed) { // mulberry32
     let a = seed >>> 0;
-    return function () {
+    const r = function () {
       a |= 0; a = (a + 0x6d2b79f5) | 0;
       let t = Math.imul(a ^ (a >>> 15), 1 | a);
       t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
+    r.state = () => a >>> 0; // where the sequence has got to, so a saved run carries on with the same luck
+    return r;
+  }
+  // A run as plain data, for the browser to keep across a refresh, and back again.
+  function saveGame(s) { const { r, ...rest } = s; return JSON.parse(JSON.stringify({ ...rest, rngState: r.state() })); }
+  function loadGame(data) {
+    const { rngState, ...rest } = data;
+    // A fresh page counts card ids from 1 again: start past every card the run already has, so new ones never share an id.
+    JSON.stringify(rest, (k, v) => { if (k === 'id' && typeof v === 'number' && v >= nextId) nextId = v + 1; return v; });
+    return { ...rest, r: rng(rngState) };
   }
   function shuffle(arr, r) {
     for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
@@ -692,7 +702,7 @@
     MAX_HP, ROOMS_PER_FLOOR, FLOORS, UNLOCK, SURVIVAL_PAY, MAX_RELICS, TIERS, TARGETS, DUES, BOSSES, BOSS_TYPES, RELICS, SERVICES, CLAUSES, WILDCARD_MULT,
     bossFor, isBossFloor, targetRow, continueEndless,
     RARITIES, PICK_SIZE, SKIP_GOLD, REROLL_BASE, REROLL_STEP, rerollCost, canReroll, rerollShop,
-    newGame, safeFloor, bid, flee, canFlee, handle, buy, cost, choose, skipPick, relicsFull, target, duesFor, interestCap, dropRelic, leaveShop, allowedTiers, payout,
+    newGame, saveGame, loadGame, safeFloor, bid, flee, canFlee, handle, buy, cost, choose, skipPick, relicsFull, target, duesFor, interestCap, dropRelic, leaveShop, allowedTiers, payout,
     canRaise, raise, raisesPerFloor, canRedraw, redraw,
     canUseWeapon, monsterDamage, contractPoints, potionHeal, resolveCard, rankLabel, act,
     duesAhead, weaponReach, nextCard, deckView, devJump, devRoom, devGrant, devEndFloor,
