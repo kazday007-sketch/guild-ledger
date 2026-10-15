@@ -8,6 +8,9 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.42.0 (2026-10-15)
+Top scores now rank by how deep you got: a win beats everything, then the floor you reached, then points (gold still breaks ties). Each row shows the depth first and the points after it.
+
 ## 1.41.0 (2026-10-15)
 Tutorial fixes from the tutorial review (design/tutorial-review-1-40.md):
 - **Weapon order.** After the Owlbear, the tip explains that your sword now only hits monsters up to 9, which is why you hit the biggest first. The dull-weapon tip says the same for players who skip the tutorial.
