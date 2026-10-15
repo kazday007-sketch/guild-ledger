@@ -71,7 +71,7 @@
     quickdraw: R('Quickdraw', 'common', 'Equipping a weapon counts +2 points.'),
     quartermaster: R('Quartermaster', 'common', 'Start each floor with at least a fresh 5 weapon.'),
     masterwork: R('Masterwork', 'rare', 'Your weapon only dulls on monsters of 10 or more.'),
-    executioner: R('Executioner', 'rare', 'Weapon kills of monsters 10 and up count double points.'),
+    executioner: R('Executioner', 'rare', 'Weapon kills of monsters 12 and up count half again as many points.'),
     unbreaking: R('Unbreaking Edge', 'boss', 'Your weapon never dulls.'),
     // bare hands
     brawler: R('Brawler', 'common', 'Bare-handed kills count +3 points.'),
@@ -120,8 +120,8 @@
     scout: R('Scout', 'common', 'You may flee after dealing with 1 card of a room.'),
     lantern: R('Lantern', 'common', 'See the next card in the draw pile.'),
     fortune: R('Fortune Teller', 'common', 'Once per floor, redraw a room before you pick any of its cards.'),
-    smokebomb: R('Smoke Bomb', 'rare', 'You may flee any number of rooms in a row.'),
-    wardenkeys: R("Warden's Keys", 'boss', 'Flee at any point in a room, past any boss, and heal 2 each time you do.'),
+    smokebomb: R('Smoke Bomb', 'rare', 'You may flee up to three rooms in a row.'),
+    wardenkeys: R("Warden's Keys", 'boss', 'Flee at any point in a room, past any boss, and heal 2 when you do (not on back-to-back flees).'),
   };
   const PICK_SIZE = 3, RARE_CHANCE = 0.25, SKIP_GOLD = 8;
   // Rerolling the shop's relic shelf: the first reroll each visit costs REROLL_BASE, each one after it REROLL_STEP more.
@@ -190,7 +190,7 @@
     if ((cl === 'steel' && bare) || (cl === 'bare' && !bare)) return 0;
     let p = m.v;
     if (bare && has(s, 'haymaker') && !s.roomBare) p += m.v;
-    if (!bare && has(s, 'executioner') && m.v >= 10) p += m.v;
+    if (!bare && has(s, 'executioner') && m.v >= 12) p += Math.floor(m.v / 2);
     if (!bare && has(s, 'oil')) p += 2;
     if (has(s, 'thorns')) p += 4;
     if (bare && has(s, 'brawler')) p += 3;
@@ -380,13 +380,13 @@
     if (!keys && s.handled > (has(s, 'scout') ? 1 : 0)) return false;
     if ((bossIs(s, 'jailer') && s.jailFled) || s.room.some(c => c.boss)) return false; // the Jailer allows one flee; nobody flees a boss's own room
     if (!keys && bossIs(s, 'warden') && s.hp <= 4) return false;
-    return has(s, 'smokebomb') || s.fledStreak < (has(s, 'secondwind') ? 2 : 1);
+    return s.fledStreak < (has(s, 'smokebomb') ? 3 : has(s, 'secondwind') ? 2 : 1);
   }
   function flee(s) {
     if (!canFlee(s)) return false;
     s.room.forEach(c => { delete c.hidden; }); s.draw.push(...s.room); s.room = []; s.fledStreak++; newRoom(s);
     if (bossIs(s, 'jailer')) s.jailFled = true;
-    if (has(s, 'wardenkeys')) { healBy(s, 2); log(s, "Slipped out with the Warden's keys, and caught your breath (+2)."); }
+    if (has(s, 'wardenkeys') && s.fledStreak === 1) { healBy(s, 2); log(s, "Slipped out with the Warden's keys, and caught your breath (+2)."); }
     else if (bossIs(s, 'warden')) { s.hp -= 4; log(s, 'Fled past the Warden: -4 HP.'); }
     else log(s, 'Fled the room. Its cards go to the bottom of the pile.');
     nextRoom(s);
