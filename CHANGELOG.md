@@ -8,6 +8,15 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.5.0 (2026-10-15)
+Small touches.
+- **Boss screens wait for you.** The boss intro stays up until you tap it (or press Enter, Space or Esc), instead of fading by itself.
+- **Big hits land harder:** striking a monster of 10 or more holds the moment for a split second before the card gives way.
+- **The art breathes:** the pictures on the table's cards drift very slightly, each at its own pace.
+- **Dust** hangs and drifts in the air of the dungeon.
+- **Low health closes in:** below about a third of your health, the screen's edges darken to red, deeper the lower you go. Below a quarter they pulse with a slow heartbeat you can hear.
+- All of it is off for players whose device asks for reduced motion (the heartbeat sound stays).
+
 ## 2.4.1 (2026-10-15)
 Bug fix.
 - **No more "the The Warden":** dying to a boss now reads "Slain by the Warden", and the death lines no longer double up the "The" (or say "a The Warden"). Dying to the Broodmother now gets the Broodmother's own line, and the boss who killed you no longer also "watched the whole thing".

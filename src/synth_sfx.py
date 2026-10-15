@@ -97,4 +97,7 @@ save('met', mix(1.6, (0, bell([196, 392, 588], 1.2, [.6, .4, .25], [.6, .3, .15]
 # win: three bells climbing out of the dark over a low drone
 drone = tone(73.4, 2.4) * np.minimum(1, t(2.4) / .4) * np.exp(-t(2.4) / 1.0) * .4
 save('win', mix(2.6, (0, drone), *[(.35 * i, bell([f, f * 2, f * 3], 1.8, [.9, .5, .3], [.6, .3, .12], .01)) for i, f in enumerate([147, 196, 294])]), wet=.5, tail=1.5, lp=2600)
+
+# heart: a slow, low heartbeat for when you're nearly dead (lub-dub)
+save('heart', np.tanh(1.5 * mix(.6, (0, thump(75, 45, .18, .05)), (.24, thump(65, 40, .16, .045) * .7), (0, hush(.1, 380, 1.2, .004, .03) * .5))), wet=.15, tail=.3, lp=900)
 print('ok')
