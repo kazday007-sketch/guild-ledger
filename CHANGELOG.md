@@ -8,6 +8,12 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.46.0 (2026-10-15)
+- **Your run is saved.** The run in play is kept in your browser after every move, so refreshing the page or closing the tab no longer loses it. The title screen shows **Continue** to pick it up where you left it, next to **New run**, which asks first and ends the saved run.
+- The pause menu's Main menu no longer ends your run: it waits under Continue.
+- The save is dropped as soon as the run ends (a win, a death or a strike-out), so a lost run can't be reloaded. It also keeps the dungeon's luck, so reloading deals the same cards.
+- A refresh no longer sends an "abandoned" report for a run you can still continue; the report goes out when the run ends or you start a new one.
+
 ## 1.45.0 (2026-10-15)
 - **Main menu button after a run.** The end screen (win, death or struck out) now has Main menu next to New run. It sends your run report, with your name and note, just like New run, then takes you back to the title screen instead of starting a new run.
 
