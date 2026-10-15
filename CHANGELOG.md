@@ -8,6 +8,13 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.47.0 (2026-10-15)
+Relic fixes from the run reports. Dude's Endless run reached floor 19 with 91 flees (30 on one floor), and Executioner was in every deep run.
+- **Warden's Keys** heal 2 when you flee, but no longer on back-to-back flees. With the Smoke Bomb they gave endless healing.
+- **Smoke Bomb** lets you flee up to three rooms in a row, instead of any number.
+- **Executioner:** weapon kills of monsters 12 and up count half again as many points (was: 10 and up count double).
+- Simulator (2,000 balanced runs, starting with the relic on top of the usual picks): Executioner went from +27 points of win rate to +16, Smoke Bomb from +9 to +7, and Smoke Bomb with the Keys from +13 to +11. Overall bot wins are 9 / 14 / 12% (cautious / balanced / greedy), down from 15 / 18 / 16%, because the bot leaned on Executioner.
+
 ## 1.46.0 (2026-10-15)
 - **Your run is saved.** The run in play is kept in your browser after every move, so refreshing the page or closing the tab no longer loses it. The title screen shows **Continue** to pick it up where you left it, next to **New run**, which asks first and ends the saved run.
 - The pause menu's Main menu no longer ends your run: it waits under Continue.

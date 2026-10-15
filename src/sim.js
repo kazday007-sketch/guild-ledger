@@ -53,6 +53,7 @@ const BOTS = {
 function playRun(seed, bot, opts = {}) {
   const s = E.newGame(seed, { oneDeck: !!opts.oneDeck });
   if (opts.relics) opts.relics.forEach(k => E.devGrant(s, k));
+  if (opts.give) opts.give.forEach(k => E.devGrant(s, k)); // a starting relic on top of the usual picks
   let avg = 42, n = 1, steps = 0;
   while (s.phase !== 'won' && s.phase !== 'lost' || (opts.endless && s.phase === 'won' && E.continueEndless(s))) {
     if (s.phase === 'won' || s.phase === 'lost') break;
