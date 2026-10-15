@@ -738,6 +738,8 @@ header .pause img { width: 24px; height: 24px; }
 .overlay { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 16px; background: rgba(8,10,14,.72); backdrop-filter: blur(2px); }
 .pausebox { display: grid; gap: 12px; width: min(100%, 320px); padding: 22px 22px 24px; text-align: center; border: 1px solid transparent; border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; box-shadow: 0 12px 40px rgba(0,0,0,.6); }
 .pausebox h2 { font-size: 28px; }
+.pausebox .volume { display: flex; align-items: center; gap: 10px; justify-content: center; }
+.pausebox .volume input { flex: 1; max-width: 180px; accent-color: #c9a45a; }
 .pausebox h2::after { content: ''; display: block; width: 200px; height: 30px; margin: 2px auto 0; background: url(assets/ui/divider.webp) center / contain no-repeat; }
 .pausebox button { font-size: 17px; padding: 11px 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .pausebox .muted { margin: 0; font-size: 13px; }
@@ -2096,7 +2098,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.0.0';
+const VERSION = '2.1.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
@@ -2197,7 +2199,9 @@ function setScene() {
 }
 // Effects: a one-shot sprite over a spot on screen. Skipped for reduced motion.
 const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const FX_SOUND = { coins: ['coins'], dues: ['coins', .8], 'weapon-break': ['break'], flee: ['flee'], ink: ['stamp'], raise: ['stamp'], strike: ['toll'], 'contract-met': ['met'], 'boss-beaten': ['met'], comet: ['relic'], smoke: ['flip'] };
 function fx(name, rect) {
+  const snd = FX_SOUND[name]; if (snd) SFX.play(snd[0], { rate: snd[1] || 1 }); // every effect has its sound, even with motion off
   const layer = document.getElementById('fx');
   if (reduceMotion || !rect || !layer || !rect.width) return;
   const size = Math.round(Math.min(200, Math.max(96, rect.width * 0.9)));
@@ -2233,6 +2237,7 @@ function motionPlay(snap) {
   const key = screenKey(), run = typeof s !== 'undefined' ? s : null;
   const now = run && { run, key, hp: run.hp, gold: run.gold, slain: run.slain, weapon: run.weapon ? run.weapon.v + ':' + run.weapon.limit : '' };
   const was = motionLast; motionLast = now;
+  if (now) motionSound(was, now, snap);
   if (reduceMotion || !now) return;
   if (!was || was.key !== key || was.run !== run) { if (key !== 'intro') screenIn(); return; }
   // same screen: cards that moved glide to their new place
@@ -2260,6 +2265,16 @@ function motionPlay(snap) {
     floatNum('.contract .pts', `+${dPts}`, 'pts');
   }
   if (now.weapon !== was.weapon && now.weapon) pop('.stat.weapon');
+}
+// What changed also gets heard: hits, a contract met, menus opening and closing, the end of a run.
+function motionSound(was, now, snap) {
+  const overlay = !!app.querySelector('.overlay');
+  if (overlay !== snap.overlay) SFX.play(overlay ? 'open' : 'close');
+  if (!was || was.run !== now.run) return;
+  if (was.key !== now.key) { if (now.key === 'won') SFX.play('win'); else if (now.key === 'lost') SFX.play('toll'); return; }
+  if (now.hp < was.hp) SFX.play('hurt', { gain: .5 + Math.min(.6, (was.hp - now.hp) / 12), delay: .03 });
+  const target = s.contract && !survival() && s.contract.target;
+  if (target && was.slain < target && now.slain >= target) SFX.play('met', { delay: .25 });
 }
 // The screen changed: its parts rise into place one after another, and lists of choices deal in.
 function screenIn() {
@@ -2329,6 +2344,47 @@ const store = {
   drop(k) { try { localStorage.removeItem('gl-' + k); } catch {} },
 };
 let seenHints = store.get('hints', {});
+
+// ---------- sound ----------
+// Short sounds in assets/sfx: card, combat and coin sounds made by src/synth_sfx.py, menu and fanfare sounds from
+// the uisfx pack (CC0). Files are fetched at load and decoded on the first tap, since browsers only allow sound after
+// one. Volume lives in the pause menu (and M mutes), and is kept per browser.
+const SFX = (() => {
+  const LEVEL = { click: .3, open: .45, close: .4, deal: .35, flip: .4, slash: .8, punch: .9, hurt: .9, equip: .6, potion: .8, coins: .55, stamp: .8, flee: .6, break: .7, toll: .75, relic: .7, met: .7, win: .8 };
+  const raw = {}, bufs = {};
+  let ctx = null, master = null, vol = store.get('volume', .7);
+  Object.keys(LEVEL).forEach(n => { raw[n] = fetch(`${ART}sfx/${n}.mp3`).then(r => r.ok ? r.arrayBuffer() : null).catch(() => null); });
+  function wake() {
+    if (!ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+      ctx = new AC(); master = ctx.createGain(); master.gain.value = vol; master.connect(ctx.destination);
+      Object.keys(raw).forEach(n => raw[n].then(b => b && ctx.decodeAudioData(b, d => { bufs[n] = d; }, () => {})));
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+  }
+  ['pointerdown', 'keydown'].forEach(t => document.addEventListener(t, wake, true));
+  // gain scales one play; delay is in seconds; each play is pitched a hair differently so repeats don't sound canned
+  function play(n, { gain = 1, delay = 0, rate = 1 } = {}) {
+    if (!ctx || !vol || !bufs[n]) return;
+    const src = ctx.createBufferSource(), g = ctx.createGain();
+    src.buffer = bufs[n]; src.playbackRate.value = rate * (1 + (Math.random() - .5) * .06);
+    g.gain.value = Math.min(1.5, gain * LEVEL[n]);
+    src.connect(g); g.connect(master); src.start(ctx.currentTime + Math.max(0, delay));
+  }
+  function setVolume(v) { vol = Math.max(0, Math.min(1, v)); store.set('volume', vol); if (master) master.gain.value = vol; }
+  return { play, setVolume, get volume() { return vol; } };
+})();
+let unmuteTo = .7; // M brings the sound back to where it was
+function toggleSound() {
+  if (SFX.volume) { unmuteTo = SFX.volume; SFX.setVolume(0); } else { SFX.setVolume(unmuteTo); SFX.play('click'); }
+  const r = app.querySelector('[data-volume]'); if (r) r.value = Math.round(SFX.volume * 100);
+  const t = app.querySelector('[data-soundtoggle]'); if (t) t.textContent = SFX.volume ? 'Sound on' : 'Sound off';
+}
+document.addEventListener('keydown', e => {
+  if ((e.key === 'm' || e.key === 'M') && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target.closest && e.target.closest('textarea, input:not([type=range])'))) toggleSound();
+});
+document.addEventListener('input', e => { if (e.target.matches && e.target.matches('[data-volume]')) SFX.setVolume(e.target.value / 100); });
+document.addEventListener('change', e => { if (e.target.matches && e.target.matches('[data-volume]')) SFX.play('coins'); }); // a sample at the new volume
 
 // ---------- tutorial ----------
 // The tutorial is the start of every Guided start run: floor 1 is dealt from a stacked pile (see the engine).
@@ -2548,7 +2604,7 @@ function dealIn() {
     let n = 0;
     els.forEach(el => {
       const id = +el.dataset.card;
-      if (!shownRoom.has(id)) dealing.set(id, now + 130 * n++);
+      if (!shownRoom.has(id)) { SFX.play('deal', { delay: .13 * n }); SFX.play('flip', { delay: .13 * n + .42 }); dealing.set(id, now + 130 * n++); }
       const t0 = dealing.get(id);
       if (t0 == null || now > t0 + DEAL_MS) return;
       const r = el.getBoundingClientRect(), delay = t0 - now; // negative when resuming mid-flight
@@ -2990,7 +3046,8 @@ const pauseHTML = () => `<div class="overlay" role="dialog" aria-modal="true" ar
   <button class="primary" data-resume>Resume</button>
   <button data-map>${img('ui/icon-map.webp', 'bi')}Map</button>
   <button data-title>Main menu</button>
-  <p class="muted">${MODES[gameMode()]}</p></section></div>`;
+  <label class="volume">Sound <input type="range" min="0" max="100" step="5" value="${Math.round(SFX.volume * 100)}" data-volume aria-label="Sound volume"></label>
+  <p class="muted">${MODES[gameMode()]} · M mutes</p></section></div>`;
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape' || !canPause() || busy) return;
   if (deckOpen) { deckOpen = false; render(); return; }
@@ -3018,7 +3075,7 @@ function renderTitle() {
     ${saved ? `<div class="playrow"><button class="primary play" data-continue${tipAttr('Continue', `Pick up your run where you left it: floor ${saved.s.floor + 1}, ${MODES[saved.rec.mode] || 'Guided start'}.`)}>Continue</button><button class="play newrun" data-play${tipAttr('New run', 'Start over. Your saved run ends.')}>New run</button></div>`
       : `<button class="primary play" data-play${tipAttr('Play', 'Your first Guided start run teaches you as you play.')}>Play</button>`}
     ${boardHTML()}
-    ${syncNote()}<p class="muted version">v${VERSION}</p>
+    ${syncNote()}<p class="muted version"><button class="link soundtoggle" data-soundtoggle>${SFX.volume ? 'Sound on' : 'Sound off'}</button> · v${VERSION}</p>
   </section>`;
 }
 let moreOpen = false; // phones: the How to play / Top scores panel
@@ -3326,10 +3383,13 @@ async function loadStats() {
 
 // ---------- input ----------
 let busy = false; // true while a card's leave animation plays
+const QUIET_BUTTONS = ['act', 'bid', 'flee', 'buy', 'choose', 'skip', 'reroll', 'raise', 'pause', 'resume', 'deck', 'deckclose', 'soundtoggle'];
 app.addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b || b.disabled || busy) return;
+  if (!QUIET_BUTTONS.some(k => k in b.dataset)) SFX.play('click'); // buttons with a sound of their own stay quiet here
   if (titleOn) {
     const d = b.dataset;
+    if ('soundtoggle' in d) { toggleSound(); return; }
     if (d.mode) { store.set('mode', d.mode); boardMode = null; render(); }
     else if (d.board) { boardMode = d.board; paintBoards(); }
     else if ('continue' in d) {
@@ -3379,6 +3439,7 @@ app.addEventListener('click', async e => {
     // The effect plays on the card while it leaves the table, then the move resolves.
     const c = s.room.find(x => x.id === +d.id); if (!c) return;
     const name = c.kind === 'monster' ? (d.act === 'weapon' ? 'slash' : 'punch') : c.kind === 'potion' && E.potionHeal(s, c) > 0 && s.hp < s.maxHp ? 'heal' : null;
+    SFX.play(c.kind === 'weapon' ? 'equip' : name === 'heal' ? 'potion' : name || 'flip');
     if (cardEl && !reduceMotion) {
       busy = true; if (name) fx(name, cardEl.getBoundingClientRect());
       await leaveCard(cardEl, c, d.act); busy = false;

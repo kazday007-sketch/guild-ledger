@@ -8,6 +8,14 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.1.0 (2026-10-15)
+The game has sound.
+- **Cards and combat:** cards swish out of the pile and snap over, a weapon slashes and rings, fists thump, every hit you take lands with a low thud (heavier for bigger hits), a weapon being drawn rings out, a potion pops and gulps, and a broken weapon shatters.
+- **The guild:** coins clink when you're paid or spend, a contract is stamped when you sign or raise it, a met contract and a beaten boss get a short fanfare, and a strike tolls a bell.
+- **Everything else:** buttons click softly, menus open and close with a wooden knock, a relic pick chimes, fleeing whooshes, a win plays a fanfare and a death tolls the bell.
+- **Volume** is a slider in the pause menu, **M** mutes and unmutes anywhere, and the title screen has a Sound on/off switch. Your setting is kept in your browser.
+- Sounds still play with reduced motion turned on. The card, combat and coin sounds were made for the game (`src/synth_sfx.py`); the menu and fanfare sounds come from the free uisfx pack (public domain).
+
 ## 2.0.0 (2026-10-15)
 The start of the animation overhaul: the game now moves like one piece instead of jumping between states.
 - **Screens slide in.** Each new screen (contracts, the floor, the relic pick, the shop, the map) rises into place part by part, contract offers and relic choices deal in one after another, and the background dips between places. Pause and deck menus fade and lift in.
