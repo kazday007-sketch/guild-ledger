@@ -195,7 +195,7 @@ for (const mode of ['full', 'guided']) {
 // ---------- dev helpers ----------
 { const s = E.newGame(5); E.devJump(s, 7); eq(s.floor, 7, 'devJump: floor 8'); ok(s.boss === null && s.phase === 'bid', 'devJump: a normal floor waits for a bid');
   eq(s.deck.filter(c => c.v === 15).length, 3, 'devJump: act 2 elites are in the deck'); eq(s.deck.filter(c => c.v === 17).length, 3, 'devJump: act 3 elites are in the deck');
-  E.devJump(s, 8); ok(s.boss && s.boss.key === 'recklessOnly', 'devJump: floor 9 has the Lich');
+  E.devJump(s, 8); ok(s.boss && E.BOSSES[s.boss.key].act === 2, 'devJump: floor 9 has an act 3 boss');
   E.bid(s, 0); E.devRoom(s, 3); eq(s.roomsCleared, 3, 'devRoom: room 4'); }
 
 // ---------- One deck ----------
@@ -262,6 +262,57 @@ const inPile = s => s.draw.length + s.room.length;
   ok(s.hp === 1 && s.spared && s.phase === 'room', 'tutorial: a fatal hit on floor 1 leaves you at 1 health');
   clearFloor(s); E.leaveShop(s); s.hp = 3; s.room = [M(13), M(2), M(2), M(2)];
   E.handle(s, s.room[0].id, 'bare'); eq(s.phase, 'lost', 'tutorial: floor 2 can kill you'); }
+
+// ---------- bosses ----------
+// A run on boss floor f whose boss is `key` (earlier acts get other bosses).
+function bossGame(key, f = 2, seed = 1) {
+  const s = E.newGame(seed); s.bossKeys = Array.from({ length: Math.floor(f / 3) }, (_, i) => Object.keys(E.BOSSES).find(k => E.BOSSES[k].act === i && k !== key)).concat(key);
+  E.devJump(s, f); if (s.phase === 'bid') E.bid(s, s.offers.findIndex(o => !o.clause)); return s;
+}
+{ const seen = new Set(); for (let i = 1; i <= 40; i++) { const s = E.newGame(i); [2, 5, 8].forEach(f => { const b = E.bossFor(s, f); ok(E.BOSSES[b.key].act === f / 3 - 2 / 3, `bosses: floor ${f + 1} draws from its act`); }); seen.add(s.bossKeys[0]); }
+  ok(seen.size >= 4, 'bosses: runs meet different act 1 bosses');
+  eq(E.bossFor(E.newGame(9, { guided: true }), 2).key, 'warden', 'bosses: a guided run meets the Warden first');
+  const s = E.newGame(2); const keys = []; for (let a = 0; a < 15; a++) keys.push(E.bossFor(s, a * 3 + 2).key);
+  eq(new Set(keys).size, 15, 'bosses: no boss is met twice in 15 acts'); }
+{ const s = bossGame('warden'); s.hp = 99; s.maxHp = 99;
+  for (let n = 0; n < 3; n++) { s.room = [W(2), W(2), W(2), W(2)]; E.handle(s, s.room[0].id); E.handle(s, s.room[0].id); E.handle(s, s.room[0].id); }
+  const b = s.room.find(c => c.boss); ok(b && b.v === 11, 'Warden: waits in the last room as an 11');
+  ok(!E.canFlee(s), 'Warden: you can\'t flee his room');
+  s.room.filter(c => !c.boss).slice(0, 3).forEach(c => E.handle(s, c.id, 'bare'));
+  eq(s.phase, 'room', 'Warden: the floor goes on while he lives'); E.handle(s, b.id, 'bare'); ok(s.phase !== 'room', 'Warden: killing him ends the floor'); }
+{ const s = bossGame('skeletonking', 5); s.hp = 99; s.maxHp = 99; s.roomsCleared = 2; s.room = [W(2), W(2), W(2), W(2)]; for (let n = 0; n < 3; n++) E.handle(s, s.room[0].id); // on into the boss's room
+  s.room.filter(c => !c.boss).slice(0, 3).forEach(c => E.handle(s, c.id, 'bare'));
+  const k = s.room.find(c => c.boss); ok(k && k.rises, 'Skeleton King: in the last room'); E.handle(s, k.id, 'bare');
+  const r = s.room.find(c => c.boss); ok(r && r.v === Math.ceil(k.v / 2), 'Skeleton King: rises once at half strength'); E.handle(s, r.id, 'bare'); ok(s.phase !== 'room', 'Skeleton King: twice dead ends the floor'); }
+{ const s = bossGame('troll', 8); s.weapon = { v: 10, limit: null }; ok(E.monsterDamage(s, { v: 18, armor: 3 }, true) === 11, 'Cave Troll: its hide takes 3 off your weapon'); }
+{ const s = bossGame('vampire', 5); s.hp = 5; const b = { id: 1, kind: 'monster', v: 15, boss: true }; s.room = [P(5), b, M(2), M(2)]; E.handle(s, s.room[0].id); eq(b.v, 17, 'Vampire Lord: a potion makes him 2 stronger'); }
+{ const s = bossGame('jailer'); s.room = [M(2), M(2), M(2), M(2)]; ok(E.flee(s), 'Jailer: one flee'); s.fledStreak = 0; ok(!E.canFlee(s), 'Jailer: no second flee'); }
+{ const s = bossGame('mummy'); s.room = [W(8), M(2), M(2), M(2)]; E.handle(s, s.room[0].id); eq(s.weapon.v, 5, 'Mummy: weapons are 3 weaker'); }
+{ const s = bossGame('golem', 5); s.weapon = { v: 9, limit: null }; s.room = [M(8), M(2), M(2), M(2)]; E.handle(s, s.room[0].id, 'weapon'); eq(s.weapon.limit, 5, 'Bone Golem: a kill dulls the weapon 3 lower'); }
+{ const s = bossGame('hag', 5); s.hp = 10; s.room = [M(2), M(2), M(2), M(2)]; ok(E.flee(s) && s.hp === 9, 'Plague Hag: a new room costs 1 health'); eq(E.potionHeal(s, P(8)), 4, 'Plague Hag: potions heal half'); }
+{ const s = bossGame('dragon', 8); s.weapon = { v: 8, limit: null }; s.room = [M(2), M(2), M(2), M(2)]; E.flee(s); eq(s.weapon.v, 7, 'Dragon: its breath weakens the weapon each room'); }
+{ const s = bossGame('banshee'); s.room = [M(2), M(3), M(4), M(5)]; E.flee(s); eq(s.room.filter(c => c.hidden).length, 2, 'Banshee: two cards face down');
+  const h = s.room.find(c => c.hidden), v = s.room.find(c => !c.hidden); ok(!E.handle(s, h.id, 'bare'), 'Banshee: a face-down card can\'t be taken');
+  E.handle(s, v.id, 'bare'); ok(!s.room.some(c => c.hidden), 'Banshee: taking a card turns them over'); }
+{ const s = bossGame('goblinking'); const g = [...s.room, ...s.draw].find(c => c.stalker); ok(g && s.draw.indexOf(g) >= 1 && s.draw.indexOf(g) <= 8, 'Goblin King: hides in the next few rooms');
+  s.gold = 20; s.room = [M(2), M(2), M(2), M(2)]; E.flee(s); eq(s.gold, 15, 'Goblin King: steals 5 gold a room');
+  s.hp = 99; s.room = [g, M(2), M(2), M(2)]; E.handle(s, g.id, 'bare'); eq(s.gold, 25, 'Goblin King: killing him pays back double'); }
+{ const s = bossGame('wyrm', 8); s.room = [M(2), M(2), M(2), M(2)]; E.flee(s); eq(s.maxHp, E.MAX_HP - 3, 'Wyrm: -3 max health a room');
+  const w = [...s.room, ...s.draw].find(c => c.stalker); s.hp = 99; s.room = [w, M(2), M(2), M(2)]; E.handle(s, w.id, 'bare'); eq(s.maxHp, E.MAX_HP, 'Wyrm: killing it gives the max health back'); }
+{ const s = bossGame('broodmother', 5); s.room = [M(2), M(2), M(2), M(2)]; E.flee(s); const sp = s.room.find(c => c.name === 'Spiderling'); ok(sp && sp.boss, 'Broodmother: a spiderling you must kill');
+  s.hp = 99; clearFloor(s); ok(!s.draw.some(c => c.stalker || c.spawn), 'bosses: boss cards leave with the floor'); }
+{ const s = bossGame('horror', 8); s.draw.unshift(M(2), M(2), M(2), M(2)); s.room = [M(2), M(2), M(2), M(2)]; E.flee(s); ok(s.room.every(c => c.v === 4), 'Horror: new monsters grow 2 a room'); }
+{ const s = bossGame('lich', 8); eq(E.allowedTiers(s).join(), '2', 'Lich: Reckless only'); s.strikes = 0; s.slain = 0; s.hp = 99; s.gold = 999; clearFloor(s); eq(s.strikes, 2, 'Lich: a miss costs two strikes'); }
+
+// ---------- endless ----------
+{ const s = E.newGame(4); E.devJump(s, 8); E.bid(s, 0); s.slain = 999; s.gold = 999; s.hp = 99; s.maxHp = 99;
+  for (let n = 0; s.phase === 'room' && n < 40; n++) { s.room = s.room.filter(c => c.boss).concat([W(2), W(2), W(2), W(2)]); const b = s.room.find(c => c.boss); E.handle(s, (b || s.room[0]).id, 'bare'); }
+  eq(s.phase, 'won', 'endless: floor 9 still wins'); ok(E.continueEndless(s) && s.phase === 'shop' && s.endless, 'endless: keep going into the shop');
+  const before = s.deck.filter(c => c.kind === 'monster').reduce((n, c) => n + c.v, 0), monsters = s.deck.filter(c => c.kind === 'monster').length;
+  E.leaveShop(s); eq(s.floor, 9, 'endless: floor 10');
+  eq(s.deck.filter(c => c.kind === 'monster').reduce((n, c) => n + c.v, 0), before + monsters + 3 * 17, 'endless: monsters grow 1 and 3 more elites arrive');
+  ok(E.targetRow(9)[0] > E.TARGETS[8][0], 'endless: targets keep climbing'); ok(E.duesFor(s, 3) > E.DUES[2], 'endless: dues keep climbing');
+  eq(E.duesAhead(s).floor, 12, 'endless: dues after floor 12'); ok(E.bossFor(s, 11) && !s.bossKeys.slice(0, 3).includes(E.bossFor(s, 11).key), 'endless: a boss not met before'); }
 
 console.log(`${passes} passed, ${fails} failed`);
 process.exit(fails ? 1 : 0);

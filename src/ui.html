@@ -701,6 +701,10 @@ details[open] > summary::before { transform: rotate(90deg); }
 .card.weapon { border-image: url(assets/cards/frame-weapon.webp) 60 fill / 16px stretch; }
 .card.potion { border-image: url(assets/cards/frame-potion.webp) 60 fill / 16px stretch; }
 .card.elite { border-color: transparent; background: #e9e2d0 url(assets/ui/texture-parchment.webp) 0 0 / 220px; border-image: url(assets/cards/frame-elite.webp) 48 / 14px stretch; }
+.card.hidden { border-image: url(assets/cards/frame-monster.webp) 60 fill / 16px stretch; }
+.card.hidden .art img { filter: brightness(.8); }
+.card.bosscard { box-shadow: 0 0 0 2px rgba(208,84,91,.9), 0 0 22px rgba(208,84,91,.55); }
+.boss img.beaten, .floor .token img.beaten { filter: grayscale(.7) brightness(.8); }
 .card .rank, .card.elite .rank { display: flex; align-items: center; justify-content: center; gap: .02em; width: 2em; height: 2em; min-width: 0; padding: 0; border-radius: 50%; box-shadow: none; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); background: url(assets/ui/rank-plate-monster.webp) center / contain no-repeat; color: #2a2622; }
 .card.weapon .rank { background-image: url(assets/ui/rank-plate-weapon.webp); color: #24507f; }
 .card.potion .rank { background-image: url(assets/ui/rank-plate-potion.webp); color: #8e2a31; }
@@ -1365,7 +1369,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.42.0';
+const VERSION = '1.43.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -1390,7 +1394,9 @@ const ART = 'assets/';
 const img = (path, cls = '', alt = '') => `<img src="${ART}${path}" alt="${alt}"${cls ? ` class="${cls}"` : ''} decoding="async">`;
 const potionSize = v => v >= 8 ? 'large' : v >= 5 ? 'medium' : 'small';
 function cardArt(c) {
-  if (c.kind === 'monster') return c.suit === '★' ? `cards/elite-${c.v}.webp` : `cards/${c.suit === '♠' ? 'spades' : 'clubs'}-${c.v}.webp`;
+  if (c.bossKey) return BOSS_ART[c.name === 'Spiderling' ? 'spiderling' : c.bossKey];
+  const v = c.face || c.v; // Endless makes monsters stronger; they keep their own face
+  if (c.kind === 'monster') return c.suit === '★' ? `cards/elite-${v >= 17 ? 17 : 15}.webp` : `cards/${c.suit === '♠' ? 'spades' : 'clubs'}-${Math.min(14, v)}.webp`;
   if (c.kind === 'weapon') return `cards/weapon-${Math.max(2, Math.min(10, c.v))}.webp`;
   return `cards/potion-${potionSize(c.v)}.webp`;
 }
@@ -1410,7 +1416,12 @@ function relicIcon(k, cls = 'ico') {
 const relicTip = k => `${E.RELICS[k].text}<br><i>${E.RARITIES[E.RELICS[k].rarity]} relic</i>`;
 const tierSeal = t => `ui/seal-tier-${['safe', 'bold', 'reckless'][t]}.webp`;
 const clauseSeal = k => `ui/seal-clause-${({ sworn: 'sworn', abstain: 'abstinent', steel: 'steel-oath', bare: 'bare-oath' })[k]}.webp`;
-const bossArt = { fleeToll: 'boss-warden', halfPotion: 'boss-plague-hag', recklessOnly: 'boss-lich-auditor' };
+// Boss art: the three bosses with portraits use them; the rest use their monster card's art until portraits are made.
+const BOSS_ART = { warden: 'portraits/boss-warden.webp', hag: 'portraits/boss-plague-hag.webp', lich: 'portraits/boss-lich-auditor.webp',
+  goblinking: 'cards/clubs-13.webp', jailer: 'cards/spades-11.webp', mummy: 'cards/spades-9.webp', banshee: 'cards/spades-12.webp',
+  vampire: 'cards/spades-14.webp', broodmother: 'cards/clubs-12.webp', skeletonking: 'cards/spades-13.webp', golem: 'cards/spades-10.webp',
+  dragon: 'cards/elite-17.webp', horror: 'cards/elite-15.webp', troll: 'cards/clubs-10.webp', wyrm: 'cards/clubs-14.webp', spiderling: 'cards/spades-3.webp' };
+const bossImg = (b, beaten) => img(beaten && BOSS_ART[b.key].startsWith('portraits/') ? BOSS_ART[b.key].replace('.webp', '-beaten.webp') : BOSS_ART[b.key], beaten ? 'beaten' : '', b.name);
 // Azazel the goat (it replaced the guild clerk in 1.20.0, and got its name in 1.38.0; the CSS class is still .clerk). It has lived in the dungeon
 // for years, finds it all rather easy, and talks you through it.
 const clerk = (mood, cls = 'clerk') => img(`portraits/goat-${mood}.webp`, cls, 'Azazel the goat');
@@ -1427,11 +1438,11 @@ function place() {
   if (titleOn || !s) return null;
   if (mapView) return ACT_PLACES[mapAct()];
   if (s.phase === 'bid') return 'contracts';
-  if (s.phase === 'room') return s.boss ? 'boss' : ACT_PLACES[Math.min(2, E.act(s))];
+  if (s.phase === 'room') return s.boss ? 'boss' : ACT_PLACES[E.act(s) % 3];
   if (s.phase === 'shop') return 'shop';
   return null;
 }
-const crestOf = p => `ui/crest-${['crypt', 'sewers', 'vault', 'boss'].includes(p) ? p : ACT_PLACES[Math.min(2, E.act(s))]}.webp`;
+const crestOf = p => `ui/crest-${['crypt', 'sewers', 'vault', 'boss'].includes(p) ? p : ACT_PLACES[E.act(s) % 3]}.webp`;
 const AMBIENT = { crypt: 'crypt', sewers: 'sewers', vault: 'vault', boss: 'boss', shop: 'candle', contracts: 'candle' };
 function setAmbient(p) {
   const el = document.getElementById('ambient'), a = AMBIENT[p] || '';
@@ -1443,7 +1454,7 @@ function setAmbient(p) {
 function scene() {
   if (mapView) return ACTS[mapAct()].scene;
   if (s.phase === 'bid') return 'contract-board';
-  if (s.phase === 'room') return (s.boss ? ['boss-crypt', 'boss-sewers', 'boss-vault'] : ['act1-crypt', 'act2-sewers', 'act3-vault'])[Math.min(2, E.act(s))];
+  if (s.phase === 'room') return (s.boss ? ['boss-crypt', 'boss-sewers', 'boss-vault'] : ['act1-crypt', 'act2-sewers', 'act3-vault'])[E.act(s) % 3];
   if (s.phase === 'shop') return 'guild-hall';
   return s.phase === 'won' ? 'victory' : 'defeat';
 }
@@ -1613,8 +1624,10 @@ function currentHint() {
     ['dues', shopNow && contractsOpen() && s.floor % 3 === 1, '<b>Guild dues.</b> After the next floor, the guild collects this fee. Keep enough gold, or it\'s a strike.', '.stat.guild'],
     ['tiers', s.phase === 'bid' && multi && !s.boss, '<b>New! Bold and Reckless contracts.</b> A bigger target pays more gold, but a miss is a strike. When in doubt, Safe is fine.', '.offers'],
     ['raise', s.phase === 'room' && E.canRaise(s), '<b>Raise.</b> Your relic lets you raise your contract one step between rooms, for more gold. Only if the floor is going well.', '[data-raise]'],
-    ['bossroom', s.phase === 'room' && survival() && s.boss, `<b>Boss floor!</b> ${s.boss ? esc(s.boss.name) : ''} has a special rule. ${s.boss ? esc(s.boss.rule) : ''}`, '.boss'],
-    ['boss', s.phase === 'bid' && s.boss, '<b>Boss floor.</b> The boss adds one special rule for this floor. Read it before you sign. The goat never does.', '.boss', 'I don\'t need to.'],
+    ['bossroom', s.phase === 'room' && survival() && s.boss, `<b>Boss floor!</b> ${s.boss ? `${esc(s.boss.name)}: ${esc(s.boss.rule)}` : ''}`, '.boss'],
+    ['boss', s.phase === 'bid' && s.boss, '<b>Boss floor.</b> Every boss is different: some wait in the last room, some hide in the pile, some change the rules. Read this one before you sign. The goat never does.', '.boss', 'I don\'t need to.'],
+    ['bossfight', s.phase === 'room' && s.room.some(c => c.boss && c.bossKey === (s.boss && s.boss.key) && c.name !== 'Spiderling'), '<b>The boss is here.</b> It has to die before you can leave this room, and you can\'t flee it.', '.card.bosscard'],
+    ['endless', s.phase === 'shop' && s.endless && s.floor === E.FLOORS - 1, '<b>Endless.</b> From here every act makes the monsters stronger, the targets and dues bigger, and brings a boss you haven\'t met. Go as deep as you can.', null, 'I\'ve been down there. It\'s fine.'],
     ['clause', s.phase === 'bid' && s.offers.some(o => o.clause), `<b>New! The Wildcard.</b> One offer now pays ${E.WILDCARD_MULT}× as much, more than the next contract up. The catch is that it adds one extra rule for this floor.`, '.offer.clause'],
     ['onedeck', s.oneDeck && s.phase === 'room' && s.floor === 0, '<b>One deck.</b> The dungeon won\'t reshuffle between floors here. What you deal stays gone until the next act. Tap the <b>pile</b> to count what\'s left.', '.chamber .pile', 'I count it in my head. Show-offs use the pile.'],
   ];
@@ -1702,7 +1715,8 @@ function goal() {
 
 // ---------- rendering ----------
 function cardName(c) {
-  if (c.kind === 'monster') return (monsterNames[c.suit] || {})[c.v] || 'Horror';
+  if (c.name) return c.name; // bosses and their spawn
+  if (c.kind === 'monster') return (monsterNames[c.suit] || {})[c.face || c.v] || (monsterNames[c.suit] || {})[c.v >= 17 ? 17 : 15] || 'Horror';
   if (c.kind === 'weapon') return weaponNames[c.v] || 'Blade';
   return { large: 'Elixir', medium: 'Tonic', small: 'Salve' }[potionSize(c.v)];
 }
@@ -1729,6 +1743,8 @@ function allowed(c, mode) {
   return !!a && a.v === c.v && a.mode === mode;
 }
 function cardHTML(c, active) {
+  if (c.hidden) return `<article class="card hidden ${active ? '' : 'idle'}" data-card="${c.id}"${tipAttr('Face down', 'The Banshee hides this card. Take another card first, and it turns over.')}>
+    <div class="art">${img('cards/back.webp')}</div><div class="name"><span class="face">Face down</span></div><div class="acts"><button disabled>${dual('Take another card first', 'Hidden')}</button></div></article>`;
   const btn = (mode, label, tip = '') => `<button data-act="${mode || 'take'}" data-id="${c.id}" ${allowed(c, mode) ? '' : 'disabled'}${c.kind === 'monster' && E.monsterDamage(s, c, mode === 'weapon') >= s.hp && !E.safeFloor(s) ? ' class="fatal"' : ''}${tip}>${label}</button>`;
   let acts = '';
   if (c.kind === 'monster') {
@@ -1739,7 +1755,7 @@ function cardHTML(c, active) {
     acts = btn(null, 'Equip', tipAttr(`Equip the ${cardName(c)}`, `Blocks up to <b>${v}</b> damage per fight.${s.weapon ? ` Drops your ${s.weapon.v}.` : ''}`));
   } else acts = btn(null, potionPreview(c));
   const lit = tut && TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.v === c.v && s.phase === 'room';
-  return `<article class="card ${c.kind} ${c.v >= 15 ? 'elite' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''}" data-card="${c.id}">
+  return `<article class="card ${c.kind} ${c.v >= 15 || c.bossKey ? 'elite' : ''} ${c.boss ? 'bosscard' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''}" data-card="${c.id}"${c.boss ? tipAttr(cardName(c), 'Must die before you can leave this room.') : ''}>
     <div class="art">${img(cardArt(c))}<span class="rank" role="img" aria-label="${c.v}">${digits(c.v)}</span></div>
     <div class="name"><span class="face">${cardName(c)}</span></div>
     <div class="acts">${acts}</div></article>`;
@@ -1761,8 +1777,8 @@ function statusHTML() {
   ].filter(Boolean);
   return `<section class="status n${cells.length}" aria-label="Status">${cells.join('')}</section>`;
 }
-const bossCard = (b, label) => `<div class="boss"${tipAttr(b.name, b.rule)}>${img(`portraits/${bossArt[b.key]}.webp`, '', b.name)}<div class="who"><span class="label">${label}</span><b>${b.name}</b><span>${b.rule}</span></div></div>`;
-const bossHTML = () => s.boss ? bossCard(s.boss, 'Boss floor') : '';
+const bossCard = (b, label) => `<div class="boss"${tipAttr(b.name, b.rule)}>${bossImg(b)}<div class="who"><span class="label">${label}</span><b>${b.name}</b><span>${b.rule}</span></div></div>`;
+const bossHTML = () => s.boss ? bossCard(s.boss, s.boss.kind) : '';
 function relicsHTML(withDrop, slots = withDrop) {
   if (!relicsOpen()) return '';
   if (!s.relics.length && !slots) return '';
@@ -1817,6 +1833,8 @@ const rulesHTML = () => `<details class="rules"><summary>How to play</summary><o
   ${contractsOpen() ? `<li><b>Contracts:</b> before each floor, promise how many monster points you'll kill. Make it: gold. Miss it: a strike. Three strikes ends the run.</li>
   <li><b>Gold</b> buys services and a rare relic in the shop. Every 3 floors the guild charges dues; if you can't pay, that's a strike.</li>` : ''}
   ${relicsOpen() ? `<li><b>Relics:</b> after every floor, pick 1 of 3 for free (a boss gives boss relics; a met Bold, Reckless or Wildcard contract gives rarer ones). You can carry ${E.MAX_RELICS}.</li>` : ''}
+  <li><b>Bosses:</b> every third floor has a boss, and each run meets different ones. Some wait in the last room and must die before you leave, some hide in the pile and haunt you until you kill them, and some change the rules.</li>
+  <li><b>Endless:</b> win, and you can keep going. Every act after that makes the monsters stronger and brings a boss you haven't met. Top scores rank how deep you got, then points.</li>
   ${s.oneDeck ? `<li><b>One deck:</b> the dungeon isn't reshuffled between floors. Cards you've dealt stay gone until the next act starts (or the pile runs out). Tap the pile to see what's left.</li>` : ''}
   ${!s.guided || s.floor >= E.UNLOCK.clauses ? `<li><b>Wildcard:</b> one offer per floor pays ${E.WILDCARD_MULT}× as much, but adds one extra rule for that floor.</li>` : ''}
 </ol><button class="link" data-tutorial>Replay the tutorial</button></details>`;
@@ -1897,7 +1915,7 @@ function endHTML() {
       <textarea id="fb" rows="2" maxlength="600" placeholder="Anything confusing or great?">${esc(rec.note || '')}</textarea>
       <button data-fb>${rec.note ? 'Update note' : 'Save note'}</button><span id="fbstate" class="muted"></span>` : '';
   const key = 'end-' + (rec ? rec.id : s.floor);
-  const medal = won ? 'gold' : s.floor >= 6 ? 'silver' : s.floor >= 3 ? 'bronze' : 'copper'; // how far you got: act 1, 2, 3 or the end
+  const medal = won || s.floor >= 9 ? 'gold' : s.floor >= 6 ? 'silver' : s.floor >= 3 ? 'bronze' : 'copper'; // how far you got: act 1, 2, 3 or the end
   const tally = `<p class="muted tally">${img(`ui/medal-${medal}.webp`, 'medal', `${medal[0].toUpperCase() + medal.slice(1)} medal`)}Floor <span class="num">${s.floor + 1}</span> · <span class="num">${runPoints()}</span> points · <span class="num">${s.gold}</span> gold</p>`;
   let top;
   if (won) top = `${stamp('paid', key)}<div class="endsum">${img('ui/end-victory.webp', 'endart', 'The ledger, closed')}<h2>You made it out. The goat is mildly impressed. Don't gloat.</h2><p style="margin:0">${esc(s.lastResult || '')}</p>${tally}</div>`;
@@ -1912,7 +1930,8 @@ function endHTML() {
   return `<section class="end ${won ? 'won' : s.hp > 0 ? 'revoked' : 'dead'}">${top}<div class="endform">${fb}${webReports() && rec ? webFormHTML() : ''}
       ${dbState !== 'on' && rec && !webReports() ? `<p class="muted" style="margin:0">Playtesting? Copy this report and send it to whoever shared the game.</p>
       <textarea id="report" rows="4" readonly>${esc(runReport())}</textarea><button data-copy>Copy run report</button><span id="copystate" class="muted"></span>` : ''}
-      <button class="primary" data-new>New run</button></div></section>`;
+      ${won && !s.endless ? '<button class="primary" data-endless>Keep going: Endless</button><p class="muted" style="margin:0;font-size:13px">Go deeper until you fall. Every act gets harder, with a new boss each time.</p>' : ''}
+      <button class="${won && !s.endless ? '' : 'primary'}" data-new>New run</button></div></section>`;
 }
 function webFormHTML() {
   return `<label class="fb sr" for="pname">Name for Top scores (optional)</label>
@@ -1946,12 +1965,13 @@ function runReport(r = rec) {
   const bought = r.shops.flatMap(sh => sh.bought.filter(k => E.RELICS[k]).map(k => E.RELICS[k].name)).join(', ') || 'none';
   const skipped = [...new Set(r.shops.flatMap(sh => sh.offered.filter(k => !sh.bought.includes(k)).map(k => E.RELICS[k].name)))].join(', ') || 'none';
   const t = r.tut ? `\nTutorial: intro ${r.tut.intro || 'not finished'}, ${r.tut.skipped ? `skipped after ${r.tut.guided} of ${TUTORIAL.length} guided moves` : `${r.tut.guided} of ${TUTORIAL.length} guided moves`}, ${r.tut.recap ? 'reached the recap' : 'no recap'}${r.tut.spared ? ', saved from death' : ''}` : '';
-  return `Scapegrace v${VERSION} run report${r.mode === 'full' ? ' (full game)' : r.mode === 'onedeck' ? ' (one deck)' : ''}: ${out} on floor ${r.floorReached}, ${r.totalSlain} points, ${r.gold} gold.\nFloors: ${floors}\nRelics taken: ${bought}\nRelics passed on: ${skipped}${t}`;
+  return `Scapegrace v${VERSION} run report${r.mode === 'full' ? ' (full game)' : r.mode === 'onedeck' ? ' (one deck)' : ''}${r.endless ? ' (endless)' : ''}: ${out} on floor ${r.floorReached}, ${r.totalSlain} points, ${r.gold} gold.\nFloors: ${floors}\nRelics taken: ${bought}\nRelics passed on: ${skipped}${t}`;
 }
 // ---------- leaderboard (top scores from the Sheet's published Leaderboard tab) ----------
 // The tab has one row per reported run: mode, name, points, floor, outcome, gold, version, date.
 // Google refreshes a published CSV about every 5 minutes, so a new score can take that long to show.
-const BOARD_MAX_POINTS = E.FLOORS * E.ROOMS_PER_FLOOR * 3 * 17; // every card handled being the biggest monster: anything above is fake
+const BOARD_MAX_FLOOR = 99; // Endless runs go past floor 9
+const BOARD_MAX_POINTS = BOARD_MAX_FLOOR * E.ROOMS_PER_FLOOR * 4 * 60; // far above anything real: anything above is fake
 const BOARD_SIZE = 5, BOARD_FROM = [1, 20, 0]; // top 5 per mode, only runs from 1.20.0 on (older builds scored differently)
 const boardVersionOK = v => { const n = /^v?(\d+)\.(\d+)\.(\d+)/.exec((v || '').trim()); if (!n) return false;
   for (let i = 0; i < 3; i++) if (+n[i + 1] !== BOARD_FROM[i]) return +n[i + 1] > BOARD_FROM[i]; return true; };
@@ -1982,7 +2002,7 @@ function boardFromCSV(text) {
   for (const r of rows) {
     const e = { mode: r[at.mode], name: (r[at.name] || '').trim().slice(0, 40), points: +r[at.points], floor: +r[at.floor], outcome: r[at.outcome], gold: +r[at.gold] || 0 };
     if (!boardVersionOK(r[at.version])) continue;
-    if (!out[e.mode] || !Number.isInteger(e.points) || e.points < 0 || e.points > BOARD_MAX_POINTS || !(e.floor >= 1 && e.floor <= E.FLOORS)) continue;
+    if (!out[e.mode] || !Number.isInteger(e.points) || e.points < 0 || e.points > BOARD_MAX_POINTS || !(e.floor >= 1 && e.floor <= BOARD_MAX_FLOOR)) continue;
     if (e.name) {
       const k = e.mode + '|' + e.name.toLowerCase();
       if (best[k] && boardBetter(best[k], e) >= 0) continue;
@@ -2041,12 +2061,13 @@ let mapView = null; // 'auto': shown after the shop, with a button into the floo
 const ACTS = [{ name: 'The Crypt', scene: 'act1-crypt' }, { name: 'The Sewers', scene: 'act2-sewers' }, { name: 'The Vault', scene: 'act3-vault' }];
 const canPause = () => !titleOn && introStep == null && s && ['bid', 'room', 'shop'].includes(s.phase);
 const nextFloor = () => s.phase === 'shop' ? s.floor + 1 : s.floor; // the floor you're on, or heading to from the shop
-const mapAct = () => Math.min(2, Math.floor(nextFloor() / 3));
+const actOf = () => Math.floor(nextFloor() / 3); // Endless goes past act 3
+const mapAct = () => actOf() % 3; // the act's place and art: Endless acts cycle the three
 // What floor f (0-based) will ask of you, from the engine's own unlock rules.
 function floorPlan(f) {
-  const boss = E.BOSSES[f] || null, guided = s.guided;
+  const boss = E.bossFor(s, f), guided = s.guided;
   if (guided && f < E.UNLOCK.contracts) return { survival: true, boss };
-  const tiers = guided && f < E.UNLOCK.tiers ? [0] : boss && boss.key === 'recklessOnly' ? [2] : [0, 1, 2];
+  const tiers = guided && f < E.UNLOCK.tiers ? [0] : boss && boss.key === 'lich' ? [2] : [0, 1, 2];
   return { tiers, wild: !(guided && f < E.UNLOCK.clauses), boss };
 }
 function floorHTML(f) {
@@ -2056,24 +2077,24 @@ function floorHTML(f) {
   const mark = !r ? '' : r.survival ? '' : r.met ? 'paid' : r.met === false ? 'strike' : '';
   const state = done ? (r && r.survival ? 'Survived' : r && r.met ? 'Contract met' : r && r.met === false ? 'Contract missed' : 'Cleared')
     : now ? `In progress · room ${s.roomsCleared + 1} of ${E.ROOMS_PER_FLOOR}` : f === here ? 'You are here' : 'Ahead';
-  const token = p.boss ? img(`portraits/${bossArt[p.boss.key]}${done ? '-beaten' : ''}.webp`, '', p.boss.name)
+  const token = p.boss ? bossImg(p.boss, done)
     : img(`ui/map-floor-${p.survival ? 'survival' : 'contract'}.webp`, '', p.survival ? 'Survival floor' : 'Contract floor');
   const task = p.survival ? `<p class="task"><b>Survive</b> ${E.ROOMS_PER_FLOOR} rooms · pays <span class="num price">${E.SURVIVAL_PAY}</span> gold</p>`
-    : `<ul class="tiers"${tipAttr('Contract', 'Pick one before the floor: how many monster points you\'ll kill. Bigger targets pay more.')}>${p.tiers.map(t => `<li>${img(tierSeal(t))}${E.TIERS[t]} <b class="num">${E.TARGETS[f][t]}</b></li>`).join('')}</ul>
+    : `<ul class="tiers"${tipAttr('Contract', 'Pick one before the floor: how many monster points you\'ll kill. Bigger targets pay more.')}>${p.tiers.map(t => `<li>${img(tierSeal(t))}${E.TIERS[t]} <b class="num">${E.targetRow(f)[t]}</b></li>`).join('')}</ul>
       ${p.wild ? `<p class="task"${tipAttr('Wildcard', `Pays ${E.WILDCARD_MULT}× as much, with one extra rule for the floor.`)}>or a Wildcard</p>` : ''}`;
   return `<article class="floor ${p.boss ? 'bossfloor' : ''} ${done ? 'done' : f === here ? 'next' : 'later'}">
     ${mark ? `<span class="mark ${mark}">${img(`ui/stamp-${mark}.webp`)}<b>${mark.toUpperCase()}</b></span>` : ''}
     <div class="token ${p.boss ? '' : 'medal'}">${token}</div>
-    <span class="label">${p.boss ? `Boss · floor ${f + 1}` : `Floor ${f + 1}`}</span>
+    <span class="label">${p.boss ? `${p.boss.kind} · floor ${f + 1}` : `Floor ${f + 1}`}</span>
     ${p.boss ? `<h3>${p.boss.name}</h3><p class="rule">${p.boss.rule}</p>` : ''}
     ${task}<span class="state">${state}</span></article>`;
 }
 function mapHTML() {
-  const a = mapAct(), first = a * 3, here = nextFloor();
+  const a = actOf(), place = mapAct(), first = a * 3, here = nextFloor();
   const dues = !(s.guided && first + 2 < E.UNLOCK.contracts);
   const go = mapView === 'auto' ? `<button class="primary go" data-mapgo>Start floor ${here + 1}</button>` : '<button class="go" data-mapback>Back</button>';
   const floors = [first, first + 1, first + 2].map(floorHTML).join('');
-  return `<section class="actmap" aria-label="Act map"><div class="acthead">${img(`ui/crest-${ACT_PLACES[a]}.webp`, 'crest')}<span class="label">Act ${a + 1} of 3</span><h2>${ACTS[a].name}</h2></div>
+  return `<section class="actmap" aria-label="Act map"><div class="acthead">${img(`ui/crest-${ACT_PLACES[place]}.webp`, 'crest')}<span class="label">${a > 2 ? `Endless · act ${a + 1}` : `Act ${a + 1} of 3`}</span><h2>${a > 2 ? `The Deep ${ACTS[place].name.replace('The ', '')}` : ACTS[place].name}</h2></div>
     <div class="floors">${floors}</div>
     <div class="mapfoot">${dues ? `<p class="dues"${tipAttr('Guild dues', 'Collected after the boss floor. If you can\'t pay, it\'s a strike.')}>Dues <b class="num price">${E.duesFor(s, a)}</b> gold · you have <b class="num price">${s.gold}</b></p>` : ''}
     ${go}</div></section>`;
@@ -2145,7 +2166,7 @@ function render() {
   if (where) app.dataset.place = where; else delete app.dataset.place;
   const pauseBtn = canPause() && !mapView ? `<button class="pause" data-pause aria-label="Pause" title="Pause (Esc)">${img('icons/hud-pause.webp')}</button>` : '';
   const more = `<button class="more" data-more aria-expanded="${moreOpen}" title="How to play and top scores">${moreOpen ? 'Close' : 'More'}</button>`;
-  const head = `<header><h1>${img('icons/emblem-goat.webp', 'emblem')}Scapegrace</h1>${more}<span class="muted where">${img(crestOf(where), 'crest')}${`Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span>${pauseBtn}</header>`;
+  const head = `<header><h1>${img('icons/emblem-goat.webp', 'emblem')}Scapegrace</h1>${more}<span class="muted where">${img(crestOf(where), 'crest')}${s.endless ? `Floor <span class="num">${s.floor + 1}</span> · Endless · Act ${E.act(s) + 1}` : `Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span>${pauseBtn}</header>`;
   // extras (rules, scores, footer) sit under the side column on wide screens and behind the More button on phones
   const cols = (side, stage, extras = '') => `<div class="cols"><div class="side">${side}<div class="extras">${extras}${syncNote()}<p class="muted version">v${VERSION}</p></div></div><div class="stage">${stage}</div></div>`;
   let body = '';
@@ -2506,6 +2527,12 @@ app.addEventListener('click', async e => {
   }
   else if (d.drop) E.dropRelic(s, d.drop);
   else if ('leave' in d) { E.leaveShop(s); mapView = 'auto'; if (s.floor % 3 === 0) effect = () => fx('act', rectOf('.acthead')); } // a new act begins
+  else if ('endless' in d) {
+    readReportForm();
+    if (!E.continueEndless(s)) return;
+    if (rec) { rec.endless = true; rec.status = 'in_progress'; rec.outcome = null; rec.endedAt = null; }
+    payoutView = false;
+  }
   else if ('new' in d) {
     readReportForm();
     if (rec && rec.status === 'in_progress' && rec.floors.length) { rec.status = 'abandoned'; save(); }
@@ -2545,7 +2572,7 @@ app.addEventListener('click', async e => {
   if (acted) { afterAction(prev); if (!tut) retireHint(hintBefore); recall = false; }
   if (prev === 'room' && s.phase === 'shop') { // the floor is settled: one mark on the clerk's ledger, and coins on your gold
     const r = s.lastResult || '', last = effect;
-    const mark = /strike \d of 3/i.test(r) ? 'strike' : E.BOSSES[s.floor] ? 'boss-beaten' : r.startsWith('Contract met') ? 'contract-met' : null;
+    const mark = /strike \d of 3/i.test(r) ? 'strike' : E.isBossFloor(s.floor) ? 'boss-beaten' : r.startsWith('Contract met') ? 'contract-met' : null;
     const gold = /Paid \d+ gold in guild dues/.test(r) ? 'dues' : r.startsWith('Contract met') ? 'coins' : null;
     effect = () => { if (last) last(); if (mark) fx(mark, rectOf('.settle')); if (gold) fx(gold, rectOf('.status .stat.gold')); };
     if (s.payout) { payoutView = true; effect = last; } // the payout screen comes first and plays its own marks and coins
@@ -2580,11 +2607,13 @@ render();
 
   const E = window.Engine;
   const has = k => s.relics.includes(k);
-  const fleeToll = () => s.boss && s.boss.key === 'fleeToll';
+  const fleeToll = () => s.boss && s.boss.key === 'warden';
 
   function fleeReason() {
     if (E.canFlee(s)) return fleeToll() ? 'The Warden charges 4 health to flee.' : 'Flee to send this room to the bottom of the pile.';
     if (s.contract && s.contract.clause === 'sworn') return 'Your Wildcard (Sworn) forbids fleeing.';
+    if (s.room.some(c => c.boss)) return `You can't flee while ${s.room.find(c => c.boss).name} is in the room.`;
+    if (s.boss && s.boss.key === 'jailer' && s.jailFled) return 'The Jailer allows only one flee on this floor.';
     if (s.handled > (has('scout') ? 1 : 0)) return 'You can only flee before touching a room.';
     if (fleeToll() && s.hp <= 4) return 'Too hurt to pay the Warden 4 health.';
     return "You can't flee two rooms in a row.";
@@ -2724,7 +2753,7 @@ render();
     const here = on ? (s.phase === 'shop' ? `Shop after floor ${s.floor + 1}` : `Floor ${s.floor + 1}, room ${s.roomsCleared + 1}${s.phase === 'bid' ? ' (choosing a contract)' : ''}`) : titleOn ? 'Title screen' : s ? s.phase : 'No run';
     const d = on && E.duesAhead(s);
     const c = on && s.contract;
-    const floorBtns = Array.from({ length: E.FLOORS }, (_, f) => `<button data-dv="floor" data-floor="${f}" class="${on && s.floor === f && s.phase !== 'shop' ? 'here' : ''}" title="Act ${Math.floor(f / 3) + 1}${E.BOSSES[f] ? ', ' + E.BOSSES[f].name : ''}">${f + 1}${E.BOSSES[f] ? '★' : ''}</button>`).join('');
+    const floorBtns = Array.from({ length: E.FLOORS }, (_, f) => `<button data-dv="floor" data-floor="${f}" class="${on && s.floor === f && s.phase !== 'shop' ? 'here' : ''}" title="Act ${Math.floor(f / 3) + 1}${E.isBossFloor(f) ? ', ' + (s ? E.bossFor(s, f).name : 'boss') : ''}">${f + 1}${E.isBossFloor(f) ? '★' : ''}</button>`).join('');
     const roomBtns = Array.from({ length: E.ROOMS_PER_FLOOR }, (_, r) => `<button data-dv="room" data-room="${r}" class="${on && s.phase === 'room' && s.roomsCleared === r ? 'here' : ''}">${r + 1}</button>`).join('');
     const relics = Object.entries(E.RELICS).map(([k, r]) => `<button data-dv="relic" data-relic="${k}" class="${on && s.relics.includes(k) ? 'on' : ''}" title="${esc(r.text)}">${relicIcon(k, '')}<span>${r.name}</span></button>`).join('');
     panel.innerHTML = `<div class="head"><b>DEVELOPER</b><span class="row" style="margin:0"><button data-dv="hints" title="Mark every one-time tip as seen">Hide tips</button><button data-dv="close">Close</button></span></div>
