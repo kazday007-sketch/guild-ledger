@@ -8,6 +8,10 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.4.1 (2026-10-15)
+Bug fix.
+- **No more "the The Warden":** dying to a boss now reads "Slain by the Warden", and the death lines no longer double up the "The" (or say "a The Warden"). Dying to the Broodmother now gets the Broodmother's own line, and the boss who killed you no longer also "watched the whole thing".
+
 ## 2.4.0 (2026-10-15)
 Music and ambience.
 - **A quiet loop for each place:** a low drone, a slow pad and a few far-off bells, with the place's own sounds underneath. The crypt has wind, the sewers have running water and drips, the vault has a deep hum and distant chains, and the guild hall (title, map, payout and shop) is warmer, with candles crackling.

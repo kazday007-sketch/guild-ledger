@@ -1405,7 +1405,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.4.0';
+const VERSION = '2.4.1';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -2267,11 +2267,13 @@ function epitaph() {
   }
   const h = lastHit;
   if (!h) return { kind: 'dead', title: 'You fell', line: pickLine(['The goat has already eaten your bunk.'], seed) };
-  const pool = [...(DEATH_LINES[h.name] || []), ...(DEATH_LINES[h.name] || []), ...DEATH_ANY, ...(h.mode === 'bare' ? DEATH_FISTS : DEATH_WEAPON)];
-  if (s.boss) pool.push(`${s.boss.name} watched the whole thing and took notes.`);
+  const nm = h.name.replace(/^The /, ''); // boss names come with their own "The", and the lines add one
+  const lines = DEATH_LINES[nm] || DEATH_LINES[nm.replace(/^Broodmother$/, 'Spider Broodmother')] || [];
+  const pool = [...lines, ...lines, ...DEATH_ANY, ...(h.mode === 'bare' ? DEATH_FISTS : DEATH_WEAPON)];
+  if (s.boss && s.boss.name !== h.name) pool.push(`${s.boss.name} watched the whole thing and took notes.`);
   if (s.floor === 0) pool.push('Floor 1. The guild had barely learned your name. It has now stopped trying.');
-  const line = pickLine(pool, seed).replaceAll('{m}', h.name).replaceAll('{v}', h.v);
-  return { kind: 'dead', title: `Slain by ${theName(h.name)}`, line, card: h.card };
+  const line = pickLine(pool, seed).replaceAll('{m}', nm).replaceAll('{v}', h.v);
+  return { kind: 'dead', title: `Slain by ${theName(nm)}`, line, card: h.card };
 }
 function endHTML() {
   const won = s.phase === 'won';
