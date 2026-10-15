@@ -118,7 +118,8 @@ function clearFloor(s) {
 { const a = M(8), b = M(9), s = game({ relics: ['masterwork'], weapon: [9, null], room: [a, b, M(2), M(2)] });
   fight(s, a, 'weapon'); ok(E.canUseWeapon(s, b), 'Masterwork: an 8 kill does not dull the weapon');
   const c = M(10), s2 = game({ relics: ['masterwork'], weapon: [10, null], room: [c, M(2), M(2), M(2)] }); fight(s2, c, 'weapon'); eq(s2.weapon.limit, 10, 'Masterwork: a 10 kill dulls it'); }
-{ const m = M(11), s = game({ relics: ['executioner'], weapon: [11, null], room: [m, M(2), M(2), M(2)] }); eq(fight(s, m, 'weapon').pts, 22, 'Executioner: weapon kill of 11 counts 22'); }
+{ const m = M(12), s = game({ relics: ['executioner'], weapon: [12, null], room: [m, M(2), M(2), M(2)] }); eq(fight(s, m, 'weapon').pts, 18, 'Executioner: weapon kill of 12 counts 18');
+  const m2 = M(11), s2 = game({ relics: ['executioner'], weapon: [11, null], room: [m2, M(2), M(2), M(2)] }); eq(fight(s2, m2, 'weapon').pts, 11, 'Executioner: an 11 counts as usual'); }
 { const m = M(13), s = game({ relics: ['unbreaking'], weapon: [9, null], room: [m, M(2), M(2), M(2)] }); fight(s, m, 'weapon'); eq(s.weapon.limit, null, 'Unbreaking Edge: never dulls'); }
 { const m = M(9), s = game({ relics: ['knuckles', 'brawler', 'fang'], room: [m, M(2), M(2), M(2)] });
   eq(fight(s, m, 'bare').lost, 9 - 2 - 2, 'Brass Knuckles: 2 off a bare fight (and the fang heals 2)'); }
@@ -153,7 +154,8 @@ function clearFloor(s) {
 { const m = M(4), s = game({ relics: ['bonecrown'], room: [m, M(2), M(2), M(2)] }); eq(fight(s, m, 'bare').pts, 6, 'Bone Crown: +2 a kill'); }
 { const s = E.newGame(1); E.devJump(s, 6); E.devGrant(s, 'rulebreaker'); const i = s.offers.findIndex(o => o.clause); s.offers[i].clause = 'sworn'; E.bid(s, i);
   ok(E.canFlee(s), 'Rulebreaker: a Sworn Wildcard still lets you flee'); }
-{ const s = game({ relics: ['smokebomb'] }); ok(E.flee(s) && E.flee(s) && E.flee(s), 'Smoke Bomb: flee three in a row'); }
+{ const s = game({ relics: ['smokebomb'] }); ok(E.flee(s) && E.flee(s) && E.flee(s), 'Smoke Bomb: flee three in a row'); ok(!E.canFlee(s), 'Smoke Bomb: not four'); }
+{ const s = game({ relics: ['smokebomb', 'wardenkeys'], hp: 10 }); E.flee(s); E.flee(s); E.flee(s); eq(s.hp, 12, "Warden's Keys: back-to-back flees heal only once"); }
 { const s = game({ relics: ['wardenkeys'], floor: 2, hp: 3, room: [P(2), P(2), M(2), M(2)] }); s.hp = 3; E.handle(s, s.room[0].id); E.handle(s, s.room[0].id);
   ok(E.canFlee(s), "Warden's Keys: flee after 2 cards, past the Warden at low health"); E.flee(s); ok(s.hp >= 3, "Warden's Keys: fleeing costs nothing"); }
 
