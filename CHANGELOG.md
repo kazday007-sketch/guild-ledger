@@ -8,6 +8,12 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.44.0 (2026-10-15)
+Shop reroll and a bigger skip reward.
+- **Reroll the shop's relic.** The relic niche has a Reroll button that swaps the relic for another rare one. The first reroll on a visit costs 2 gold and each one after costs 2 more (2, 4, 6...). The price starts over at your next shop. A relic you already bought can be rerolled too, so you can buy a second one.
+- **Skipping the relic pick pays 8 gold** instead of 4.
+- Simulator (`node src/sim.js shop`, 2,000 balanced runs): a bot that rerolls weak shelves wins 18.4% against 17.8% without. A bot that skips weak picks wins 16.0% at 4 gold, 18.2% at 8 and 19.0% at 10, so at 8 skipping a weak pick is about as good as taking it, without beating the pick outright.
+
 ## 1.43.0 (2026-10-15)
 Bosses and Endless.
 - **15 bosses of four kinds**, five per act. Each run draws one boss per act, so runs meet different bosses, and no boss is met twice in a run.

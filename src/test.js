@@ -166,6 +166,14 @@ function clearFloor(s) {
 { const s = game({ floor: 2, tier: 2 }); s.slain = 999; clearFloor(s); ok(s.pick.boss && s.pick.options.every(k => E.RELICS[k].rarity === 'boss'), 'pick: boss floors offer boss relics'); }
 { const s = game({ floor: 3, tier: 2 }); s.slain = 999; clearFloor(s); ok(s.pick.options.every(k => E.RELICS[k].rarity === 'rare'), 'pick: a met Reckless contract offers rares'); }
 { const s = game({ floor: 3, gold: 0 }); s.slain = 0; clearFloor(s); const g = s.gold; E.skipPick(s); eq(s.gold, g + E.SKIP_GOLD, 'pick: skipping pays gold'); }
+{ const s = game({ floor: 3, gold: 0 }); s.slain = 0; clearFloor(s); eq(E.SKIP_GOLD, 8, 'pick: skipping pays 8 gold');
+  ok(!E.rerollShop(s), 'reroll: the pick comes first'); E.skipPick(s); s.gold = 30; const first = s.shop.relics[0];
+  eq(E.rerollCost(s), 2, 'reroll: the first costs 2');
+  ok(E.rerollShop(s) && s.gold === 28 && s.shop.relics.length === 1 && s.shop.relics[0] !== first && E.RELICS[s.shop.relics[0]].rarity === 'rare', 'reroll: swaps the relic for another rare one');
+  eq(E.rerollCost(s), 4, 'reroll: the next costs 2 more'); E.rerollShop(s); eq(s.gold, 24, 'reroll: the second cost 4');
+  E.buy(s, s.shop.relics[0]); const g = s.gold; ok(E.rerollShop(s) && s.gold === g - 6 && !s.shop.bought[s.shop.relics[0]], 'reroll: a sold shelf can be rerolled for a new relic');
+  s.gold = 7; ok(!E.rerollShop(s) && s.gold === 7, 'reroll: not without the gold');
+  E.leaveShop(s); E.bid(s, 0); s.slain = 0; clearFloor(s); E.skipPick(s); eq(s.phase, 'shop', 'reroll: next shop'); eq(E.rerollCost(s), 2, 'reroll: the price starts over at the next shop'); }
 { const s = game({ floor: 3 }); Object.keys(E.RELICS).slice(0, E.MAX_RELICS).forEach(k => E.devGrant(s, k)); s.slain = 0; clearFloor(s);
   ok(!E.choose(s, s.pick.options[0]), 'pick: a full belt must drop one first'); E.dropRelic(s, s.relics[0]); ok(E.choose(s, s.pick.options[0]), 'pick: then it fits'); }
 { const s = E.newGame(3, { guided: true }); clearFloor(s); ok(s.pick && s.pick.options.length === 3, 'guided: a relic pick after floor 1'); }

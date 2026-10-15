@@ -834,7 +834,9 @@ main.solo.map { max-width: 980px; }
 .shop .ware b { color: var(--paper-ink); }
 .shop .ware .desc { color: var(--paper-muted); font-size: 14px; line-height: 1.3; }
 .shop .ware .ico { filter: drop-shadow(0 2px 2px rgba(0,0,0,.4)); }
-.shop .ware.sold { opacity: .6; }
+.shop .ware.sold > :not(.buyrow), .shop .ware.sold .buyrow > :not(.reroll) { opacity: .6; } /* a sold relic can still be rerolled */
+.buyrow .reroll { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.buyrow .reroll .gi { width: 1.05em; height: 1.05em; }
 .buyrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; }
 /* Price tags: bright gold numbers on a dark plaque, so they read at a glance on the parchment. */
 .tag { display: inline-flex; align-items: center; gap: 5px; padding: 3px 12px 3px 6px; border-radius: 6px; background: #1c140b; border: 1.5px solid #e0b450; color: #ffd76a; font-weight: 700; font-size: 20px; line-height: 1.1; box-shadow: 0 2px 4px rgba(0,0,0,.45); }
@@ -1489,7 +1491,9 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
     smokebomb: R('Smoke Bomb', 'rare', 'You may flee any number of rooms in a row.'),
     wardenkeys: R("Warden's Keys", 'boss', 'Flee at any point in a room, past any boss, and heal 2 each time you do.'),
   };
-  const PICK_SIZE = 3, RARE_CHANCE = 0.25, SKIP_GOLD = 4;
+  const PICK_SIZE = 3, RARE_CHANCE = 0.25, SKIP_GOLD = 8;
+  // Rerolling the shop's relic shelf: the first reroll each visit costs REROLL_BASE, each one after it REROLL_STEP more.
+  const REROLL_BASE = 2, REROLL_STEP = 2;
   const RELIC_COST = { common: 7, rare: 12 };
 
   function rng(seed) { // mulberry32
@@ -1879,7 +1883,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
     s.pick = locked(s, 'relics') ? null : { boss, options: dealPick(s, boss ? 'boss' : null, rares) };
     if (s.pick && !s.pick.options.length) s.pick = null;
     const forSale = relicPool(s, 'rare').filter(k => !(s.pick && s.pick.options.includes(k)));
-    s.shop = { relics: locked(s, 'relics') ? [] : shuffle(forSale, s.r).slice(0, 1), bought: {} };
+    s.shop = { relics: locked(s, 'relics') ? [] : shuffle(forSale, s.r).slice(0, 1), bought: {}, rerolls: 0 };
   }
   // Endless: after winning, keep going down. The run goes on until you die or strike out.
   function continueEndless(s) {
@@ -1925,6 +1929,19 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
     if (s.phase !== 'shop' || !s.pick) return false;
     s.pick = null; s.gold += SKIP_GOLD;
     log(s, `Passed on the relics. The goat slips you ${SKIP_GOLD} gold.`);
+    return true;
+  }
+  // Reroll the shop's relic shelf for gold. The price climbs with each reroll and starts over on the next visit.
+  const rerollCost = s => REROLL_BASE + REROLL_STEP * ((s.shop && s.shop.rerolls) || 0);
+  const rerollPool = s => relicPool(s, 'rare').filter(k => !s.shop.relics.includes(k));
+  const canReroll = s => s.phase === 'shop' && !s.pick && !!s.shop && s.shop.relics.length > 0 && rerollPool(s).length > 0;
+  function rerollShop(s) {
+    if (!canReroll(s) || s.gold < rerollCost(s)) return false;
+    s.gold -= rerollCost(s); s.shop.rerolls = (s.shop.rerolls || 0) + 1;
+    const old = s.shop.relics;
+    s.shop.relics = shuffle(rerollPool(s), s.r).slice(0, old.length);
+    old.forEach(k => { delete s.shop.bought[k]; });
+    log(s, `Rerolled the relic shelf: ${s.shop.relics.map(k => RELICS[k].name).join(', ')}.`);
     return true;
   }
   const price = (s, item) => Math.max(1, item.cost - (has(s, 'haggler') ? 2 : 0));
@@ -2042,7 +2059,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
   const api = {
     MAX_HP, ROOMS_PER_FLOOR, FLOORS, UNLOCK, SURVIVAL_PAY, MAX_RELICS, TIERS, TARGETS, DUES, BOSSES, BOSS_TYPES, RELICS, SERVICES, CLAUSES, WILDCARD_MULT,
     bossFor, isBossFloor, targetRow, continueEndless,
-    RARITIES, PICK_SIZE, SKIP_GOLD,
+    RARITIES, PICK_SIZE, SKIP_GOLD, REROLL_BASE, REROLL_STEP, rerollCost, canReroll, rerollShop,
     newGame, safeFloor, bid, flee, canFlee, handle, buy, cost, choose, skipPick, relicsFull, target, duesFor, interestCap, dropRelic, leaveShop, allowedTiers, payout,
     canRaise, raise, raisesPerFloor, canRedraw, redraw,
     canUseWeapon, monsterDamage, contractPoints, potionHeal, resolveCard, rankLabel, act,
@@ -2056,7 +2073,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.43.0';
+const VERSION = '1.44.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
@@ -2885,8 +2902,11 @@ function render() {
     // The guild hall's shop: the goat reads out your floor, and the wares sit in lit niches on two shelves:
     // the rare relic on its own shelf, with what it does, and the services under it. Leaving goes back to the act map.
     const full = E.relicsFull(s);
+    // A relic's niche also has the reroll: swap it for another rare relic. Dearer each time, back to cheap next visit.
+    const rr = E.rerollCost(s);
+    const reroll = k => E.RELICS[k] && E.canReroll(s) ? `<button class="reroll" data-reroll ${s.gold < rr ? 'disabled' : ''}${tipAttr('Reroll', `Swap this relic for another rare one, for <b>${rr}</b> gold. Each reroll costs ${E.REROLL_STEP} more; the price starts over at your next shop.`)}>Reroll ${img('icons/hud-gold.webp', 'gi')}<span class="num">${rr}</span></button>` : '';
     const buyrow = (k, price, sold, short) => `<div class="buyrow"><span class="tag ${short && !sold ? 'short' : ''}">${img('icons/hud-gold.webp')}<span class="num">${price}</span></span>
-      <button data-buy="${k}" ${sold || short || (E.RELICS[k] && full) ? 'disabled' : ''}>${sold ? 'Sold' : 'Buy'}</button></div>`;
+      <button data-buy="${k}" ${sold || short || (E.RELICS[k] && full) ? 'disabled' : ''}>${sold ? 'Sold' : 'Buy'}</button>${reroll(k)}</div>`;
     const ware = (k, item) => {
       const price = E.cost(s, k), sold = !!s.shop.bought[k], short = s.gold < price, r = E.RELICS[k];
       return r
@@ -3211,6 +3231,10 @@ app.addEventListener('click', async e => {
   else if (d.buy) {
     const at = b.closest('.ware') && b.closest('.ware').getBoundingClientRect();
     if (E.buy(s, d.buy)) { effect = () => fx('coins', at); if (rec && rec.shops.length) rec.shops[rec.shops.length - 1].bought.push(d.buy); }
+  }
+  else if ('reroll' in d) {
+    const at = b.closest('.ware') && b.closest('.ware').getBoundingClientRect();
+    if (E.rerollShop(s)) { effect = () => fx('smoke', at); if (rec && rec.shops.length) { const sh = rec.shops[rec.shops.length - 1]; sh.offered.push(...s.shop.relics); sh.rerolls = (sh.rerolls || 0) + 1; } }
   }
   else if (d.drop) E.dropRelic(s, d.drop);
   else if ('leave' in d) { E.leaveShop(s); mapView = 'auto'; if (s.floor % 3 === 0) effect = () => fx('act', rectOf('.acthead')); } // a new act begins

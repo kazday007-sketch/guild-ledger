@@ -123,7 +123,9 @@
     smokebomb: R('Smoke Bomb', 'rare', 'You may flee any number of rooms in a row.'),
     wardenkeys: R("Warden's Keys", 'boss', 'Flee at any point in a room, past any boss, and heal 2 each time you do.'),
   };
-  const PICK_SIZE = 3, RARE_CHANCE = 0.25, SKIP_GOLD = 4;
+  const PICK_SIZE = 3, RARE_CHANCE = 0.25, SKIP_GOLD = 8;
+  // Rerolling the shop's relic shelf: the first reroll each visit costs REROLL_BASE, each one after it REROLL_STEP more.
+  const REROLL_BASE = 2, REROLL_STEP = 2;
   const RELIC_COST = { common: 7, rare: 12 };
 
   function rng(seed) { // mulberry32
@@ -513,7 +515,7 @@
     s.pick = locked(s, 'relics') ? null : { boss, options: dealPick(s, boss ? 'boss' : null, rares) };
     if (s.pick && !s.pick.options.length) s.pick = null;
     const forSale = relicPool(s, 'rare').filter(k => !(s.pick && s.pick.options.includes(k)));
-    s.shop = { relics: locked(s, 'relics') ? [] : shuffle(forSale, s.r).slice(0, 1), bought: {} };
+    s.shop = { relics: locked(s, 'relics') ? [] : shuffle(forSale, s.r).slice(0, 1), bought: {}, rerolls: 0 };
   }
   // Endless: after winning, keep going down. The run goes on until you die or strike out.
   function continueEndless(s) {
@@ -559,6 +561,19 @@
     if (s.phase !== 'shop' || !s.pick) return false;
     s.pick = null; s.gold += SKIP_GOLD;
     log(s, `Passed on the relics. The goat slips you ${SKIP_GOLD} gold.`);
+    return true;
+  }
+  // Reroll the shop's relic shelf for gold. The price climbs with each reroll and starts over on the next visit.
+  const rerollCost = s => REROLL_BASE + REROLL_STEP * ((s.shop && s.shop.rerolls) || 0);
+  const rerollPool = s => relicPool(s, 'rare').filter(k => !s.shop.relics.includes(k));
+  const canReroll = s => s.phase === 'shop' && !s.pick && !!s.shop && s.shop.relics.length > 0 && rerollPool(s).length > 0;
+  function rerollShop(s) {
+    if (!canReroll(s) || s.gold < rerollCost(s)) return false;
+    s.gold -= rerollCost(s); s.shop.rerolls = (s.shop.rerolls || 0) + 1;
+    const old = s.shop.relics;
+    s.shop.relics = shuffle(rerollPool(s), s.r).slice(0, old.length);
+    old.forEach(k => { delete s.shop.bought[k]; });
+    log(s, `Rerolled the relic shelf: ${s.shop.relics.map(k => RELICS[k].name).join(', ')}.`);
     return true;
   }
   const price = (s, item) => Math.max(1, item.cost - (has(s, 'haggler') ? 2 : 0));
@@ -676,7 +691,7 @@
   const api = {
     MAX_HP, ROOMS_PER_FLOOR, FLOORS, UNLOCK, SURVIVAL_PAY, MAX_RELICS, TIERS, TARGETS, DUES, BOSSES, BOSS_TYPES, RELICS, SERVICES, CLAUSES, WILDCARD_MULT,
     bossFor, isBossFloor, targetRow, continueEndless,
-    RARITIES, PICK_SIZE, SKIP_GOLD,
+    RARITIES, PICK_SIZE, SKIP_GOLD, REROLL_BASE, REROLL_STEP, rerollCost, canReroll, rerollShop,
     newGame, safeFloor, bid, flee, canFlee, handle, buy, cost, choose, skipPick, relicsFull, target, duesFor, interestCap, dropRelic, leaveShop, allowedTiers, payout,
     canRaise, raise, raisesPerFloor, canRedraw, redraw,
     canUseWeapon, monsterDamage, contractPoints, potionHeal, resolveCard, rankLabel, act,
