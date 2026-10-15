@@ -1931,7 +1931,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.39.0';
+const VERSION = '1.40.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
@@ -2057,7 +2057,7 @@ const TUTORIAL_ONLY = ['spared', 'lastpick', 'fists', 'tutdone']; // skipping th
 let tut = null; // { step } during the tutorial's guided moves
 // The story, before the tutorial: three paintings, one line each, told by the goat. Tap through or skip.
 const INTRO = [
-  { art: 'victory', pos: '80% 60%', text: 'I\'m Azazel. Years ago, the guild threw me down here to take the blame. Rude.' },
+  { art: 'victory', pos: '80% 60%', text: 'I\'m Azazel. Years ago, the guild\'s gold went missing and they needed someone to blame. They picked the nearest goat. Me. Then they threw me in the dungeon. Rude.' },
   { art: 'guild-hall', pos: '88% 50%', text: 'I didn\'t die. I got comfortable. Now the guild pays me to show recruits around.' },
   { art: 'title', pos: '62% 50%', text: 'You\'re the new recruit. Clear the dungeon, get paid, stay alive. Try to keep up.', go: 'Follow Azazel' },
 ];
