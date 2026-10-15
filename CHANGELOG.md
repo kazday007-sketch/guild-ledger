@@ -8,6 +8,9 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 1.40.0 (2026-10-15)
+The first page of the intro tells a little more of Azazel's story: the guild's gold went missing, they needed someone to blame, and they picked the nearest goat and threw him into the dungeon.
+
 ## 1.39.0 (2026-10-14)
 Two voices. Tips are now told by the dungeon itself: no name, no face, and no love for the goat. It calls him "the goat" and takes the odd jab at him. Azazel only appears on a tip when he answers back, with a short line of his own (5 tips). The tutorial's first two steps and the floor tally are still Azazel's. Death and victory lines now say "the goat".
 
