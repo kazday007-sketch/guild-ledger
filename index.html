@@ -273,6 +273,7 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 .end { position: relative; background: var(--panel-bg); }
 .endsum, .endform { display: grid; gap: 12px; justify-items: center; min-width: 0; }
 .endform > input, .endform > textarea { width: min(100%, 480px); }
+.endbtns { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
 .end .stamp { right: 18px; top: 14px; width: 150px; }
 .end .clerk { width: 96px; height: 120px; }
 @media (max-width: 560px) { .end .stamp { right: 8px; top: 6px; width: 110px; } .end .stamp b { font-size: 16px; } }
@@ -559,7 +560,7 @@ main .titlecard .logo::after { display: none; } /* the logo has its own letterin
   main.solo .end .stamp { width: 76px; }
   .shop > div:has(> [data-leave]) { position: sticky; bottom: -8px; padding: 6px 0 2px; background: linear-gradient(transparent, var(--slab) 30%); }
   main.solo .end .endform label { font-size: 13px; } main.solo .end textarea { height: 38px; } main.solo .end input { padding: 5px 8px; }
-  main.solo .end [data-new] { padding: 6px 18px; } main.solo .why { padding: 5px 8px; font-size: 13px; }
+  main.solo .end .endbtns button { padding: 6px 18px; } main.solo .why { padding: 5px 8px; font-size: 13px; }
   main.solo > details { padding: 4px 10px; } main.solo { gap: 6px; }
 }
 @media (max-height: 400px) and (orientation: landscape) {
@@ -1123,7 +1124,7 @@ main.play .stage .offers > .offer:last-child:nth-child(odd) { width: var(--w); }
   main.solo .end h2, .end.dead h2, main.solo .end.dead h2 { font-size: 38px; } .end .epitaph { font-size: 20px; } main.solo .end .tally { font-size: 17px; }
   .endart { width: 170px; height: 150px; }
   main.solo .end .endform input, main.solo .end .endform textarea { font-size: 17px; padding: 10px 12px; }
-  main.solo .end [data-new] { font-size: 21px; padding: 10px 48px; }
+  main.solo .end .endbtns button { font-size: 21px; padding: 10px 32px; }
 }
 .end.trained .recap { margin: 0; padding-left: 1.2em; text-align: left; display: grid; gap: 6px; }
 .end.trained [data-new] { justify-self: center; }
@@ -2073,7 +2074,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '1.44.0';
+const VERSION = '1.45.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
@@ -2635,16 +2636,16 @@ function endHTML() {
       ${dbState !== 'on' && rec && !webReports() ? `<p class="muted" style="margin:0">Playtesting? Copy this report and send it to whoever shared the game.</p>
       <textarea id="report" rows="4" readonly>${esc(runReport())}</textarea><button data-copy>Copy run report</button><span id="copystate" class="muted"></span>` : ''}
       ${won && !s.endless ? '<button class="primary" data-endless>Keep going: Endless</button><p class="muted" style="margin:0;font-size:13px">Go deeper until you fall. Every act gets harder, with a new boss each time.</p>' : ''}
-      <button class="${won && !s.endless ? '' : 'primary'}" data-new>New run</button></div></section>`;
+      <div class="endbtns"><button class="${won && !s.endless ? '' : 'primary'}" data-new>New run</button><button data-title>Main menu</button></div></div></section>`;
 }
 function webFormHTML() {
   return `<label class="fb sr" for="pname">Name for Top scores (optional)</label>
       <input id="pname" maxlength="40" placeholder="Your name for Top scores (optional)" value="${esc(store.get('name', ''))}">
       <label class="fb sr" for="wnote">Anything confusing, boring or great?</label>
       <textarea id="wnote" rows="2" maxlength="600" placeholder="Anything confusing or great?">${esc(rec.note || '')}</textarea>
-      <p class="muted" style="margin:0;font-size:13px">Your run report is sent when you tap New run.</p>`;
+      <p class="muted" style="margin:0;font-size:13px">Your run report is sent when you tap New run or Main menu.</p>`;
 }
-// Picks up the end screen's name and note, so the report sent on New run carries them.
+// Picks up the end screen's name and note, so the report sent on New run or Main menu carries them.
 function readReportForm() {
   const n = document.getElementById('pname'), t = document.getElementById('wnote');
   if (n) store.set('name', n.value.trim().slice(0, 40));
