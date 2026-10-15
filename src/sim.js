@@ -4,6 +4,7 @@
 //   node sim.js onedeck [runs]        the same curve in One deck mode (the pile isn't reshuffled between floors)
 //   node sim.js relics [runs]         win rate when the bot starts with each relic (vs. none)
 //   node sim.js pairs [runs] [top]    the relic pairs that beat their two singles by the most
+//   node sim.js shop [runs]           shop rerolls and the skip reward: win rates with and without them
 //   node sim.js endless [runs]        how deep each bot gets when it keeps going after a win (Endless)
 const E = require('./engine.js');
 
@@ -84,12 +85,16 @@ function playRun(seed, bot, opts = {}) {
       if (s.pick) {
         // The free pick: the best-rated option; drop the weakest relic when full.
         const best = s.pick.options.slice().sort((a, b) => worth(s, b) - worth(s, a))[0];
-        if (opts.relics || opts.noPicks) E.skipPick(s);
+        const skip = () => { E.skipPick(s); if (opts.skipGold != null) s.gold += opts.skipGold - E.SKIP_GOLD; };
+        if (opts.relics || opts.noPicks || (opts.picky && worth(s, best) < opts.picky)) skip();
         else {
           if (E.relicsFull(s)) { const weak = s.relics.slice().sort((a, b) => worth(s, a) - worth(s, b))[0]; if (worth(s, weak) < worth(s, best)) E.dropRelic(s, weak); }
-          if (!E.choose(s, best)) E.skipPick(s);
+          if (!E.choose(s, best)) skip();
         }
       }
+      // Reroll a weak relic shelf while the price leaves the dues reserve alone.
+      if (opts.reroll && !opts.relics && !opts.noPicks && !E.relicsFull(s))
+        while (E.canReroll(s) && s.shop.relics.every(k => worth(s, k) < opts.reroll) && s.gold - E.rerollCost(s) - E.cost(s, s.shop.relics[0]) >= reserve) E.rerollShop(s);
       if (!opts.relics && !opts.noPicks) for (const k of s.shop.relics) if (!E.relicsFull(s)) spend(k);
       spend('smith');
       E.leaveShop(s);
@@ -121,6 +126,13 @@ if (mode === 'curve' || mode === 'onedeck') {
     const r = batch(runs, bot, { oneDeck: mode === 'onedeck' });
     console.log(`${name.padEnd(9)} win ${pct(r.win)}  died ${pct(r.died / runs)}  struck out ${pct(r.struck / runs)}  avg last floor ${r.avgFloor.toFixed(2)}`);
     console.log(`          ended on floor 1-9: ${r.diedAt.map((d, i) => d + r.struckAt[i]).join(' ')}`);
+  }
+} else if (mode === 'shop') {
+  const rows = [['plain', {}], ['rerolls weak shelf', { reroll: 8 }]];
+  for (const g of [4, 6, 8, 10]) rows.push([`skips weak picks, skip ${g}`, { picky: 5, skipGold: g }]);
+  for (const [name, opts] of rows) {
+    const r = batch(runs, BOTS.balanced, opts);
+    console.log(`${name.padEnd(28)} win ${pct(r.win)}  avg last floor ${r.avgFloor.toFixed(2)}`);
   }
 } else if (mode === 'endless') {
   for (const [name, bot] of Object.entries(BOTS)) {
