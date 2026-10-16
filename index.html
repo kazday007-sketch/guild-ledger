@@ -1054,7 +1054,11 @@ main[data-place=vault] { --surface: #1f3a26 url(assets/ui/table-vault.webp); --e
 main[data-place=crypt] { --table: url(assets/tables/act1-crypt.webp); }
 main[data-place=sewers] { --table: url(assets/tables/act2-sewers.webp); }
 main[data-place=vault] { --table: url(assets/tables/act3-vault.webp); }
-main:is([data-place=crypt], [data-place=sewers], [data-place=vault]) section.chamber { background: #1c2027 var(--table) center / cover no-repeat; border: 0; border-image: none; padding: 26px; box-shadow: 0 0 0 1px rgba(0,0,0,.6), 0 6px 26px rgba(0,0,0,.6); }
+main[data-place=boss][data-act=crypt] { --table: url(assets/tables/boss-crypt.webp); }
+main[data-place=boss][data-act=sewers] { --table: url(assets/tables/boss-sewers.webp); }
+main[data-place=boss][data-act=vault] { --table: url(assets/tables/boss-vault.webp); }
+main[data-place=contracts] { --table: url(assets/tables/contract-board.webp); }
+main:is([data-place=crypt], [data-place=sewers], [data-place=vault], [data-place=boss]) section.chamber, main[data-place=contracts] .contract.board { background: #1c2027 var(--table) center / cover no-repeat; border: 0; border-image: none; padding: 26px; box-shadow: 0 0 0 1px rgba(0,0,0,.6), 0 6px 26px rgba(0,0,0,.6); }
 main[data-place=boss] { --surface: #1d1a1c url(assets/ui/table-boss.webp); --edge: url(assets/ui/frame-boss.webp); }
 main[data-place=contracts] { --surface: #4b3b29 url(assets/ui/table-contracts.webp); --edge: url(assets/ui/frame-contracts.webp); }
 main[data-place=boss] section.chamber, main[data-place=contracts] .contract.board { border-image-repeat: round; }
@@ -2345,7 +2349,7 @@ main.play .stage .chamber:not(.preview) div.room { --ar: 1.5; --px: 0px; --x: 92
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.12.0';
+const VERSION = '2.13.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
@@ -3666,6 +3670,7 @@ function drawScreen() {
   setScene();
   const where = place(); setAmbient(where);
   if (where) app.dataset.place = where; else delete app.dataset.place;
+  if (s) app.dataset.act = ACT_PLACES[E.act(s) % 3]; else delete app.dataset.act;
   const pauseBtn = canPause() && !mapView ? `<button class="pause" data-pause aria-label="Pause" title="Pause (Esc)">${img('icons/hud-pause.webp')}</button>` : '';
   const more = `<button class="more" data-more aria-expanded="${moreOpen}" title="How to play and top scores">${moreOpen ? 'Close' : 'More'}</button>`;
   const head = `<header><h1>${img('icons/emblem-goat.webp', 'emblem')}Scapegrace</h1>${more}<span class="muted where">${img(crestOf(where), 'crest')}${s.endless ? `Floor <span class="num">${s.floor + 1}</span> · Endless · Act ${E.act(s) + 1}` : `Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span>${pauseBtn}</header>`;
