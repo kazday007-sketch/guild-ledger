@@ -8,6 +8,11 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.14.1 (2026-10-16)
+Fix: floating cards kept shaving their paper edge.
+
+- On phones and smaller screens the card box clipped the face as it floated, so the white paper edge grew and shrank and the corners got cut. The face is no longer clipped, and it moves as one drawn layer so the double border lines stay fixed to the paper.
+
 ## 2.14.0 (2026-10-16)
 Icon hit buttons and steadier floating cards.
 
