@@ -291,8 +291,13 @@ const inPile = s => s.draw.length + s.room.length;
   const s = E.newGame(3, { guided: true, tutorial: true }); s.hp = 3;
   E.handle(s, s.room.find(c => c.v === 13).id, 'bare');
   ok(s.hp === 1 && s.spared && s.phase === 'room', 'tutorial: a fatal hit on floor 1 leaves you at 1 health');
-  clearFloor(s); E.leaveShop(s); s.hp = 3; s.room = [M(13), M(2), M(2), M(2)];
+  clearFloor(s); ok(s.patched && s.hp === 10, 'tutorial: saved on floor 1, you start floor 2 at half health');
+  E.leaveShop(s); eq(s.phase, 'bid', 'guided: floor 2 opens with a contract');
+  E.bid(s, 0); s.hp = 3; s.room = [M(13), M(2), M(2), M(2)];
   E.handle(s, s.room[0].id, 'bare'); eq(s.phase, 'lost', 'tutorial: floor 2 can kill you'); }
+{ // guided: no dues at the end of act 1, even with contracts from floor 2
+  const s = E.newGame(5, { guided: true }); s.floor = 2; ok(!E.duesAhead(s) || E.duesAhead(s).act > 0, 'guided: no dues ahead in act 1');
+  s.floor = 4; ok(E.duesAhead(s) && E.duesAhead(s).act === 1, 'guided: dues ahead in act 2'); }
 
 // ---------- bosses ----------
 // A run on boss floor f whose boss is `key` (earlier acts get other bosses).
