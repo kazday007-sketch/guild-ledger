@@ -8,6 +8,11 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.15.0 (2026-10-16)
+Taller play buttons.
+
+- The buttons under each card are 1.5 times taller with bigger icons, so they are easier to read and tap. When a card has three choices, each icon sits above its number.
+
 ## 2.14.1 (2026-10-16)
 Fix: floating cards kept shaving their paper edge.
 
