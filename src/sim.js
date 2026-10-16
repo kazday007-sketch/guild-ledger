@@ -1,6 +1,7 @@
 // Simulator: a heuristic bot plays thousands of runs to tune difficulty and hunt for broken relic combos.
 // Usage:
 //   node sim.js curve [runs]          win rates for cautious / balanced / greedy bots, deaths and strikes by floor
+//   node sim.js guided [runs]         the same curve in Guided start (systems unlock floor by floor)
 //   node sim.js onedeck [runs]        the same curve in One deck mode (the pile isn't reshuffled between floors)
 //   node sim.js relics [runs]         win rate when the bot starts with each relic (vs. none)
 //   node sim.js pairs [runs] [top]    the relic pairs that beat their two singles by the most
@@ -51,7 +52,7 @@ const BOTS = {
 };
 
 function playRun(seed, bot, opts = {}) {
-  const s = E.newGame(seed, { oneDeck: !!opts.oneDeck });
+  const s = E.newGame(seed, { oneDeck: !!opts.oneDeck, guided: !!opts.guided });
   if (opts.relics) opts.relics.forEach(k => E.devGrant(s, k));
   if (opts.give) opts.give.forEach(k => E.devGrant(s, k)); // a starting relic on top of the usual picks
   let avg = 42, n = 1, steps = 0;
@@ -132,9 +133,9 @@ const pct = x => (100 * x).toFixed(1).padStart(5) + '%';
 
 const [mode = 'curve', runsArg, topArg] = require.main === module ? process.argv.slice(2) : ['none'];
 const runs = +runsArg || 2000;
-if (mode === 'curve' || mode === 'onedeck') {
+if (mode === 'curve' || mode === 'onedeck' || mode === 'guided') {
   for (const [name, bot] of Object.entries(BOTS)) {
-    const r = batch(runs, bot, { oneDeck: mode === 'onedeck' });
+    const r = batch(runs, bot, { oneDeck: mode === 'onedeck', guided: mode === 'guided' }, +topArg || 1);
     console.log(`${name.padEnd(9)} win ${pct(r.win)}  died ${pct(r.died / runs)}  struck out ${pct(r.struck / runs)}  avg last floor ${r.avgFloor.toFixed(2)}`);
     console.log(`          ended on floor 1-9: ${r.diedAt.map((d, i) => d + r.struckAt[i]).join(' ')}`);
   }
