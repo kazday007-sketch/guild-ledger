@@ -318,10 +318,14 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 #danger { position: fixed; inset: 0; z-index: 4; pointer-events: none; opacity: 0; transition: opacity .8s; background: radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(90,8,10,.55) 80%, rgba(40,0,2,.9)); }
 #danger.beat { animation: dangerbeat 1.1s ease-out infinite; }
 @keyframes dangerbeat { 0%, 100% { filter: none; } 8% { filter: brightness(1.5); } 30% { filter: none; } 38% { filter: brightness(1.25); } 60% { filter: none; } }
-.chamber:not(.preview) .card:not(.hidden) .art img { animation: breathe 7s ease-in-out infinite alternate; }
+.chamber:not(.preview) .card:not(.hidden):not(.vint) .art img { animation: breathe 7s ease-in-out infinite alternate; }
+/* a printed card floats as one piece, so its borders never shift against the art */
+.chamber:not(.preview) .card.vint:not(.hidden) .art { animation: cardfloat 3.6s ease-in-out infinite alternate; }
+.chamber:not(.preview) .card.vint:nth-child(2n) .art { animation-delay: -1.3s; } .chamber:not(.preview) .card.vint:nth-child(3n) .art { animation-delay: -2.4s; }
+@keyframes cardfloat { from { translate: 0 2px; } to { translate: 0 -3px; } }
 .chamber .card:nth-child(2) .art img { animation-delay: -2.1s; } .chamber .card:nth-child(3) .art img { animation-delay: -4.3s; } .chamber .card:nth-child(4) .art img { animation-delay: -5.6s; }
 @keyframes breathe { from { transform: scale(1) translateY(0); } to { transform: scale(1.035) translateY(-1.5%); } }
-@media (prefers-reduced-motion: reduce) { #dust { display: none; } #danger.beat, .chamber .card .art img { animation: none; } }
+@media (prefers-reduced-motion: reduce) { #dust { display: none; } #danger.beat, .chamber .card .art img, .chamber .card.vint .art { animation: none; } }
 /* big moments: the boss walking in, a boss falling, the end of the run */
 .bossintro { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 16px; cursor: pointer; background: radial-gradient(ellipse at 50% 42%, rgba(70,10,12,.6), rgba(6,4,6,.94) 72%); }
 .bossintro .bi { display: grid; justify-items: center; gap: 8px; text-align: center; width: min(100%, 680px); }
@@ -1460,6 +1464,15 @@ main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(2)) .l
 main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(2)) .sm { display: inline; }
 main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(2)) button { text-align: center; padding-inline: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 main.play .stage .chamber:not(.preview) .card.vint .acts .xact { grid-column: auto; }
+.acts img.hit { height: 1.5em; width: 1.5em; vertical-align: middle; margin: -.3em 3px -.25em 0; filter: drop-shadow(0 1px 1px rgba(0,0,0,.6)); }
+.acts .hitv { font-size: .7em; margin: 0 2px 0 -4px; vertical-align: -.2em; }
+.acts:has(> :nth-child(3)) img.hit { width: 1.35em; height: 1.35em; margin: 0; }
+@media (max-height: 520px) { /* sideways phone: three buttons are too narrow for icon and number side by side, so the number sits on the icon */
+  .acts:has(> :nth-child(3)) button { position: relative; }
+  .acts:has(> :nth-child(3)) img.hit { width: 20px; height: 20px; }
+  .acts:has(> :nth-child(3)) .hitd { position: absolute; right: 1px; bottom: 0; font-size: 11px; font-weight: 700; text-shadow: 0 0 2px #000, 0 0 3px #000, 0 0 4px #000; }
+}
+.acts:has(> :nth-child(3)) button { text-overflow: clip !important; padding-inline: 0 !important; display: flex; align-items: center; justify-content: center; font-size: .88em; letter-spacing: -.02em; }
 /* printed cards are 2:3 with no frame, so the slot is shaped like the card and only reserves the name and one row of buttons */
 main.play .stage .chamber:not(.preview) div.room { --ar: 1.5; --px: 0px; --x: 92px; }
 @media not ((min-width: 900px) and (min-height: 520px)) { main.play .stage .chamber:not(.preview) div.room { --x: 68px; } }
@@ -2349,7 +2362,7 @@ main.play .stage .chamber:not(.preview) div.room { --ar: 1.5; --px: 0px; --x: 92
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.13.0';
+const VERSION = '2.14.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
@@ -2894,7 +2907,7 @@ document.addEventListener('change', e => { if (e.target.matches && e.target.matc
 // rooms gets a short recap.
 const TUTORIAL = [
   { allow: { v: 7, mode: null }, focus: '.stat.hp', text: 'Keep your <b>health</b> above 0. First, tap <b>Equip</b> on the sword.' },
-  { allow: { v: 9, mode: 'weapon' }, focus: '.stat.weapon', text: 'Monsters hit as hard as their number. Your sword blocks most of it. Tap <b>Weapon</b> on the Owlbear.' },
+  { allow: { v: 9, mode: 'weapon' }, focus: '.stat.weapon', text: 'Monsters hit as hard as their number. Your sword blocks most of it. Tap the <b>sword</b> under the Owlbear.' },
 ];
 const TUTORIAL_HINTS = ['survive', 'spared', 'lastpick', 'fists', 'flee', 'limit', 'potion', 'tutdone'];
 const TUTORIAL_ONLY = ['spared', 'lastpick', 'fists', 'tutdone']; // skipping the tutorial skips these; the rest are for everyone
@@ -3128,11 +3141,11 @@ function flipCard(el, delay, frames, ms = DEAL_MS) {
   const art = el.classList.contains('vint') && el.querySelector('.art');
   if (art) { // a printed card: the back is exactly the face's size, laid over the picture where object-fit put it
     const w = art.clientWidth, h = art.clientHeight, cw = Math.min(w, h * 2 / 3), ch = cw * 1.5;
-    Object.assign(back.style, { left: `${art.offsetLeft + (w - cw) / 2}px`, top: `${art.offsetTop + (h - ch) / 2}px`, width: `${cw}px`, height: `${ch}px` });
+    Object.assign(back.style, { left: `${(w - cw) / 2}px`, top: `${(h - ch) / 2}px`, width: `${cw}px`, height: `${ch}px` }); // inside the art, so it floats with the face
     el.querySelectorAll('.name, .acts').forEach(x => x.animate([{ opacity: 0 }, { opacity: 0, offset: Math.min(1, edge + .1) }, { opacity: 1 }],
       { duration: ms, delay, easing: 'linear', fill: 'backwards' }));
   }
-  el.appendChild(back);
+  (art || el).appendChild(back);
   back.animate([{ opacity: 1 }, { opacity: 1, offset: edge }, { opacity: 0, offset: Math.min(1, edge + .001) }, { opacity: 0 }],
     { duration: ms, delay, easing: 'linear', fill: 'forwards' }).onfinish = () => back.remove();
 }
@@ -3195,15 +3208,15 @@ const digits = v => String(v).split('').map(d => `<i class="dg" style="--g:url($
 const skull = '<i class="skull" aria-label="fatal"></i>';
 function fightLabel(c, weapon, off) {
   const st = off ? { ...s, weapon: s.weapon2 } : s; // Twin Blades: the off-hand weapon
-  const d = E.monsterDamage(st, c, weapon), w = weapon ? (off ? `Blade ${s.weapon2.v}` : s.weapon2 ? `Blade ${s.weapon.v}` : 'Weapon') : 'Fists';
-  if (d >= s.hp && !E.safeFloor(s)) return dual(`${skull}${w}: lose ${d} (fatal)`, `${w} −${d} ${skull}`);
-  return dual(`${w}: lose ${d} health`, `${w} −${d}`);
+  const d = E.monsterDamage(st, c, weapon), blade = off ? s.weapon2.v : s.weapon2 ? s.weapon.v : null; // Twin Blades: show which blade
+  const ic = weapon ? img('icons/hit-weapon.webp', 'hit', blade ? `Blade ${blade}` : 'Weapon') + (blade ? `<sub class="hitv">${blade}</sub>` : '') : img('icons/hit-fist.webp', 'hit', 'Fists');
+  return `${ic}<span class="hitd">−${d}</span>${d >= s.hp && !E.safeFloor(s) ? skull : ''}`;
 }
 function potionPreview(c) {
   const h = E.potionHeal(s, c);
   if (!h) return dual('Discard (no healing)', 'Discard');
   const heal = Math.min(h, s.maxHp - s.hp);
-  return dual(`Drink: heal ${heal}`, `Drink +${heal}`);
+  return dual(`Drink: heal ${heal}`, `${img('icons/hud-hp.webp', 'hit', 'Drink')}<span class="hitd">+${heal}</span>`);
 }
 function allowed(c, mode) {
   if (!tut) return true;
@@ -3232,7 +3245,7 @@ function cardActs(c, attr) {
     if (ms.includes('weapon')) acts += btn('weapon', fightLabel(c, true));
     if (ms.includes('weapon2')) acts += btn('weapon2', fightLabel(c, true, true));
     if (ms.includes('bare')) acts += btn('bare', fightLabel(c, false));
-    if (ms.includes('drink')) acts += btn('drink', dual(`Drink: heal ${Math.min(E.potionHeal(s, c), s.maxHp - s.hp)}`, `Drink +${Math.min(E.potionHeal(s, c), s.maxHp - s.hp)}`), tipAttr("Mimic's Tongue", 'Drink this little monster as a potion.'));
+    if (ms.includes('drink')) acts += btn('drink', dual(`Drink: heal ${Math.min(E.potionHeal(s, c), s.maxHp - s.hp)}`, `${img('icons/hud-hp.webp', 'hit', 'Drink')}<span class="hitd">+${Math.min(E.potionHeal(s, c), s.maxHp - s.hp)}</span>`), tipAttr("Mimic's Tongue", 'Drink this little monster as a potion.'));
   }
   if (attr === 'act' && !tut) { // relics that work on a card in the room
     if (E.canStash(s, c.id)) acts += `<button class="link xact" data-stash="${c.id}"${tipAttr('Stash Pouch', 'Set this card aside. It counts as taken, and you can play it in any later room on this floor.')}>Stash</button>`;
