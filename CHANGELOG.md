@@ -8,6 +8,12 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.13.0 (2026-10-16)
+Engraved boss tables and contract desk.
+
+- Boss rooms now sit on a darker engraved table for their act: chained crypt, slimed sewers or the gold-strewn vault.
+- Choosing a contract now happens on an engraved writing desk with quill, candle and wax seals.
+
 ## 2.12.0 (2026-10-16)
 Engraved tables for the three acts.
 
