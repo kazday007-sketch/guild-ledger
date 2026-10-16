@@ -8,6 +8,9 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.10.1 (2026-10-16)
+- **Cards are trimmed evenly.** Many cards showed a strip of the table along the top or bottom edge. Every card now has the same paper margin around its printed border.
+
 ## 2.10.0 (2026-10-16)
 A new deck: old hand-drawn playing cards.
 - **Every card is now a vintage 1800s-style playing card**, drawn by hand on aged paper, with the pips worked into each picture and matching corner numbers at top and bottom.
