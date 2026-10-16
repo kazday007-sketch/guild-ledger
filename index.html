@@ -1469,11 +1469,12 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
   };
   const BOSS_TYPES = { fight: 'Boss fight', rule: 'Boss rule', stalker: 'Stalker', trick: 'Trick' };
   const isBossFloor = f => f % 3 === 2;
-  // Guided runs unlock systems gradually (floor indices, 0-based). Act 1 (floors 1-3) has no contracts, strikes
-  // or dues: you only have to survive, and the guild pays SURVIVAL_PAY per floor (no interest). Relic picks start
-  // after floor 1, as in a full game. Contracts (Safe only) start on
-  // floor 4, Bold, Reckless and raises on floor 5, and clauses on floor 7 (the start of act 3).
-  const UNLOCK = { contracts: 3, relics: 0, tiers: 4, raise: 4, clauses: 6 };
+  // Guided runs unlock systems gradually (floor indices, 0-based). Floor 1 has no contracts or strikes: you only
+  // have to survive, and the guild pays SURVIVAL_PAY (no interest). Relic picks start after floor 1, as in a full
+  // game. Contracts (Safe only) and strikes start on floor 2 (since 2.7.0; floor 4 before, which left act 1 playing
+  // like plain Scoundrel), dues after floor 6 (the end of act 2), Bold, Reckless and raises on floor 5, and clauses
+  // on floor 7 (the start of act 3).
+  const UNLOCK = { contracts: 1, dues: 3, relics: 0, tiers: 4, raise: 4, clauses: 6 };
   const SURVIVAL_PAY = 6;
   const locked = (s, k) => s.guided && s.floor < UNLOCK[k];
   // Clauses (shown to players as the "Wildcard" contract): one offer per floor carries one. It pays
@@ -2066,10 +2067,13 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
     const interest = c.survival ? 0 : Math.min(interestCap(s), Math.floor(s.gold / 5));
     s.gold += interest;
     if (interest) { msg += ` Interest +${interest}.`; line('interest', 'Interest', interest); }
-    if (s.floor % 3 === 2 && !locked(s, 'contracts')) { // no dues before contracts begin
+    if (s.floor % 3 === 2 && !locked(s, 'dues')) { // no dues in a guided run's first act
       const due = duesFor(s, act(s));
       if (s.gold >= due) { s.gold -= due; msg += ` Paid ${due} gold in guild dues.`; line('dues', 'Guild dues', -due); }
       else { line('dues', `Guild dues (${due} owed, strike)`, -s.gold); s.strikes++; s.gold = 0; msg += ` Couldn't pay ${due} gold in dues: strike ${s.strikes} of 3, and the guild takes what you have.`; }
+    }
+    if (s.tutorial && s.floor === 0 && s.spared && s.hp < Math.ceil(s.maxHp / 2)) { // the safe floor saved you: start floor 2 with half your health, not 1
+      s.hp = Math.ceil(s.maxHp / 2); s.patched = true; msg += ` The goat patched you up to ${s.hp} health.`;
     }
     log(s, msg); s.lastResult = msg; pay.end = s.gold; pay.strikesAfter = s.strikes;
     if (s.strikes >= 3) { s.phase = 'lost'; s.lastResult = msg + ' The guild revokes your license.'; return; }
@@ -2201,7 +2205,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
   function duesAhead(s) {
     if (!['bid', 'room', 'shop'].includes(s.phase)) return null;
     const f = s.phase === 'shop' ? s.floor + 1 : s.floor, a = Math.floor(f / 3), last = a * 3 + 2;
-    if ((a > 2 && !s.endless) || (s.guided && last < UNLOCK.contracts)) return null;
+    if ((a > 2 && !s.endless) || (s.guided && last < UNLOCK.dues)) return null;
     return { due: duesFor(s, a), act: a, floor: last + 1, next: f === last };
   }
   // The biggest monster your weapon can hit right now, with Keen Edge and Whetstone counted. null: no limit yet.
@@ -2298,7 +2302,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.6.0';
+const VERSION = '2.7.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
@@ -2930,6 +2934,7 @@ function currentHint() {
   const shopNow = s.phase === 'shop' && !s.pick; // the relic pick comes before the shop
   const list = [
     ['spared', s.phase === 'room' && s.spared, 'That should have killed you. You\'re at <b>1 health</b> because the goat begged us to go easy on floor 1. Next time, flee or use your weapon.', '.stat.hp', 'I did not beg.'],
+    ['patched', s.phase === 'room' && s.patched && s.floor === 1 && s.roomsCleared === 0 && s.handled === 0, 'The goat patched you up after floor 1. <b>From here on, the dungeon can kill you.</b>', '.stat.hp', 'Don\'t make me do it again.'],
     ['tutdone', s.phase === 'room' && s.tutorial && s.floor === 0 && s.roomsCleared === 2 && s.handled === 0, '<b>You\'ve got the basics.</b> Use 3 cards a room, hit the biggest monsters first, drink potions when hurt, and flee rooms you can\'t win. <b>The whole run:</b> get through 9 floors and beat 3 bosses.', null, 'Took you long enough.'],
     ['lastpick', s.phase === 'room' && s.tutorial && s.floor === 0 && s.roomsCleared === 0 && s.handled === 2, 'Your sword blocked 7, so you only lost <b>2</b>. Now it only hits monsters up to <b>9</b>, which is why you always hit the <b>biggest first</b>. One more card ends the room.', '.stat.weapon'],
     ['fists', s.phase === 'room' && s.tutorial && s.floor === 0 && s.floorBare && !s.spared, 'Fists block nothing, so you took the <b>full hit</b>. Save them for small monsters.', '.stat.hp'],
@@ -2937,25 +2942,30 @@ function currentHint() {
     ['limit', s.phase === 'room' && s.weapon && s.weapon.limit != null, 'Your weapon is dull now. It only hits monsters up to the number under <b>Weapon</b>, so hit the <b>biggest first</b>. Bigger ones need <b>Fists</b>.', '.stat.weapon'],
     ['potion', s.phase === 'room' && !s.potionUsed && s.hp < s.maxHp && s.room.some(c => c.kind === 'potion'), 'That\'s a <b>potion</b>. Tap <b>Drink</b> to heal. Only 1 potion works per room.', '.stat.hp'],
     ['survive', s.phase === 'room' && survival() && s.floor === 0, '<b>Stay alive</b> for 4 rooms. Use 3 of the 4 cards in each room.', null, 'I do this in my sleep.'],
-    ['gold', shopNow && s.floor === 0, '<b>New! Gold.</b> The guild paid you 6 gold for surviving. Don\'t let it go to your head. Spend it here: a <b>Bandage</b> heals 6 health. Then tap <b>Leave shop</b>.', '.stat.gold, .shop .services'],
+    ['gold', shopNow && s.floor === 0, '<b>New! Gold.</b> The guild pays you after every floor. Spend it here, then tap <b>Leave shop</b>.', '.stat.gold, .shop .services'],
     ['contracts', s.phase === 'bid' && !multi, '<b>New! Contracts.</b> From now on, the guild pays you to kill monsters. Tap the <b>contract</b> to sign it.', '.offers'],
     ['contract2', s.phase === 'room' && s.contract && !survival() && s.slain === 0 && s.handled === 0, `Kill this many <b>monster points</b> on this floor to get paid.${seenHints.strikes ? '' : ' Miss it and you get a <b>strike</b>. Three strikes ends your run.'}`, '.contract'],
     ['strikes', s.phase === 'bid' && contractsOpen(), 'These are your <b>strikes</b>. Miss a contract and you get one. Three strikes ends your run.', '.stat.guild'],
-    ['met', s.phase === 'room' && s.contract && !survival() && s.slain >= s.contract.target, '<b>Contract met!</b> Not bad. Extra points only pay a little more gold, so from here on, <b>protect your health</b>. Take the smallest hits and drink potions.', '.contract'],
-    ['relics', s.phase === 'shop' && !!s.pick && !payoutView, '<b>New! Relics.</b> Your real power down here. Pick one after every floor and it works for the rest of the run. Some work well together; finding out which is your job. You can carry 8.', '.picks'],
-    ['dues', shopNow && contractsOpen() && s.floor % 3 === 1, '<b>Guild dues.</b> After the next floor, the guild collects this fee. Keep enough gold, or it\'s a strike.', '.stat.guild'],
+    ['met', s.phase === 'room' && s.contract && !survival() && s.slain >= s.contract.target, '<b>Contract met!</b> Extra points pay very little, so now <b>protect your health</b>.', '.contract'],
+    ['relics', s.phase === 'shop' && !!s.pick && !payoutView, '<b>New! Relics.</b> Your real power down here. Pick one; it works for the rest of the run.', '.picks'],
+    ['dues', shopNow && !(s.guided && s.floor + 1 < E.UNLOCK.dues) && s.floor % 3 === 1, '<b>Guild dues.</b> After the next floor, the guild collects this fee. Keep enough gold, or it\'s a strike.', '.stat.guild'],
     ['tiers', s.phase === 'bid' && multi && !s.boss, '<b>New! Bold and Reckless contracts.</b> A bigger target pays more gold, but a miss is a strike. When in doubt, Safe is fine.', '.offers'],
+    ['newmove', s.phase === 'room' && s.room.some(relicMove), '<b>New button.</b> One of your relics gives this card another way to play it.', null],
+    ['drawback', s.phase === 'shop' && !!s.pick && !payoutView && s.pick.options.some(k => hasCatch(k)), 'Some relics have a <b>catch</b>. Read past the <b>but</b> before you pick.', '.picks', 'I never read the catch. Look how I turned out.'],
     ['raise', s.phase === 'room' && E.canRaise(s), '<b>Raise.</b> Your relic lets you raise your contract one step between rooms, for more gold. Only if the floor is going well.', '[data-raise]'],
     ['bossroom', s.phase === 'room' && survival() && s.boss, `<b>Boss floor!</b> ${s.boss ? `${esc(s.boss.name)}: ${esc(s.boss.rule)}` : ''}`, '.boss'],
-    ['boss', s.phase === 'bid' && s.boss, '<b>Boss floor.</b> Every boss is different: some wait in the last room, some hide in the pile, some change the rules. Read this one before you sign. The goat never does.', '.boss', 'I don\'t need to.'],
+    ['boss', s.phase === 'bid' && s.boss, '<b>Boss floor.</b> Every boss is different. Read this one before you sign. The goat never does.', '.boss', 'I don\'t need to.'],
     ['bossfight', s.phase === 'room' && s.room.some(c => c.boss && c.bossKey === (s.boss && s.boss.key) && c.name !== 'Spiderling'), '<b>The boss is here.</b> It has to die before you can leave this room, and you can\'t flee it.', '.card.bosscard'],
-    ['endless', s.phase === 'shop' && s.endless && s.floor === E.FLOORS - 1, '<b>Endless.</b> From here every act makes the monsters stronger, the targets and dues bigger, and brings a boss you haven\'t met. Go as deep as you can.', null, 'I\'ve been down there. It\'s fine.'],
+    ['endless', s.phase === 'shop' && s.endless && s.floor === E.FLOORS - 1, '<b>Endless.</b> Every act from here is harder. Go as deep as you can.', null, 'I\'ve been down there. It\'s fine.'],
     ['clause', s.phase === 'bid' && s.offers.some(o => o.clause), `<b>New! The Wildcard.</b> One offer now pays ${E.WILDCARD_MULT}× as much, more than the next contract up. The catch is that it adds one extra rule for this floor.`, '.offer.clause'],
     ['onedeck', s.oneDeck && s.phase === 'room' && s.floor === 0, '<b>One deck.</b> The dungeon won\'t reshuffle between floors here. What you deal stays gone until the next act. Tap the <b>pile</b> to count what\'s left.', '.chamber .pile', 'I count it in my head. Show-offs use the pile.'],
   ];
   const h = list.find(([k, cond]) => cond && !seenHints[k]);
   return h ? { key: h[0], text: h[2], focus: h[3], goat: h[4] } : null;
 }
+// A card with a button only a relic gives it (Alchemy Kit, Twin Blades, Mimic's Tongue, Stash Pouch, Blood Price).
+const relicMove = c => { const ms = E.modes(s, c); return ms.includes('equip') || ms.includes('weapon2') || ms.includes('drink') || (c.kind !== 'monster' && ms.includes('bare')) || E.canStash(s, c.id) || E.canSwap(s, c.id); };
+const hasCatch = k => /\bbut\b|also costs/.test(E.RELICS[k].text); // relics whose text names a drawback
 // Shown in the shop and on the floor right before the guild collects. In the shop it stays up even when you can pay,
 // so nobody spends their dues by accident; it turns red when you're short.
 function duesWarning() {
@@ -2968,7 +2978,7 @@ function duesWarning() {
 }
 
 const survival = () => !!(s.contract && s.contract.survival);
-// The HUD and shop grow with the run: gold after floor 1, contracts (dues, strikes) on floor 2, relics after floor 2.
+// The HUD and shop grow with the run: gold and relics after floor 1, contracts and strikes on floor 2, dues in act 2.
 const goldOpen = () => (!s.guided || s.floor > 0 || s.phase === 'shop');
 const contractsOpen = () => (!s.guided || s.floor >= E.UNLOCK.contracts);
 const relicsOpen = () => (!s.guided || s.floor > E.UNLOCK.relics || (s.floor === E.UNLOCK.relics && s.phase === 'shop') || s.relics.length > 0);
@@ -3447,7 +3457,7 @@ function floorHTML(f) {
 }
 function mapHTML() {
   const a = actOf(), place = mapAct(), first = a * 3, here = nextFloor();
-  const dues = !(s.guided && first + 2 < E.UNLOCK.contracts);
+  const dues = !(s.guided && first + 2 < E.UNLOCK.dues);
   const go = mapView === 'auto' ? `<button class="primary go" data-mapgo>Start floor ${here + 1}</button>` : '<button class="go" data-mapback>Back</button>';
   const floors = [first, first + 1, first + 2].map(floorHTML).join('');
   return `<section class="actmap" aria-label="Act map"><div class="acthead">${img(`ui/crest-${ACT_PLACES[place]}.webp`, 'crest')}<span class="label">${a > 2 ? `Endless · act ${a + 1}` : `Act ${a + 1} of 3`}</span><h2>${a > 2 ? `The Deep ${ACTS[place].name.replace('The ', '')}` : ACTS[place].name}</h2></div>

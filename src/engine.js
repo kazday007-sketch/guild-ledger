@@ -41,11 +41,12 @@
   };
   const BOSS_TYPES = { fight: 'Boss fight', rule: 'Boss rule', stalker: 'Stalker', trick: 'Trick' };
   const isBossFloor = f => f % 3 === 2;
-  // Guided runs unlock systems gradually (floor indices, 0-based). Act 1 (floors 1-3) has no contracts, strikes
-  // or dues: you only have to survive, and the guild pays SURVIVAL_PAY per floor (no interest). Relic picks start
-  // after floor 1, as in a full game. Contracts (Safe only) start on
-  // floor 4, Bold, Reckless and raises on floor 5, and clauses on floor 7 (the start of act 3).
-  const UNLOCK = { contracts: 3, relics: 0, tiers: 4, raise: 4, clauses: 6 };
+  // Guided runs unlock systems gradually (floor indices, 0-based). Floor 1 has no contracts or strikes: you only
+  // have to survive, and the guild pays SURVIVAL_PAY (no interest). Relic picks start after floor 1, as in a full
+  // game. Contracts (Safe only) and strikes start on floor 2 (since 2.7.0; floor 4 before, which left act 1 playing
+  // like plain Scoundrel), dues after floor 6 (the end of act 2), Bold, Reckless and raises on floor 5, and clauses
+  // on floor 7 (the start of act 3).
+  const UNLOCK = { contracts: 1, dues: 3, relics: 0, tiers: 4, raise: 4, clauses: 6 };
   const SURVIVAL_PAY = 6;
   const locked = (s, k) => s.guided && s.floor < UNLOCK[k];
   // Clauses (shown to players as the "Wildcard" contract): one offer per floor carries one. It pays
@@ -638,10 +639,13 @@
     const interest = c.survival ? 0 : Math.min(interestCap(s), Math.floor(s.gold / 5));
     s.gold += interest;
     if (interest) { msg += ` Interest +${interest}.`; line('interest', 'Interest', interest); }
-    if (s.floor % 3 === 2 && !locked(s, 'contracts')) { // no dues before contracts begin
+    if (s.floor % 3 === 2 && !locked(s, 'dues')) { // no dues in a guided run's first act
       const due = duesFor(s, act(s));
       if (s.gold >= due) { s.gold -= due; msg += ` Paid ${due} gold in guild dues.`; line('dues', 'Guild dues', -due); }
       else { line('dues', `Guild dues (${due} owed, strike)`, -s.gold); s.strikes++; s.gold = 0; msg += ` Couldn't pay ${due} gold in dues: strike ${s.strikes} of 3, and the guild takes what you have.`; }
+    }
+    if (s.tutorial && s.floor === 0 && s.spared && s.hp < Math.ceil(s.maxHp / 2)) { // the safe floor saved you: start floor 2 with half your health, not 1
+      s.hp = Math.ceil(s.maxHp / 2); s.patched = true; msg += ` The goat patched you up to ${s.hp} health.`;
     }
     log(s, msg); s.lastResult = msg; pay.end = s.gold; pay.strikesAfter = s.strikes;
     if (s.strikes >= 3) { s.phase = 'lost'; s.lastResult = msg + ' The guild revokes your license.'; return; }
@@ -773,7 +777,7 @@
   function duesAhead(s) {
     if (!['bid', 'room', 'shop'].includes(s.phase)) return null;
     const f = s.phase === 'shop' ? s.floor + 1 : s.floor, a = Math.floor(f / 3), last = a * 3 + 2;
-    if ((a > 2 && !s.endless) || (s.guided && last < UNLOCK.contracts)) return null;
+    if ((a > 2 && !s.endless) || (s.guided && last < UNLOCK.dues)) return null;
     return { due: duesFor(s, a), act: a, floor: last + 1, next: f === last };
   }
   // The biggest monster your weapon can hit right now, with Keen Edge and Whetstone counted. null: no limit yet.
