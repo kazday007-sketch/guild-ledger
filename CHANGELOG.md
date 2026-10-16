@@ -8,13 +8,21 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
-## 2.7.0 (2026-10-16)
+## 2.8.0 (2026-10-16)
 The relic pick moment.
 - **Relics arrive like cards:** the three relics deal in edge-on and turn to face you, one after another, with a soft deal and flip.
 - **Rare and boss relics catch the light:** a glint sweeps across them as they turn, with a quiet chime (lower and warmer for boss relics).
 - **They float** gently while you decide.
 - **Taking one feels like taking it:** the relic you pick lifts and glows, the others fall away, and its picture flies into its slot in your belt, which lights up as it lands.
 - With reduced motion on, the pick works as before, without the movement.
+
+## 2.7.0 (2026-10-16)
+Tutorial fixes from the second tutorial review (design/tutorial-review-2-6.md):
+- **No cliff after floor 1.** If the tutorial's safe floor saved you, the goat patches you up to half health before floor 2, and a tip says the dungeon can kill you from here on.
+- **Contracts from floor 2 in Guided start** (floor 4 before), so the game's own twist shows up early. They stay Safe only until floor 5, and the first dues still come after floor 6. Simulator, 2,000 Guided runs per bot: win rates went from 12.4 / 15.5 / 15.5% to 12.6 / 17.2 / 16.4% (cautious / balanced / greedy), with no new wall on floors 2-3.
+- **Relic tips.** A first-time tip when a relic gives a card a new button, and one when a relic pick offers a relic with a catch.
+- **Shorter tips.** Gold, Relics, Contract met, Boss floor and Endless are down to one idea each.
+- `sim.js guided` runs the difficulty curve in Guided start.
 
 ## 2.6.0 (2026-10-15)
 Small touches.
