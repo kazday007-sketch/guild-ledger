@@ -8,6 +8,11 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.16.0 (2026-10-16)
+New engraved play icons.
+
+- New, clearer icons for every play button: a red potion for Drink, a gauntlet gripping a sword for Equip (with the weapon's value), a sword and a fist. Equip and Drink now use the icon even when they are the only choice.
+
 ## 2.15.0 (2026-10-16)
 Taller play buttons.
 
