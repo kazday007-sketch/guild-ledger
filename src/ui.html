@@ -1442,6 +1442,20 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 .card.vint .art img { filter: drop-shadow(0 3px 2px rgba(0,0,0,.55)) drop-shadow(0 8px 14px rgba(0,0,0,.35)); }
 .card.vint .art::after, .card.vint .rank { display: none; }
 .card.vint .name .face { color: var(--bone); text-shadow: 0 1px 2px #000; }
+/* 2.10.2: on the table a card's picture is always the same size, whatever buttons sit under it: the picture gets the slot minus the
+   space the layout reserves for the name and one row of buttons, and several buttons share that one row. */
+main.play .stage .chamber:not(.preview) .card.vint .art { flex: none; height: calc(100% - var(--x)); }
+main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(2)) { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); grid-template-columns: none; gap: 4px; }
+main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(2)) .lg { display: none; }
+main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(2)) .sm { display: inline; }
+main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(2)) button { text-align: center; padding-inline: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+main.play .stage .chamber:not(.preview) .card.vint .acts .xact { grid-column: auto; }
+/* printed cards are 2:3 with no frame, so the slot is shaped like the card and only reserves the name and one row of buttons */
+main.play .stage .chamber:not(.preview) div.room { --ar: 1.5; --px: 0px; --x: 92px; }
+@media not ((min-width: 900px) and (min-height: 520px)) { main.play .stage .chamber:not(.preview) div.room { --x: 68px; } }
+@media (max-width: 899px) and (orientation: portrait) { main.play .stage .chamber:not(.preview) div.room { --x: 74px; } }
+/* the back covers exactly the printed face while it turns (placed by flipCard), and the name and buttons wait until it lands */
+.card.vint .cardback { inset: auto; border-radius: 5.5% / 3.7%; }
 </style>
 
 <div id="scene" aria-hidden="true"></div>
@@ -1455,7 +1469,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.10.1';
+const VERSION = '2.11.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -1491,7 +1505,7 @@ function cardArt(c) {
   if (c.kind === 'weapon') return `cards/weapon-${Math.max(2, Math.min(10, c.v))}.webp`;
   return `cards/potion-${potionSize(c.v)}.webp`;
 }
-const iconOf = k => E.RELICS[k] ? `icons/relic-${k === 'keenedge' ? 'keen-edge' : k}.webp` : `icons/service-${k}.webp`;
+const iconOf = k => E.RELICS[k] ? `icons/relics/${k}.webp` : `icons/service-${k}.webp`; // 2.10.2: every relic has an engraved icon
 // Relics with painted icons. The rest (new in 1.30.0) show a mark of their own on a coloured seal until art is made.
 const PAINTED = new Set('whetstone keenedge grindstone ironskin buckler hide herbalist fang bloodpact secondwind scout lantern fortune trophy brawler ambush berserk thorns alchemist ledger seal loaded taxman tithe pickpocket loanshark'.split(' '));
 const MARKS = { oil: '☄', quickdraw: '⚡︎', quartermaster: '⚒︎', masterwork: '✠', executioner: '⚔︎', unbreaking: '⛨', knuckles: '❂', pitfighter: '♜', ironfist: '⚙︎',
@@ -1500,9 +1514,10 @@ const MARKS = { oil: '☄', quickdraw: '⚡︎', quartermaster: '⚒︎', master
   notched: '⚔︎', twinblades: '⚚', cleave: '⚡︎', glassblade: '◇', hardknuckles: '✊︎', bell: '🔔︎', scar: '⚕︎', ironball: '●', alchemykit: '⚗︎',
   hunger: '☽', mimic: '☊', miser: '¤', compound: '⊕', cursed: '✗', trophybelt: '♚', greedy: '✋︎', stash: '▣', spyglass: '⌕', bait: '⚓︎',
   bloodprice: '♦', escape: '➶', hourglass: '⧗' };
+const ENGRAVED = true; // all 58 relics are drawn; the glyph seals below stay only as a fallback
 function relicIcon(k, cls = 'ico') {
   const r = E.RELICS[k];
-  if (!r || PAINTED.has(k)) return img(iconOf(k), cls);
+  if (!r || PAINTED.has(k) || ENGRAVED) return img(iconOf(k), cls);
   const hue = Math.round(Object.keys(MARKS).indexOf(k) * 137.5) % 360; // a different colour for every relic
   return `<svg class="${cls} rglyph ${r.rarity}" style="--fc: hsl(${hue} 55% 68%)" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44"/><circle class="ring" cx="50" cy="50" r="36"/><text x="50" y="51" text-anchor="middle" dominant-baseline="central">${MARKS[k] || '✦'}</text></svg>`;
 }
@@ -2228,8 +2243,16 @@ function flipFrames(dx = 0, dy = 0, s0 = 1, z0 = 0) {
 }
 function flipCard(el, delay, frames, ms = DEAL_MS) {
   el.animate(frames, { duration: ms, delay, easing: 'linear', fill: 'backwards' });
-  const back = document.createElement('div'); back.className = 'cardback'; el.appendChild(back);
+  const back = document.createElement('div'); back.className = 'cardback';
   const edge = frames.find(f => f.offset && /rotateY\(90deg\)/.test(f.transform)).offset;
+  const art = el.classList.contains('vint') && el.querySelector('.art');
+  if (art) { // a printed card: the back is exactly the face's size, laid over the picture where object-fit put it
+    const w = art.clientWidth, h = art.clientHeight, cw = Math.min(w, h * 2 / 3), ch = cw * 1.5;
+    Object.assign(back.style, { left: `${art.offsetLeft + (w - cw) / 2}px`, top: `${art.offsetTop + (h - ch) / 2}px`, width: `${cw}px`, height: `${ch}px` });
+    el.querySelectorAll('.name, .acts').forEach(x => x.animate([{ opacity: 0 }, { opacity: 0, offset: Math.min(1, edge + .1) }, { opacity: 1 }],
+      { duration: ms, delay, easing: 'linear', fill: 'backwards' }));
+  }
+  el.appendChild(back);
   back.animate([{ opacity: 1 }, { opacity: 1, offset: edge }, { opacity: 0, offset: Math.min(1, edge + .001) }, { opacity: 0 }],
     { duration: ms, delay, easing: 'linear', fill: 'forwards' }).onfinish = () => back.remove();
 }
@@ -2308,7 +2331,7 @@ function allowed(c, mode) {
   return !!a && a.v === c.v && a.mode === mode;
 }
 function cardHTML(c, active) {
-  if (c.hidden) return `<article class="card hidden ${active ? '' : 'idle'}" data-card="${c.id}" style="${handPlaced(c.id)}"${tipAttr('Face down', 'The Banshee hides this card. Take another card first, and it turns over.')}>
+  if (c.hidden) return `<article class="card vint hidden ${active ? '' : 'idle'}" data-card="${c.id}" style="${handPlaced(c.id)}"${tipAttr('Face down', 'The Banshee hides this card. Take another card first, and it turns over.')}>
     <div class="art">${img('cards/vintage/back.webp')}</div><div class="name"><span class="face">Face down</span></div><div class="acts"><button disabled>${dual('Take another card first', 'Hidden')}</button></div></article>`;
   return cardShell(c, active, cardActs(c, 'act'));
 }
@@ -2857,7 +2880,7 @@ function showClerk() {
 // The goat stamps the contract paid or missed, then counts your gold up line by line: the contract's pay, overkill,
 // interest, and anything taken (the loan shark, guild dues). Continue goes on to the shop.
 let payoutView = false, payoutPlayed = null;
-const payIcon = { contract: 'icons/hud-gold.webp', overkill: 'icons/hud-overkill.webp', interest: 'icons/hud-interest.webp', dues: 'icons/hud-strike.webp', loanshark: 'icons/relic-loanshark.webp', bloodpact: 'icons/relic-bloodpact.webp', bribe: 'icons/hud-gold.webp' };
+const payIcon = { contract: 'icons/hud-gold.webp', overkill: 'icons/hud-overkill.webp', interest: 'icons/hud-interest.webp', dues: 'icons/hud-strike.webp', loanshark: 'icons/relics/loanshark.webp', bloodpact: 'icons/relics/bloodpact.webp', bribe: 'icons/hud-gold.webp' };
 // What each payout line means, for its tap / hover tip.
 function payTip(p, l) {
   const has = k => s.relics.includes(k), g = Math.abs(l.gold), over = p.slain - p.target;

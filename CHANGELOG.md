@@ -8,6 +8,13 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.11.0 (2026-10-16)
+Engraved relics, and cards that keep their size.
+- **Every relic has an engraved picture** in the same hand-inked style as the cards, all 58 of them. 32 relics only had a coloured symbol before.
+- **Cards always stay the same size.** A card no longer shrinks when it offers two choices (weapon or fists): the choices share one row under the card. The slot on the table is now shaped like the card, so cards are bigger.
+- **The back turns into the face at exactly the same size.** While a card flips, its back covers just the printed card, and the name and buttons appear once it lands.
+- **Cleaner paper.** The card edges no longer look lighter or patched, and the card back has lost the strip of wooden table around it.
+
 ## 2.10.1 (2026-10-16)
 - **Cards are trimmed evenly.** Many cards showed a strip of the table along the top or bottom edge. Every card now has the same paper margin around its printed border.
 
