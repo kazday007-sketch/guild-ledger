@@ -8,6 +8,12 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.12.0 (2026-10-16)
+Engraved tables for the three acts.
+
+- Each act's room now sits on its own hand-engraved table to match the deck: crypt flagstones (act 1), sewer brick (act 2) and vault stone (act 3).
+- Boss rooms keep their old surface for now.
+
 ## 2.11.0 (2026-10-16)
 Engraved relics, and cards that keep their size.
 - **Every relic has an engraved picture** in the same hand-inked style as the cards, all 58 of them. 32 relics only had a coloured symbol before.
