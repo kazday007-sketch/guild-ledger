@@ -8,6 +8,14 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.10.0 (2026-10-16)
+A new deck: old hand-drawn playing cards.
+- **Every card is now a vintage 1800s-style playing card**, drawn by hand on aged paper, with the pips worked into each picture and matching corner numbers at top and bottom.
+- **New monsters to match.** Spades are the dead: Rats, Bone Spider, Zombie, Ghost, Skeleton Warrior, Ghoul, Wraith, Mummy, Grave Knight, Headless Page, Bone Bride, Barrow King and Death. Clubs are the beasts: Goblin Scavenger, Cave Bat, Kobold Trapper, Dire Wolf, Hobgoblin, Giant Centipede, Bugbear, Owlbear, Minotaur, Goblin Jester, Harpy Queen, Orc Warlord and Manticore. The elites are the Hydra (15) and the Chimera (17).
+- **Weapons** (diamonds) run from a kitchen knife up to a runed greatsword, and **potions** (hearts) each come in their own bottle.
+- **A new card back**: an indigo and red lattice with a goat's head in the middle.
+- Bosses keep their own pictures for now.
+
 ## 2.9.0 (2026-10-16)
 Cards that turn like real cards, and a handmade look.
 - **A real flip.** Cards fly out of the pile face down, lift, and turn over on their long edge with a little perspective: you see the back until the card is edge-on, then the face, and it settles with a small overshoot. Face down they sit a shade darker. Before, the back just squashed away.
