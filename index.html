@@ -1050,6 +1050,11 @@ main[data-place] .chamber-head { background: rgba(12,9,6,.66); }
 main[data-place=crypt] { --surface: #3d4148 url(assets/ui/table-crypt.webp); --edge: url(assets/ui/frame-crypt.webp); }
 main[data-place=sewers] { --surface: #24302a url(assets/ui/table-sewers.webp); --edge: url(assets/ui/frame-sewers.webp); }
 main[data-place=vault] { --surface: #1f3a26 url(assets/ui/table-vault.webp); --edge: url(assets/ui/frame-vault.webp); }
+/* 2.12.0: the acts' tables are engraved in the card style, one whole picture each with its own edges, so no tiling and no painted frame */
+main[data-place=crypt] { --table: url(assets/tables/act1-crypt.webp); }
+main[data-place=sewers] { --table: url(assets/tables/act2-sewers.webp); }
+main[data-place=vault] { --table: url(assets/tables/act3-vault.webp); }
+main:is([data-place=crypt], [data-place=sewers], [data-place=vault]) section.chamber { background: #1c2027 var(--table) center / cover no-repeat; border: 0; border-image: none; padding: 26px; box-shadow: 0 0 0 1px rgba(0,0,0,.6), 0 6px 26px rgba(0,0,0,.6); }
 main[data-place=boss] { --surface: #1d1a1c url(assets/ui/table-boss.webp); --edge: url(assets/ui/frame-boss.webp); }
 main[data-place=contracts] { --surface: #4b3b29 url(assets/ui/table-contracts.webp); --edge: url(assets/ui/frame-contracts.webp); }
 main[data-place=boss] section.chamber, main[data-place=contracts] .contract.board { border-image-repeat: round; }
@@ -2340,7 +2345,7 @@ main.play .stage .chamber:not(.preview) div.room { --ar: 1.5; --px: 0px; --x: 92
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.11.0';
+const VERSION = '2.12.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
