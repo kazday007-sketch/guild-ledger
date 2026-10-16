@@ -1484,6 +1484,8 @@ main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(3)) bu
 main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(3)) img.hit { width: calc(var(--bh) * .45); height: calc(var(--bh) * .45); }
 main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(3)) .hitd { font-size: 12px; }
 main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(3)) .sm:has(img.hit) { display: flex !important; flex-direction: column; align-items: center; gap: 1px; }
+/* Azazel's portraits are little engraved cards of their own: no box, just a soft shadow under the card */
+img.clerk { box-shadow: none; border-radius: 0; object-fit: contain !important; filter: drop-shadow(0 2px 4px rgba(0,0,0,.55)); }
 /* the back covers exactly the printed face while it turns (placed by flipCard), and the name and buttons wait until it lands */
 .card.vint .cardback { inset: auto; border-radius: 5.5% / 3.7%; }
 </style>
@@ -2369,7 +2371,7 @@ main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(3)) .s
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.16.0';
+const VERSION = '2.17.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
@@ -2913,7 +2915,7 @@ document.addEventListener('change', e => { if (e.target.matches && e.target.matc
 // what happens, through hints that reset each tutorial run. Floor 1 can't kill you, and clearing the tutorial's
 // rooms gets a short recap.
 const TUTORIAL = [
-  { allow: { v: 7, mode: null }, focus: '.stat.hp', text: 'Keep your <b>health</b> above 0. First, tap <b>Equip</b> on the sword.' },
+  { allow: { v: 7, mode: null }, focus: '.stat.hp', text: 'Keep your <b>health</b> above 0. First, tap the <b>gauntlet</b> under the sword to equip it.' },
   { allow: { v: 9, mode: 'weapon' }, focus: '.stat.weapon', text: 'Monsters hit as hard as their number. Your sword blocks most of it. Tap the <b>sword</b> under the Owlbear.' },
 ];
 const TUTORIAL_HINTS = ['survive', 'spared', 'lastpick', 'fists', 'flee', 'limit', 'potion', 'tutdone'];
@@ -3056,8 +3058,8 @@ function currentHint() {
     ['lastpick', s.phase === 'room' && s.tutorial && s.floor === 0 && s.roomsCleared === 0 && s.handled === 2, 'Your sword blocked 7, so you only lost <b>2</b>. Now it only hits monsters up to <b>9</b>, which is why you always hit the <b>biggest first</b>. One more card ends the room.', '.stat.weapon'],
     ['fists', s.phase === 'room' && s.tutorial && s.floor === 0 && s.floorBare && !s.spared, 'Fists block nothing, so you took the <b>full hit</b>. Save them for small monsters.', '.stat.hp'],
     ['flee', s.phase === 'room' && s.handled === 0 && E.canFlee(s) && s.room.filter(c => c.kind === 'monster' && c.v >= 10 && !E.canUseWeapon(s, c)).length >= 2, 'These are too big for your weapon. Tap <b>Flee room</b> to run. You can\'t flee 2 rooms in a row. The goat calls it a tactical retreat. He retreats a lot.', '[data-flee]'],
-    ['limit', s.phase === 'room' && s.weapon && s.weapon.limit != null, 'Your weapon is dull now. It only hits monsters up to the number under <b>Weapon</b>, so hit the <b>biggest first</b>. Bigger ones need <b>Fists</b>.', '.stat.weapon'],
-    ['potion', s.phase === 'room' && !s.potionUsed && s.hp < s.maxHp && s.room.some(c => c.kind === 'potion'), 'That\'s a <b>potion</b>. Tap <b>Drink</b> to heal. Only 1 potion works per room.', '.stat.hp'],
+    ['limit', s.phase === 'room' && s.weapon && s.weapon.limit != null, 'Your weapon is dull now. It only hits monsters up to the number under <b>Weapon</b>, so hit the <b>biggest first</b>. Bigger ones need your <b>fist</b>.', '.stat.weapon'],
+    ['potion', s.phase === 'room' && !s.potionUsed && s.hp < s.maxHp && s.room.some(c => c.kind === 'potion'), 'That\'s a <b>potion</b>. Tap the <b>potion</b> button to heal. Only 1 potion works per room.', '.stat.hp'],
     ['survive', s.phase === 'room' && survival() && s.floor === 0, '<b>Stay alive</b> for 4 rooms. Use 3 of the 4 cards in each room.', null, 'I do this in my sleep.'],
     ['gold', shopNow && s.floor === 0, '<b>New! Gold.</b> The guild pays you after every floor. Spend it here, then tap <b>Leave shop</b>.', '.stat.gold, .shop .services'],
     ['contracts', s.phase === 'bid' && !multi, '<b>New! Contracts.</b> From now on, the guild pays you to kill monsters. Tap the <b>contract</b> to sign it.', '.offers'],

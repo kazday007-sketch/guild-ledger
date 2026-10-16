@@ -8,6 +8,12 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.17.0 (2026-10-16)
+Azazel in engraved portraits.
+
+- All eight of Azazel's moods are redrawn as small engraved cards to match the deck: neutral, pleased, impressed, worried, disapproving, counting coins, stamping and away.
+- Tutorial tips now name the new button icons (the gauntlet, the fist, the potion).
+
 ## 2.16.0 (2026-10-16)
 New engraved play icons.
 
