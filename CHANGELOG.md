@@ -8,6 +8,12 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.14.0 (2026-10-16)
+Icon hit buttons and steadier floating cards.
+
+- The Weapon and Fists buttons are now an engraved sword or fist with the damage (−3), and Drink shows a heart with the healing, when a card has more than one way to play it. Twin Blades shows each blade's value beside the sword. On sideways phones the number sits on the icon so nothing gets cut off.
+- Cards now float as a whole piece, so the printed borders stay put instead of shifting against the art. The card back rides along when a card flips.
+
 ## 2.13.0 (2026-10-16)
 Engraved boss tables and contract desk.
 
