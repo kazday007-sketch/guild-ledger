@@ -1498,7 +1498,7 @@ main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(3)) .s
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.15.0';
+const VERSION = '2.16.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -2342,6 +2342,7 @@ const dual = (long, short) => `<span class="lg">${long}</span><span class="sm">$
 const DIGIT_W = [.91, .45, .8, .8, .89, .81, .84, .81, .81, .83];
 const digits = v => String(v).split('').map(d => `<i class="dg" style="--g:url(${ART}ui/num-${d}.webp);width:${DIGIT_W[d]}em"></i>`).join('');
 const skull = '<i class="skull" aria-label="fatal"></i>';
+const iconLabel = (icon, alt, num) => `${img(`icons/hit-${icon}.webp`, 'hit', alt)}<span class="hitd">${num}</span>`;
 function fightLabel(c, weapon, off) {
   const st = off ? { ...s, weapon: s.weapon2 } : s; // Twin Blades: the off-hand weapon
   const d = E.monsterDamage(st, c, weapon), blade = off ? s.weapon2.v : s.weapon2 ? s.weapon.v : null; // Twin Blades: show which blade
@@ -2352,7 +2353,7 @@ function potionPreview(c) {
   const h = E.potionHeal(s, c);
   if (!h) return dual('Discard (no healing)', 'Discard');
   const heal = Math.min(h, s.maxHp - s.hp);
-  return dual(`Drink: heal ${heal}`, `${img('icons/hud-hp.webp', 'hit', 'Drink')}<span class="hitd">+${heal}</span>`);
+  return iconLabel('heal', 'Drink', `+${heal}`);
 }
 function allowed(c, mode) {
   if (!tut) return true;
@@ -2374,14 +2375,14 @@ function cardActs(c, attr) {
   let acts = '';
   if (c.kind === 'weapon') {
     const v = c.v + (s.relics.includes('grindstone') ? 1 : 0);
-    acts = btn(null, 'Equip', tipAttr(`Equip the ${cardName(c)}`, `Blocks up to <b>${v}</b> damage per fight.${s.weapon ? s.weapon2 ? ` Your ${s.weapon.v} moves to your off hand.` : ` Drops your ${s.weapon.v}.` : ''}`));
+    acts = btn(null, iconLabel('equip', 'Equip', v), tipAttr(`Equip the ${cardName(c)}`, `Blocks up to <b>${v}</b> damage per fight.${s.weapon ? s.weapon2 ? ` Your ${s.weapon.v} moves to your off hand.` : ` Drops your ${s.weapon.v}.` : ''}`));
   } else {
     if (c.kind === 'potion') acts += btn(null, potionPreview(c));
-    if (ms.includes('equip')) acts += btn('equip', dual(`Equip as a ${c.v} weapon`, `Equip ${c.v}`), tipAttr('Alchemy Kit', 'Equip this potion as a weapon of its value.'));
+    if (ms.includes('equip')) acts += btn('equip', iconLabel('equip', 'Equip', c.v), tipAttr('Alchemy Kit', 'Equip this potion as a weapon of its value.'));
     if (ms.includes('weapon')) acts += btn('weapon', fightLabel(c, true));
     if (ms.includes('weapon2')) acts += btn('weapon2', fightLabel(c, true, true));
     if (ms.includes('bare')) acts += btn('bare', fightLabel(c, false));
-    if (ms.includes('drink')) acts += btn('drink', dual(`Drink: heal ${Math.min(E.potionHeal(s, c), s.maxHp - s.hp)}`, `${img('icons/hud-hp.webp', 'hit', 'Drink')}<span class="hitd">+${Math.min(E.potionHeal(s, c), s.maxHp - s.hp)}</span>`), tipAttr("Mimic's Tongue", 'Drink this little monster as a potion.'));
+    if (ms.includes('drink')) acts += btn('drink', iconLabel('heal', 'Drink', `+${Math.min(E.potionHeal(s, c), s.maxHp - s.hp)}`), tipAttr("Mimic's Tongue", 'Drink this little monster as a potion.'));
   }
   if (attr === 'act' && !tut) { // relics that work on a card in the room
     if (E.canStash(s, c.id)) acts += `<button class="link xact" data-stash="${c.id}"${tipAttr('Stash Pouch', 'Set this card aside. It counts as taken, and you can play it in any later room on this floor.')}>Stash</button>`;
