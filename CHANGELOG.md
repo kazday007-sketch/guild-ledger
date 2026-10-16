@@ -8,6 +8,15 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.9.0 (2026-10-16)
+Cards that turn like real cards, and a handmade look.
+- **A real flip.** Cards fly out of the pile face down, lift, and turn over on their long edge with a little perspective: you see the back until the card is edge-on, then the face, and it settles with a small overshoot. Face down they sit a shade darker. Before, the back just squashed away.
+- **The Banshee's face-down cards** now turn over the same way when they are revealed.
+- **Placed by hand.** Each card on the table sits at its own slight angle and a little off line, and its number is stamped a touch crooked. A card keeps its angle every time.
+- **Paper grain** over the card pictures and, very faintly, the whole screen, so nothing looks machine-flat.
+- **Everything moves a little slower** (about a quarter), so you notice it: deals, flips, card exits, relic picks, the payout and the big moments. Hits and shakes stay quick.
+- With reduced motion on, cards appear without flying or turning.
+
 ## 2.8.0 (2026-10-16)
 The relic pick moment.
 - **Relics arrive like cards:** the three relics deal in edge-on and turn to face you, one after another, with a soft deal and flip.
