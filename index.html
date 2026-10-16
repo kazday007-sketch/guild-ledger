@@ -179,7 +179,7 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 .pip.pick { width: 12px; height: 12px; } .pip.pick.on { background: var(--gold); border-color: var(--gold); }
 .slot { border: 2px dashed rgba(233,226,208,.35); border-radius: 12px; display: grid; place-content: center; justify-items: center; gap: 4px; color: rgba(233,226,208,.65); min-height: 140px; }
 .slot b { font-size: 28px; line-height: 1; } .slot small { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
-.cardback { position: absolute; inset: -3px; border-radius: 12px; background: #1b212b url(assets/cards/back.webp) center / cover; pointer-events: none; z-index: 3; }
+.cardback { position: absolute; inset: -3px; border-radius: 12px; background: #1b212b url(assets/cards/back.webp) center / cover; pointer-events: none; z-index: 3; transform: scaleX(-1); } /* mirrored: it is seen from behind */
 .card { min-height: 0; padding: 6px 6px 8px; gap: 6px; display: flex; flex-direction: column; border-radius: 12px; border: 3px solid #8b7a5a; background: #e9e2d0 url(assets/ui/texture-parchment.webp) 0 0 / 220px; box-shadow: 0 3px 0 rgba(0,0,0,.35), 0 6px 14px rgba(0,0,0,.45); }
 .card.monster { background: #e9e2d0 url(assets/ui/texture-parchment.webp) 0 0 / 220px; }
 .card.weapon { border-color: #4f7aa8; }
@@ -306,7 +306,7 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 
 /* effects */
 #fx { position: fixed; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
-#fx img { position: absolute; animation: fxpop .6s ease-out forwards; }
+#fx img { position: absolute; animation: fxpop .75s ease-out forwards; }
 #fx img.fx-ink { animation-duration: .9s; }
 #fx img.fx-smoke { animation-duration: .8s; }
 @keyframes fxpop { 0% { transform: scale(.4); opacity: 0; } 25% { opacity: 1; } 100% { transform: scale(1.15); opacity: 0; } }
@@ -351,6 +351,13 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 @keyframes bob { from { transform: translateY(-3px); } to { transform: translateY(3px); } }
 #fx .flyicon { position: absolute; animation: none; object-fit: contain; filter: drop-shadow(0 0 10px rgba(241,212,136,.7)); }
 @media (prefers-reduced-motion: reduce) { .pickopt .pico { animation: none !important; } .pickopt.glint::after { display: none; } }
+/* handcrafted: cards sit as a hand put them, numbers stamped a touch crooked, and a fine paper grain over
+   card faces and the whole screen, so nothing looks quite machine-flat */
+.chamber .room .card { rotate: var(--tilt, 0deg); translate: 0 var(--nudge, 0px); }
+.chamber .room .card .rank { rotate: var(--rk, 0deg); }
+.card .art::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: var(--grain) 0 0 / 160px; mix-blend-mode: multiply; opacity: .35; }
+#grain { position: fixed; inset: 0; z-index: 4; pointer-events: none; background: var(--grain) 0 0 / 220px; opacity: .09; }
+:root { --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .45 0 0 0 0 .38 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
 /* motion: floating numbers, the hurt flash, the health chip, cards that lift under the pointer */
 .floatnum { position: absolute; font: 700 26px/1 Cinzel, Georgia, serif; white-space: nowrap; pointer-events: none; text-shadow: 0 2px 0 rgba(0,0,0,.7), 0 0 10px rgba(0,0,0,.6); }
 .floatnum.dmg { color: #ff6b62; font-size: 30px; }
@@ -2313,7 +2320,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.8.0';
+const VERSION = '2.9.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
@@ -2436,7 +2443,10 @@ const rectOf = sel => { const el = document.querySelector(sel); return el && el.
 // snapshot before it redraws and compares after: whatever changed (health, gold, points, the weapon, the screen)
 // gets its motion here, whichever click or timer caused it. With reduced motion, nothing here moves.
 const EASE = { out: 'cubic-bezier(.2,.8,.2,1)', back: 'cubic-bezier(.34,1.56,.64,1)', in: 'cubic-bezier(.55,0,.8,.2)', inOut: 'cubic-bezier(.65,0,.35,1)' };
-const anim = (el, frames, opts) => (el && !reduceMotion && el.animate) ? el.animate(frames, { easing: EASE.out, ...opts }) : null;
+// PACE stretches every animation a little so players catch it (Dude, 2.9.0: "slow it down just a bit"). Shakes stay quick.
+const PACE = 1.25;
+const paced = o => ({ ...o, ...(o.duration != null && { duration: o.duration * PACE }), ...(o.delay != null && { delay: o.delay * PACE }) });
+const anim = (el, frames, opts) => (el && !reduceMotion && el.animate) ? el.animate(frames, paced({ easing: EASE.out, ...opts })) : null;
 let motionLast = null; // what the last render showed: { run, key, hp, gold, slain, weapon }
 function screenKey() {
   if (titleOn) return 'title';
@@ -2514,7 +2524,7 @@ function motionSound(was, now, snap) {
   if (was.key !== now.key) { if (now.key === 'won') SFX.play('win'); else if (now.key === 'lost') SFX.play('toll'); return; }
   if (now.hp < was.hp) SFX.play('hurt', { gain: .5 + Math.min(.6, (was.hp - now.hp) / 12), delay: .03 });
   const target = s.contract && !survival() && s.contract.target;
-  if (target && was.slain < target && now.slain >= target) setTimeout(() => fx('contract-met', rectOf('.contract.paper')), 250); // its stamp, with its sound
+  if (target && was.slain < target && now.slain >= target) setTimeout(() => fx('contract-met', rectOf('.contract.paper')), 250 * PACE); // its stamp, with its sound
 }
 // The screen changed: its parts rise into place one after another, and lists of choices deal in.
 function screenIn() {
@@ -2568,6 +2578,7 @@ function hurt(dmg) {
 // ---------- small touches ----------
 // Dust hangs in the air of the dungeon, and when your health runs low the screen's edges close in, red and dark,
 // with a slow heartbeat under everything.
+const grain = document.createElement('div'); grain.id = 'grain'; grain.setAttribute('aria-hidden', 'true'); document.body.appendChild(grain); // paper grain over everything
 const dust = document.createElement('div'); dust.id = 'dust'; dust.setAttribute('aria-hidden', 'true');
 for (let i = 0; i < 22; i++) {
   const m = document.createElement('i');
@@ -2596,13 +2607,13 @@ const introduced = new WeakMap(); // run -> floors whose boss has already walked
 // light, and the one you take lifts, the rest fall away, and it flies into your belt.
 function pickReveal() {
   app.querySelectorAll('.picks > .pickopt').forEach((el, i) => {
-    const at = 180 + 150 * i, shine = !el.classList.contains('skip') && (el.classList.contains('rare') || el.classList.contains('boss'));
+    const at = (180 + 150 * i) * PACE, shine = !el.classList.contains('skip') && (el.classList.contains('rare') || el.classList.contains('boss'));
     anim(el, [{ opacity: 0, transform: 'translateY(40px) rotateY(88deg) scale(.9)' }, { opacity: 1, transform: 'translateY(0) rotateY(88deg) scale(.96)', offset: .45 }, { opacity: 1, transform: 'none' }],
-      { duration: 620, delay: at, fill: 'backwards' });
-    SFX.play('deal', { delay: at / 1000, gain: .6 }); SFX.play('flip', { delay: (at + 280) / 1000, gain: .7 });
+      { duration: 620, delay: at / PACE, fill: 'backwards' });
+    SFX.play('deal', { delay: at / 1000, gain: .6 }); SFX.play('flip', { delay: (at + 280 * PACE) / 1000, gain: .7 });
     if (!shine) return;
-    setTimeout(() => el.isConnected && el.classList.add('glint'), at + 560);
-    SFX.play('relic', { delay: (at + 560) / 1000, ...(el.classList.contains('boss') ? { gain: .5, rate: .85 } : { gain: .35, rate: 1.15 }) });
+    setTimeout(() => el.isConnected && el.classList.add('glint'), at + 560 * PACE);
+    SFX.play('relic', { delay: (at + 560 * PACE) / 1000, ...(el.classList.contains('boss') ? { gain: .5, rate: .85 } : { gain: .35, rate: 1.15 }) });
   });
 }
 async function pickTake(b) {
@@ -2622,7 +2633,7 @@ function flyIcon(from, icon, k) {
   layer.appendChild(el);
   const dx = r.left + r.width / 2 - (from.left + from.width / 2), dy = r.top + r.height / 2 - (from.top + from.height * .3), k2 = r.width / size;
   const fly = el.animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${dx * .5}px, ${dy * .5 - 80}px) scale(${(1 + k2) / 2 + .15}) rotate(-8deg)`, opacity: 1, offset: .5 }, { transform: `translate(${dx}px, ${dy}px) scale(${k2})`, opacity: .9 }],
-    { duration: 650, easing: EASE.inOut, fill: 'forwards' });
+    { duration: 650 * PACE, easing: EASE.inOut, fill: 'forwards' });
   anim(to, [{ opacity: 0 }, { opacity: 0 }], { duration: 640 });
   fly.finished.then(() => {
     el.remove(); fx('comet', to.getBoundingClientRect());
@@ -3051,11 +3062,37 @@ function roomHTML(active, actions = '') {
       ${actions ? `<div class="chamber-actions">${actions}</div>` : ''}</div>
     <div class="room">${slots}</div></section>`;
 }
+// Cards on the table sit as if a hand put them there: a slight tilt, a nudge, the number stamped a little off
+// straight. Worked out from the card's id, so a card keeps its angle every time the screen is drawn.
+function handPlaced(id) {
+  const r = n => { const x = Math.sin((id + 1) * 12.9898 + n * 78.233) * 43758.5453; return x - Math.floor(x); };
+  return `--tilt:${(r(1) * 2.6 - 1.3).toFixed(2)}deg;--nudge:${(r(2) * 6 - 3).toFixed(1)}px;--rk:${(r(3) * 10 - 5).toFixed(1)}deg`;
+}
 // New cards fly out of the pile to their slot, face down, and turn over as they land. Any re-render
 // mid-deal replays each card's animation from where it was, so tips and hints can't cut it short.
 let shownRoom = new Set();
+let hiddenRoom = new Set(); // cards drawn face down (the Banshee's), so they can turn over when revealed
 const dealing = new Map(); // card id -> time its flight starts
-const DEAL_MS = 650;
+const DEAL_MS = 820 * PACE;
+// A real turn: the card spins on its long edge with a little perspective, the back showing until it is edge-on,
+// then the face. It lifts as it turns and settles with a small overshoot, a shade darker while face down.
+const P = 'perspective(900px)';
+const turn = (x, y, s, z, ry, b) => ({ transform: `${P} translate(${x}px, ${y}px) scale(${s}) rotateZ(${z}deg) rotateY(${ry}deg)`, filter: `brightness(${b})` });
+function flipFrames(dx = 0, dy = 0, s0 = 1, z0 = 0) {
+  return [
+    { ...turn(dx, dy, s0, z0, 180, .8), easing: 'cubic-bezier(.2,.75,.25,1)' },
+    { ...turn(0, -8, 1.02, 0, 180, .8), offset: .52, easing: 'cubic-bezier(.5,0,.75,.4)' },
+    { ...turn(0, -18, 1.08, 0, 90, .95), offset: .76, easing: 'cubic-bezier(.25,.6,.4,1)' },
+    { ...turn(0, -4, 1.02, 0, -9, 1.12), offset: .9, easing: 'ease-out' },
+    { ...turn(0, 0, 1, 0, 0, 1) }];
+}
+function flipCard(el, delay, frames, ms = DEAL_MS) {
+  el.animate(frames, { duration: ms, delay, easing: 'linear', fill: 'backwards' });
+  const back = document.createElement('div'); back.className = 'cardback'; el.appendChild(back);
+  const edge = frames.find(f => f.offset && /rotateY\(90deg\)/.test(f.transform)).offset;
+  back.animate([{ opacity: 1 }, { opacity: 1, offset: edge }, { opacity: 0, offset: Math.min(1, edge + .001) }, { opacity: 0 }],
+    { duration: ms, delay, easing: 'linear', fill: 'forwards' }).onfinish = () => back.remove();
+}
 function dealIn() {
   const els = [...app.querySelectorAll('.chamber .card[data-card]')];
   const pile = app.querySelector('.chamber .pile');
@@ -3065,20 +3102,23 @@ function dealIn() {
     let n = 0;
     els.forEach(el => {
       const id = +el.dataset.card;
-      if (!shownRoom.has(id)) { SFX.play('deal', { delay: .13 * n }); SFX.play('flip', { delay: .13 * n + .42 }); dealing.set(id, now + 130 * n++); }
+      if (!shownRoom.has(id)) { SFX.play('deal', { delay: .16 * n }); SFX.play('flip', { delay: .16 * n + .5 * PACE }); dealing.set(id, now + 160 * n++); }
       const t0 = dealing.get(id);
       if (t0 == null || now > t0 + DEAL_MS) return;
       if (el.dataset.boss && !shownRoom.has(id)) bossArrives(el, t0 - now);
       const r = el.getBoundingClientRect(), delay = t0 - now; // negative when resuming mid-flight
       const dx = p.left + p.width / 2 - (r.left + r.width / 2), dy = p.top + p.height / 2 - (r.top + r.height / 2);
-      el.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${p.width / r.width}) rotate(-10deg)` }, { transform: 'none' }],
-        { duration: 450, delay, easing: 'cubic-bezier(.2,.75,.25,1)', fill: 'backwards' });
-      const back = document.createElement('div'); back.className = 'cardback'; el.appendChild(back);
-      back.animate([{ transform: 'scaleX(1)' }, { transform: 'scaleX(1)', offset: .7 }, { transform: 'scaleX(0)' }],
-        { duration: DEAL_MS, delay, easing: 'ease-in', fill: 'forwards' }).onfinish = () => back.remove();
+      if (el.classList.contains('hidden')) { // a face-down card only flies in; it turns over later
+        el.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${p.width / r.width}) rotate(-10deg)` }, { transform: 'none' }], { duration: 450 * PACE, delay, easing: 'cubic-bezier(.2,.75,.25,1)', fill: 'backwards' });
+        return;
+      }
+      flipCard(el, delay, flipFrames(dx, dy, p.width / r.width, -10));
     });
+    // a card that was face down and now isn't turns over where it lies
+    els.forEach(el => { if (hiddenRoom.has(+el.dataset.card) && !el.classList.contains('hidden')) { SFX.play('flip'); flipCard(el, 0, flipFrames().slice(1).map((f, i) => i ? f : { ...f, offset: undefined }), 520 * PACE); } });
   }
   shownRoom = new Set(els.map(el => +el.dataset.card));
+  hiddenRoom = new Set(els.filter(el => el.classList.contains('hidden')).map(el => +el.dataset.card));
   for (const [id, t0] of dealing) if (!shownRoom.has(id) || now > t0 + DEAL_MS) dealing.delete(id);
 }
 
@@ -3128,7 +3168,7 @@ function allowed(c, mode) {
   return !!a && a.v === c.v && a.mode === mode;
 }
 function cardHTML(c, active) {
-  if (c.hidden) return `<article class="card hidden ${active ? '' : 'idle'}" data-card="${c.id}"${tipAttr('Face down', 'The Banshee hides this card. Take another card first, and it turns over.')}>
+  if (c.hidden) return `<article class="card hidden ${active ? '' : 'idle'}" data-card="${c.id}" style="${handPlaced(c.id)}"${tipAttr('Face down', 'The Banshee hides this card. Take another card first, and it turns over.')}>
     <div class="art">${img('cards/back.webp')}</div><div class="name"><span class="face">Face down</span></div><div class="acts"><button disabled>${dual('Take another card first', 'Hidden')}</button></div></article>`;
   return cardShell(c, active, cardActs(c, 'act'));
 }
@@ -3159,7 +3199,7 @@ function cardActs(c, attr) {
 }
 function cardShell(c, active, acts) {
   const lit = tut && TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.v === c.v && s.phase === 'room';
-  return `<article class="card ${c.kind} ${c.v >= 15 || c.bossKey ? 'elite' : ''} ${c.boss ? 'bosscard' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''}" data-card="${c.id}"${isBossCard(c) ? ' data-boss="1"' : ''}${c.boss ? tipAttr(cardName(c), 'Must die before you can leave this room.') : ''}>
+  return `<article class="card ${c.kind} ${c.v >= 15 || c.bossKey ? 'elite' : ''} ${c.boss ? 'bosscard' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''}" data-card="${c.id}" style="${handPlaced(c.id)}"${isBossCard(c) ? ' data-boss="1"' : ''}${c.boss ? tipAttr(cardName(c), 'Must die before you can leave this room.') : ''}>
     <div class="art">${img(cardArt(c))}<span class="rank" role="img" aria-label="${c.v}">${digits(c.v)}</span></div>
     <div class="name"><span class="face">${cardName(c)}</span></div>
     <div class="acts ${(acts.match(/data-act=/g) || []).length > 2 ? 'many' : ''}">${acts}</div></article>`;
@@ -3746,12 +3786,12 @@ function playPayout() {
   const mark = box.querySelector('.stamp');
   if (mark && p.outcome === 'missed') setTimeout(() => { // the strike lands hard
     fx('strike', mark.getBoundingClientRect()); hurt(6);
-  }, 250);
+  }, 250 * PACE);
   if (mark && p.outcome === 'met') setTimeout(() => anim(box, [{ boxShadow: '0 0 0 0 rgba(243,201,92,0)' }, { boxShadow: '0 0 0 3px rgba(243,201,92,.8), 0 0 50px rgba(243,201,92,.5)', offset: .3 }, { boxShadow: '0 0 0 0 rgba(243,201,92,0)' }], { duration: 1400 }), 300);
   const fell = box.querySelector('.pboss');
   if (fell) {
     anim(fell, [{ opacity: 0, transform: 'translateY(-14px) scale(.9)' }, { opacity: 1, transform: 'none' }], { duration: 600, delay: 150, easing: EASE.back, fill: 'backwards' });
-    setTimeout(() => fx('boss-beaten', fell.querySelector('img').getBoundingClientRect()), 450);
+    setTimeout(() => fx('boss-beaten', fell.querySelector('img').getBoundingClientRect()), 450 * PACE);
   }
   const next = async () => {
     if (!box.isConnected) return;
@@ -3759,9 +3799,9 @@ function playPayout() {
     const r = rows[i++], g = +r.dataset.gold || 0; r.classList.add('on');
     if (g > 0) fx('coins', total.getBoundingClientRect()); else if (r.dataset.key === 'dues') fx('dues', r.getBoundingClientRect());
     if (g) await count(gold + g, Math.min(900, 300 + Math.abs(g) * 45));
-    setTimeout(next, 260);
+    setTimeout(next, 260 * PACE);
   };
-  setTimeout(next, 650);
+  setTimeout(next, 650 * PACE);
 }
 
 // ---------- health preview ----------
@@ -3971,9 +4011,9 @@ app.addEventListener('click', async e => {
       app.querySelectorAll('.chamber .card').forEach((el, i) => {
         const r = el.getBoundingClientRect();
         el.animate([{ transform: 'none' }, { transform: `translate(${p.left + p.width / 2 - (r.left + r.width / 2)}px, ${p.top + p.height / 2 - (r.top + r.height / 2)}px) scale(${p.width / r.width})`, opacity: .3 }],
-          { duration: 320, delay: 50 * i, easing: 'ease-in', fill: 'forwards' });
+          { duration: 320 * PACE, delay: 50 * i * PACE, easing: 'ease-in', fill: 'forwards' });
       });
-      await new Promise(r => setTimeout(r, 480)); busy = false;
+      await new Promise(r => setTimeout(r, 480 * PACE)); busy = false;
     }
     if (E.flee(s) && curFloor()) curFloor().flees++;
     effect = () => fx('flee', at);
