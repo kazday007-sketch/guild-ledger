@@ -8,6 +8,12 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.18.0 (2026-10-16)
+Engraved screen icons and crests.
+
+- Every screen icon is redrawn in the deck's engraved style: health, gold, strikes, weapon, draw pile, flee, lock, interest, overkill, raise, the relic slot ring, pause and the three shop services.
+- The header goat and the act crests (crypt, sewers, vault, boss, training, victory crown) are now engraved medallions.
+
 ## 2.17.0 (2026-10-16)
 Azazel in engraved portraits.
 
