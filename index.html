@@ -1471,16 +1471,19 @@ main.play .stage .chamber:not(.preview) .card.vint .acts .xact { grid-column: au
 .acts img.hit { height: 1.5em; width: 1.5em; vertical-align: middle; margin: -.3em 3px -.25em 0; filter: drop-shadow(0 1px 1px rgba(0,0,0,.6)); }
 .acts .hitv { font-size: .7em; margin: 0 2px 0 -4px; vertical-align: -.2em; }
 .acts:has(> :nth-child(3)) img.hit { width: 1.35em; height: 1.35em; margin: 0; }
-@media (max-height: 520px) { /* sideways phone: three buttons are too narrow for icon and number side by side, so the number sits on the icon */
-  .acts:has(> :nth-child(3)) button { position: relative; }
-  .acts:has(> :nth-child(3)) img.hit { width: 20px; height: 20px; }
-  .acts:has(> :nth-child(3)) .hitd { position: absolute; right: 1px; bottom: 0; font-size: 11px; font-weight: 700; text-shadow: 0 0 2px #000, 0 0 3px #000, 0 0 4px #000; }
-}
 .acts:has(> :nth-child(3)) button { text-overflow: clip !important; padding-inline: 0 !important; display: flex; align-items: center; justify-content: center; font-size: .88em; letter-spacing: -.02em; }
 /* printed cards are 2:3 with no frame, so the slot is shaped like the card and only reserves the name and one row of buttons */
-main.play .stage .chamber:not(.preview) div.room { --ar: 1.5; --px: 0px; --x: 92px; }
-@media not ((min-width: 900px) and (min-height: 520px)) { main.play .stage .chamber:not(.preview) div.room { --x: 68px; } }
-@media (max-width: 899px) and (orientation: portrait) { main.play .stage .chamber:not(.preview) div.room { --x: 74px; } }
+main.play .stage .chamber:not(.preview) div.room { --ar: 1.5; --px: 0px; --x: 109px; --bh: 50px; }
+@media not ((min-width: 900px) and (min-height: 520px)) { main.play .stage .chamber:not(.preview) div.room { --x: 82px; --bh: 42px; } }
+@media (max-width: 899px) and (orientation: portrait) { main.play .stage .chamber:not(.preview) div.room { --x: 93px; --bh: 56px; } }
+/* play buttons under a card: tall, easy to hit, icon-led */
+main.play .stage .chamber:not(.preview) .card.vint .acts button { min-height: var(--bh); padding-block: 0; display: flex; align-items: center; justify-content: center; }
+main.play .stage .chamber:not(.preview) .card.vint .acts img.hit { width: calc(var(--bh) * .6); height: calc(var(--bh) * .6); }
+/* three choices share a narrow card: the icon sits above its number */
+main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(3)) button { flex-direction: column; gap: 1px; line-height: 1; }
+main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(3)) img.hit { width: calc(var(--bh) * .45); height: calc(var(--bh) * .45); }
+main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(3)) .hitd { font-size: 12px; }
+main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(3)) .sm:has(img.hit) { display: flex !important; flex-direction: column; align-items: center; gap: 1px; }
 /* the back covers exactly the printed face while it turns (placed by flipCard), and the name and buttons wait until it lands */
 .card.vint .cardback { inset: auto; border-radius: 5.5% / 3.7%; }
 </style>
@@ -2366,7 +2369,7 @@ main.play .stage .chamber:not(.preview) div.room { --ar: 1.5; --px: 0px; --x: 92
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.14.1';
+const VERSION = '2.15.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
