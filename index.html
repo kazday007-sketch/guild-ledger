@@ -179,7 +179,7 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 .pip.pick { width: 12px; height: 12px; } .pip.pick.on { background: var(--gold); border-color: var(--gold); }
 .slot { border: 2px dashed rgba(233,226,208,.35); border-radius: 12px; display: grid; place-content: center; justify-items: center; gap: 4px; color: rgba(233,226,208,.65); min-height: 140px; }
 .slot b { font-size: 28px; line-height: 1; } .slot small { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
-.cardback { position: absolute; inset: -3px; border-radius: 12px; background: #1b212b url(assets/cards/back.webp) center / cover; pointer-events: none; z-index: 3; transform: scaleX(-1); } /* mirrored: it is seen from behind */
+.cardback { position: absolute; inset: -3px; border-radius: 12px; background: #1b212b url(assets/cards/vintage/back.webp) center / cover; pointer-events: none; z-index: 3; transform: scaleX(-1); } /* mirrored: it is seen from behind */
 .card { min-height: 0; padding: 6px 6px 8px; gap: 6px; display: flex; flex-direction: column; border-radius: 12px; border: 3px solid #8b7a5a; background: #e9e2d0 url(assets/ui/texture-parchment.webp) 0 0 / 220px; box-shadow: 0 3px 0 rgba(0,0,0,.35), 0 6px 14px rgba(0,0,0,.45); }
 .card.monster { background: #e9e2d0 url(assets/ui/texture-parchment.webp) 0 0 / 220px; }
 .card.weapon { border-color: #4f7aa8; }
@@ -1437,6 +1437,12 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
   main.play .stage .shop .shelf .ware.relicware .desc { font-size: 12.5px; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .shop .shelf > .label { display: block !important; }
 }
+/* Test build: a vintage card face is the whole printed card, so it drops the frame, rank plate and art window. */
+.card.vint, .card.vint.monster { border: 0; border-image: none; background: none; box-shadow: none; padding: 0 0 4px; }
+.card.vint .art { background: none; box-shadow: none; border-radius: 0; overflow: visible; }
+.card.vint .art img { filter: drop-shadow(0 3px 2px rgba(0,0,0,.55)) drop-shadow(0 8px 14px rgba(0,0,0,.35)); }
+.card.vint .art::after, .card.vint .rank { display: none; }
+.card.vint .name .face { color: var(--bone); text-shadow: 0 1px 2px #000; }
 </style>
 
 <div id="scene" aria-hidden="true"></div>
@@ -2320,7 +2326,7 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.9.0';
+const VERSION = '2.10.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
@@ -2334,9 +2340,9 @@ const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 const tipAttr = (title, text) => ` data-tip-title="${esc(title)}" data-tip="${esc(text)}"`;
 // Card names match the card art: spades are the undead, clubs the beasts and goblinkin.
 const monsterNames = {
-  '♠': { 2: 'Rats', 3: 'Bone Spider', 4: 'Zombie', 5: 'Ghost', 6: 'Skeleton Warrior', 7: 'Ghoul', 8: 'Wraith', 9: 'Mummy', 10: 'Bone Golem', 11: 'Jailer', 12: 'Banshee Matriarch', 13: 'Skeleton King', 14: 'Vampire Lord' },
-  '♣': { 2: 'Goblin Scavenger', 3: 'Cave Bat', 4: 'Kobold Trapper', 5: 'Dire Wolf', 6: 'Hobgoblin', 7: 'Centipede', 8: 'Bugbear', 9: 'Owlbear', 10: 'Cave Troll', 11: 'Orc Warden', 12: 'Spider Broodmother', 13: 'Goblin King', 14: 'Forest Wyrm' },
-  '★': { 15: 'Dungeon Horror', 17: 'Dread Dragon' },
+  '♠': { 2: 'Rats', 3: 'Bone Spider', 4: 'Zombie', 5: 'Ghost', 6: 'Skeleton Warrior', 7: 'Ghoul', 8: 'Wraith', 9: 'Mummy', 10: 'Grave Knight', 11: 'Headless Page', 12: 'Bone Bride', 13: 'Barrow King', 14: 'Death' },
+  '♣': { 2: 'Goblin Scavenger', 3: 'Cave Bat', 4: 'Kobold Trapper', 5: 'Dire Wolf', 6: 'Hobgoblin', 7: 'Giant Centipede', 8: 'Bugbear', 9: 'Owlbear', 10: 'Minotaur', 11: 'Goblin Jester', 12: 'Harpy Queen', 13: 'Orc Warlord', 14: 'Manticore' },
+  '★': { 15: 'Hydra', 17: 'Chimera' },
 };
 const weaponNames = { 2: 'Kitchen Knife', 3: 'Club', 4: 'Dagger', 5: 'Hand Axe', 6: 'Mace', 7: 'Short Sword', 8: 'War Hammer', 9: 'Longsword', 10: 'Runed Greatsword' };
 
@@ -2344,9 +2350,14 @@ const weaponNames = { 2: 'Kitchen Knife', 3: 'Club', 4: 'Dagger', 5: 'Hand Axe',
 const ART = 'assets/';
 const img = (path, cls = '', alt = '') => `<img src="${ART}${path}" alt="${alt}"${cls ? ` class="${cls}"` : ''} decoding="async">`;
 const potionSize = v => v >= 8 ? 'large' : v >= 5 ? 'medium' : 'small';
+// Test build: every ordinary card uses its vintage playing-card face (the whole printed card, numbers and pips included).
+const isVintage = c => !c.bossKey;
 function cardArt(c) {
   if (c.bossKey) return BOSS_ART[c.name === 'Spiderling' ? 'spiderling' : c.bossKey];
   const v = c.face || c.v; // Endless makes monsters stronger; they keep their own face
+  if (c.kind === 'monster') return c.suit === '★' ? `cards/vintage/elite-${v >= 17 ? 17 : 15}.webp` : `cards/vintage/${c.suit === '♠' ? 'spades' : 'clubs'}-${Math.max(2, Math.min(14, v))}.webp`;
+  if (c.kind === 'weapon') return `cards/vintage/diamonds-${Math.max(2, Math.min(10, c.v))}.webp`;
+  if (c.kind === 'potion') return `cards/vintage/hearts-${Math.max(2, Math.min(10, c.v))}.webp`;
   if (c.kind === 'monster') return c.suit === '★' ? `cards/elite-${v >= 17 ? 17 : 15}.webp` : `cards/${c.suit === '♠' ? 'spades' : 'clubs'}-${Math.min(14, v)}.webp`;
   if (c.kind === 'weapon') return `cards/weapon-${Math.max(2, Math.min(10, c.v))}.webp`;
   return `cards/potion-${potionSize(c.v)}.webp`;
@@ -3057,7 +3068,7 @@ function roomHTML(active, actions = '') {
     return c ? cardHTML(c, active) : '<div class="slot"><small>Picked</small></div>';
   }).join('');
   return `<section class="chamber ${active ? '' : 'preview'}" aria-label="Room ${s.roomsCleared + 1}">
-    <div class="chamber-head"><button class="pile" data-deck aria-label="The pile: ${s.draw.length} cards left. Open the deck."${tipAttr('The pile', `<b>${s.draw.length}</b> cards left. Tap to see what's in it.`)}>${img('cards/back.webp')}${img('cards/back.webp')}${img('cards/back.webp')}<b class="num">${s.draw.length}</b></button>
+    <div class="chamber-head"><button class="pile" data-deck aria-label="The pile: ${s.draw.length} cards left. Open the deck."${tipAttr('The pile', `<b>${s.draw.length}</b> cards left. Tap to see what's in it.`)}>${img('cards/vintage/back.webp')}${img('cards/vintage/back.webp')}${img('cards/vintage/back.webp')}<b class="num">${s.draw.length}</b></button>
       <div class="chamber-title"${tipAttr(`Room ${s.roomsCleared + 1} of ${roomsOnFloor()}`, say)}><h2>${img(crestOf(place()), 'crest')}Room ${s.roomsCleared + 1} <span class="muted">of ${roomsOnFloor()}</span></h2></div>
       ${actions ? `<div class="chamber-actions">${actions}</div>` : ''}</div>
     <div class="room">${slots}</div></section>`;
@@ -3169,7 +3180,7 @@ function allowed(c, mode) {
 }
 function cardHTML(c, active) {
   if (c.hidden) return `<article class="card hidden ${active ? '' : 'idle'}" data-card="${c.id}" style="${handPlaced(c.id)}"${tipAttr('Face down', 'The Banshee hides this card. Take another card first, and it turns over.')}>
-    <div class="art">${img('cards/back.webp')}</div><div class="name"><span class="face">Face down</span></div><div class="acts"><button disabled>${dual('Take another card first', 'Hidden')}</button></div></article>`;
+    <div class="art">${img('cards/vintage/back.webp')}</div><div class="name"><span class="face">Face down</span></div><div class="acts"><button disabled>${dual('Take another card first', 'Hidden')}</button></div></article>`;
   return cardShell(c, active, cardActs(c, 'act'));
 }
 // The buttons for playing a card, one per way it can be played (see E.modes). `attr` is the click's data key:
@@ -3199,7 +3210,7 @@ function cardActs(c, attr) {
 }
 function cardShell(c, active, acts) {
   const lit = tut && TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.v === c.v && s.phase === 'room';
-  return `<article class="card ${c.kind} ${c.v >= 15 || c.bossKey ? 'elite' : ''} ${c.boss ? 'bosscard' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''}" data-card="${c.id}" style="${handPlaced(c.id)}"${isBossCard(c) ? ' data-boss="1"' : ''}${c.boss ? tipAttr(cardName(c), 'Must die before you can leave this room.') : ''}>
+  return `<article class="card ${c.kind} ${isVintage(c) ? 'vint' : ''} ${c.v >= 15 || c.bossKey ? 'elite' : ''} ${c.boss ? 'bosscard' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''}" data-card="${c.id}" style="${handPlaced(c.id)}"${isBossCard(c) ? ' data-boss="1"' : ''}${c.boss ? tipAttr(cardName(c), 'Must die before you can leave this room.') : ''}>
     <div class="art">${img(cardArt(c))}<span class="rank" role="img" aria-label="${c.v}">${digits(c.v)}</span></div>
     <div class="name"><span class="face">${cardName(c)}</span></div>
     <div class="acts ${(acts.match(/data-act=/g) || []).length > 2 ? 'many' : ''}">${acts}</div></article>`;
