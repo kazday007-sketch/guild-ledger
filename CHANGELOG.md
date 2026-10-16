@@ -8,6 +8,14 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.8.0 (2026-10-16)
+The relic pick moment.
+- **Relics arrive like cards:** the three relics deal in edge-on and turn to face you, one after another, with a soft deal and flip.
+- **Rare and boss relics catch the light:** a glint sweeps across them as they turn, with a quiet chime (lower and warmer for boss relics).
+- **They float** gently while you decide.
+- **Taking one feels like taking it:** the relic you pick lifts and glows, the others fall away, and its picture flies into its slot in your belt, which lights up as it lands.
+- With reduced motion on, the pick works as before, without the movement.
+
 ## 2.7.0 (2026-10-16)
 Tutorial fixes from the second tutorial review (design/tutorial-review-2-6.md):
 - **No cliff after floor 1.** If the tutorial's safe floor saved you, the goat patches you up to half health before floor 2, and a tip says the dungeon can kill you from here on.
