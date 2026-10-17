@@ -8,6 +8,12 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.31.0
+
+- **New music: medieval meets EDM.** Every place has a new loop: lute arpeggios, a recorder tune, a hurdy-gurdy drone and a frame drum in old church modes, over a dance beat with a four-on-the-floor kick, an offbeat bass and a pad that breathes with every kick. Each loop builds (drum roll, rising hiss, the sound opening up, a beat of silence) into a drop, then winds down. Still low and soft: the energy is in the drums and bass, nothing sharp on top.
+- The crypt is D dorian at 120 a minute, the sewers C minor at 112, the vault E phrygian at 128, and bosses a darker D phrygian at 135 with a rolling bass and two drops. The guild hall (title, map, shop) is a gentle 90 a minute groove with no build.
+- Music loops now line up beat for beat at the seam.
+
 ## 2.30.0
 
 - Feeling stronger: ordinary floors in acts 2 and 3 have lower targets, so a run that builds well beats them by more each act and can afford Bold and Reckless late. Boss floors (3, 6, 9) have higher targets and are now the real test. Endless keeps climbing from there. Simulator wins: cautious 24%, balanced 29%, greedy 20% (were about 16% each).
