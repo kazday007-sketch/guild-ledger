@@ -1,8 +1,9 @@
 # Renders the music loops in assets/music: python3 src/synth_music.py assets/music (needs numpy and ffmpeg).
-# Medieval meets EDM, kept low and soft: lute arpeggios, a recorder tune, a hurdy-gurdy drone and a frame drum in old
-# church modes, over a dance track's frame of four-on-the-floor kick, offbeat bass and a pad that ducks on every kick.
+# Medieval meets EDM, dark and deep: lute arpeggios, a recorder tune, a hurdy-gurdy drone, a frame drum and a far
+# tolling bell in minor and phrygian modes, over a dance track's frame: four-on-the-floor kick, a growling detuned-saw
+# bass, a supersaw pad and a filtered saw lead that carries the tune in the drop, all ducking on every kick.
 # Each loop has a form: an intro, a build (drum roll, a rising hiss, the pad's filter opening, a breath of silence),
-# the drop, and a breakdown that leads back round. The energy is in the rhythm and the bass; nothing on top is sharp.
+# the drop, and a breakdown that leads back round. The synths are strong but filtered dark, so nothing on top is shrill.
 # Every loop is 64 s, a whole number of bars, and seamless: notes and reverb past the end wrap onto the start. Each
 # file carries the first XF seconds again at its end, so the player can overlap copies exactly one loop apart.
 # Fixed seeds, so a re-run gives the same files.
@@ -13,7 +14,7 @@ N = int(SR * L)
 XF = 3.0  # seconds repeated at the end of each file for the player's crossfade (XF in src/ui.html)
 out = sys.argv[1]
 rng = np.random.default_rng(11)
-MODES = {'dorian': [0, 2, 3, 5, 7, 9, 10], 'aeolian': [0, 2, 3, 5, 7, 8, 10], 'phrygian': [0, 1, 3, 5, 7, 8, 10]}
+MODES = {'harmonic': [0, 2, 3, 5, 7, 8, 11], 'dorian': [0, 2, 3, 5, 7, 9, 10], 'aeolian': [0, 2, 3, 5, 7, 8, 10], 'phrygian': [0, 1, 3, 5, 7, 8, 10]}
 def t(d): return np.arange(int(SR * d)) / SR
 def spectral(x, shape):
     # filter by multiplying the spectrum; shape(freqs) -> gain
@@ -32,8 +33,8 @@ def sweep(y, cutoff):
     Y = np.fft.irfft(np.fft.rfft(y[idx] * win) / (1 + (f / fc) ** 3), W) * win
     o = np.zeros(n); np.add.at(o, idx, Y); return o / 1.5
 
-def hall_ir(d=3.0):
-    x = t(d); ir = rng.uniform(-1, 1, len(x)) * np.exp(-x / .6)
+def hall_ir(d=4.0):
+    x = t(d); ir = rng.uniform(-1, 1, len(x)) * np.exp(-x / .9)  # a big stone room
     ir = spectral(ir, lowpass(1800)); ir[0] += 1.5; return ir / np.sqrt(np.sum(ir ** 2))
 IR = hall_ir()
 def reverb(y, wet):
@@ -97,6 +98,31 @@ def bass(f, d, g=1.0):
     x = t(d); y = np.sin(2 * np.pi * f * x) + .35 * np.sin(4 * np.pi * f * x) + .12 * np.sin(6 * np.pi * f * x)
     return y * np.minimum(1, x / .004) * np.exp(-x / (d * .55)) * np.clip((d - x) / .02, 0, 1) * g
 
+def saw(f, d, voices=1, spread=.012, vib=0):
+    # band-limited saws (polyBLEP), several a hair apart for the supersaw shimmer
+    x = t(d); y = np.zeros_like(x)
+    for v in range(voices):
+        dv = 0 if voices == 1 else spread * (v / (voices - 1) - .5)
+        fr = f * (1 + dv) * (1 + vib * np.sin(2 * np.pi * 5 * x) * np.minimum(1, x / .4))
+        dt = fr / SR; ph = (np.cumsum(dt) + rng.uniform(0, 1)) % 1
+        w = 2 * ph - 1
+        a = ph < dt; q = ph[a] / dt[a]; w[a] -= q + q - q * q - 1
+        z = ph > 1 - dt; q = (ph[z] - 1) / dt[z]; w[z] -= q * q + q + q + 1
+        y += w
+    return y / np.sqrt(voices)
+def reese(f, d):
+    # the growl: two saws slowly beating against each other, low-passed, with a sine underneath for weight
+    x = t(d); y = spectral(saw(f, d) + saw(f * 1.007, d), lowpass(420, 2)) * .5 + np.sin(2 * np.pi * f * x) * .6
+    return y * np.minimum(1, x / .01) * np.clip((d - x) / .05, 0, 1)
+def lead(f, d):
+    # supersaw lead, filtered dark: bright on the attack, closing as it holds
+    x = t(d + .15); w = saw(f, d + .15, 5, .014, .003)
+    y = spectral(w, lowpass(2200, 2)) * np.exp(-x / .35) * .6 + spectral(w, lowpass(900, 2)) * .7
+    return y * np.minimum(1, x / .01) * np.clip((d + .15 - x) / .15, 0, 1)
+def toll(f):
+    # a church bell far off: low, slow, inharmonic
+    x = t(6.0); return sum(g * np.sin(2 * np.pi * f * m * x) * np.exp(-x / dc) for m, g, dc in [(.5, .5, 3.5), (1, .6, 2.6), (1.19, .35, 2.0), (1.5, .25, 1.6), (2.0, .2, 1.2), (2.74, .1, .8)]) * np.minimum(1, x / .005)
+
 # ---- a song ----
 class Song:
     def __init__(s, bpm, root, mode, chords, form):
@@ -117,10 +143,10 @@ class Song:
 
 ARP = [0, 2, 4, 7, 4, 2, 0, 2, 0, 2, 4, 7, 9, 7, 4, 2]  # chord tones up and back, in 16ths
 def render(name, song, tune, ambience, cfg):
-    s = song; c = dict(kick=.9, bass=.5, hat=.12, frame=.55, arp=.32, mel=.22, pad=.28, drone=.22, riser=.18, duck=.55, gap=True,
+    s = song; c = dict(kick=.95, bass=.5, hat=.12, frame=.5, arp=.26, mel=.2, pad=.24, drone=.26, riser=.18, duck=.6, gap=True, reese=.5, lead=.2, saws=.2, toll=.25,
                         drum='D...t.D.D...t...', groove='..t...t...t..tt.', roll=True, rolling=False, cut={'i': 1100, 'd': 2600, 'r': 800})
     c.update(cfg)
-    tonal = np.zeros(N); drums = np.zeros(N)
+    tonal = np.zeros(N); drums = np.zeros(N); synth = np.zeros(N)
     for b in range(s.bars):
         sec, (p, k, n) = s.form[b], s.into(b); ch = s.chord(b)
         # drone and pad live outside this loop; here the notes
@@ -144,15 +170,24 @@ def render(name, song, tune, ambience, cfg):
                 if st % 4 == 2 and c['hat']: place(drums, when, shaker(c['hat']))
                 elif c['hat'] and c['rolling']: place(drums, when, shaker(c['hat'] * .45))
                 bassline = (st % 4 != 0) if c['rolling'] else (st % 4 == 2)
-                if bassline and c['bass']:
+                if c['reese'] and not c['rolling'] and st % 4 == 2:  # the growl, one per offbeat, ducked by the kick
+                    place(synth, when, reese(s.hz(ch, 0 if s.root < 80 else -1), s.beat * .5) * c['reese'])
+                elif bassline and c['bass'] and c['rolling']:  # the boss's rolling growl in 16ths
+                    place(synth, when, reese(s.hz(ch, 0), s.beat / 4 * .9) * c['bass'])
+                elif bassline and c['bass']:
                     place(drums, when, bass(s.hz(ch, -1 if s.root > 70 else 0), s.beat / (4 if c['rolling'] else 2) * .95, c['bass']))
             if sec == 'b' and st % 4 == 0 and c['kick'] and not (k == n - 1 and st >= 12):
                 place(drums, when, kick(c['kick'] * (.35 + .5 * p)))
         # the recorder tune: last half of the intro, the whole drop
+        # in the drop the saw lead takes it, an octave down, with the recorder ghosting above
         if c['mel'] and (sec == 'd' or (sec == 'i' and p >= .5)):
             for beat, deg, length in tune:
                 if int(beat // 4) == b % 4:
-                    place(tonal, s.at(b, (beat % 4) * 4), recorder(s.hz(deg, 2), length * s.beat * .92) * c['mel'] * (1 if sec == 'd' else .7))
+                    at = s.at(b, (beat % 4) * 4)
+                    place(tonal, at, recorder(s.hz(deg, 2), length * s.beat * .92) * c['mel'] * (.45 if sec == 'd' else .7))
+                    if sec == 'd' and c['lead']: place(synth, at, lead(s.hz(deg, 1), length * s.beat * .92) * c['lead'])
+        if c['toll'] and sec in 'ir' and k % 4 == 0:  # the bell, every four bars when it's quiet
+            place(tonal, s.at(b), toll(s.hz(0, 0)) * c['toll'])
         if sec == 'd' and b > 0 and s.form[b - 1] == 'b':  # the drop lands: a deep soft boom
             x = t(2.5); place(drums, s.at(b), np.sin(2 * np.pi * np.cumsum(38 + 30 * np.exp(-x / .2)) / SR) * np.exp(-x / .7) * c['kick'] * .7)
     # pad: one chord a bar, long swells so the changes blur; then a filter that opens through the build
@@ -161,7 +196,10 @@ def render(name, song, tune, ambience, cfg):
         ch = s.chord(b)
         for dg in (ch, ch + 2, ch + 4):
             d = s.bar + 1.2; x = t(d)
-            place(pad, s.at(b) - .3, warm(s.hz(dg, 1), d) * np.minimum(1, x / .5) * np.clip((d - x) / .9, 0, 1) * c['pad'] / 3)
+            shape = np.minimum(1, x / .5) * np.clip((d - x) / .9, 0, 1)
+            place(pad, s.at(b) - .3, warm(s.hz(dg, 1), d) * shape * c['pad'] / 3)
+            sw = {'i': 0, 'r': .25, 'b': .3 + .7 * s.into(b)[0], 'd': 1}[s.form[b]] * c['saws']  # supersaw joins from the build
+            if sw: place(pad, s.at(b) - .3, saw(s.hz(dg, 0 if dg == ch else 1), d, 7, .018) * shape * sw / 3)
     def cutoff(sec):
         bars = (sec / s.bar).astype(int) % s.bars; out = np.empty(len(sec))
         for i, b in enumerate(bars):
@@ -184,15 +222,15 @@ def render(name, song, tune, ambience, cfg):
     # sidechain: every kick ducks the pad, drone and lute, the dance-floor breathing
     x = np.arange(N) / SR; ph = x % s.beat; secs = np.array(list(s.form))[(x / s.bar).astype(int) % s.bars]
     depth = np.where(secs == 'd', c['duck'], np.where(secs == 'b', c['duck'] * .3, 0))
-    tonal *= 1 - depth * np.minimum(1, ph / .006) * np.exp(-ph / (s.beat * .35))
-    y = tonal + reverb(drums, .15)
+    duck = 1 - depth * np.minimum(1, ph / .006) * np.exp(-ph / (s.beat * .35))
+    y = tonal * duck + reverb(synth, .2) * np.maximum(duck, 1 - .4 * (secs != 'r')) + reverb(drums, .15)
     if c['gap']:  # a breath of silence on the last half beat before the drop
         for b in range(s.bars):
             if s.form[b] == 'b' and s.form[(b + 1) % s.bars] == 'd':
                 a, z = s.at(b + 1) - s.beat / 2, s.at(b + 1)
                 m = np.clip(np.minimum((x - a) / .02, (z - x) / .01), 0, 1) * ((x >= a) & (x < z))
                 y *= 1 - .9 * m
-    y = spectral(y, lowpass(3200, 1.2))
+    y = spectral(y, lowpass(3800, 1.3))
     y += ambience()
     y = np.tanh(y / np.sqrt(np.mean(y ** 2)) * .09 / .45) * .45  # about -21 dB average, peaks rounded off
     y = np.concatenate([y, y[:int(SR * XF)]])
@@ -242,17 +280,17 @@ ROUND = [(0, 0, 1), (1, 2, 1), (2, 4, 1.5), (3.5, 5, .5), (4, 4, 1), (5, 2, 1), 
          (10, 6, 1), (11, 5, .5), (11.5, 4, .5), (12, 3, 1), (13, 1, 1), (14, 0, 2)]
 
 F = lambda *parts: ''.join(sec * n for sec, n in parts)
-# crypt: D dorian, Dm C G Dm, 120 a minute
-render('crypt', Song(120, 73.42, 'dorian', [0, 6, 3, 0], F(('i', 8), ('b', 4), ('d', 16), ('r', 4))), WALKING, wind, {})
-# sewers: C aeolian, Cm Ab Bb Gm, 112.5 a minute, a slinkier drum
-render('sewers', Song(112.5, 65.41, 'aeolian', [0, 5, 6, 4], F(('i', 6), ('b', 4), ('d', 16), ('r', 4))), LAMENT, water,
-       dict(drum='D..t..D...D.t...', groove='...t..t....t..t.', mel=.2))
-# vault: E phrygian, Em D C F, 127.5 a minute, a longer drop
-render('vault', Song(127.5, 82.41, 'phrygian', [0, 6, 5, 1], F(('i', 6), ('b', 4), ('d', 20), ('r', 4))), CALL, hum,
+# crypt: D harmonic minor, Dm Bb Gm A, 97.5 a minute
+render('crypt', Song(97.5, 73.42, 'harmonic', [0, 5, 3, 4], F(('i', 6), ('b', 4), ('d', 12), ('r', 4))), WALKING, wind, {})
+# sewers: C phrygian, Cm Db Bbm Cm, 90 a minute, a slinkier drum
+render('sewers', Song(90, 65.41, 'phrygian', [0, 1, 6, 0], F(('i', 4), ('b', 4), ('d', 12), ('r', 4))), LAMENT, water,
+       dict(drum='D..t..D...D.t...', groove='...t..t....t..t.'))
+# vault: E harmonic minor, Em C B Em, 101.25 a minute, a longer drop
+render('vault', Song(101.25, 82.41, 'harmonic', [0, 5, 4, 0], F(('i', 5), ('b', 4), ('d', 14), ('r', 4))), CALL, hum,
        dict(drum='D.tD..t.D.t...t.', groove='..t.t.t...t.t.t.'))
-# boss: D phrygian, Dm Eb Dm C, 135 a minute, rolling bass and two drops
-render('boss', Song(135, 73.42, 'phrygian', [0, 1, 0, 6], F(('i', 4), ('b', 4), ('d', 14), ('r', 2), ('b', 4), ('d', 8))), CALL, wind,
-       dict(kick=1.0, bass=.42, rolling=True, drum='D..D..D.D..D.t.t', groove='t.t.t.t.t.t.tttt', frame=.5, duck=.65, mel=.18, drone=.3))
-# hall (title, map, shop): G dorian, Gm C Gm F, 90 a minute, a gentle groove with no build
-render('hall', Song(90, 98.0, 'dorian', [0, 3, 0, 6], F(('i', 4), ('d', 16), ('r', 4))), ROUND, candles,
-       dict(kick=.5, bass=.32, hat=0, riser=0, duck=.3, gap=False, arp=.28, cut={'i': 1000, 'd': 1800, 'r': 900}))
+# boss: D phrygian, Dm Eb Dm C, 105 a minute, rolling growl bass and two drops
+render('boss', Song(105, 73.42, 'phrygian', [0, 1, 0, 6], F(('i', 4), ('b', 4), ('d', 10), ('r', 2), ('b', 2), ('d', 6))), CALL, wind,
+       dict(kick=1.0, bass=.45, rolling=True, drum='D..D..D.D..D.t.t', groove='t.t.t.t.t.t.tttt', duck=.65, mel=.18, drone=.3, lead=.24, saws=.24))
+# hall (title, map, shop): G harmonic minor, Gm Eb Cm D, 75 a minute, a slow heavy groove with no build
+render('hall', Song(75, 98.0, 'harmonic', [0, 5, 3, 4], F(('i', 4), ('d', 12), ('r', 4))), ROUND, candles,
+       dict(kick=.6, bass=.32, reese=.35, hat=0, riser=0, duck=.35, gap=False, arp=.24, lead=.13, saws=.13, cut={'i': 1000, 'd': 1900, 'r': 900}))
