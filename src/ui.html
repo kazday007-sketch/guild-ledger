@@ -762,7 +762,8 @@ details.rules { background: none; border-color: transparent; border-radius: 0; b
 .relic.empty { background: none; border-color: transparent; border-radius: 0; border-image: url(assets/ui/panel3-slot.webp) 57 fill / 28.5px stretch; }
 .status { gap: 0; padding: 8px; } .status .stat { background: transparent; }
 .relic.empty { border-style: solid; }
-.coach, .coach.hint, .coach.done { background: none; border-color: transparent; border-radius: 0; box-shadow: 0 6px 18px rgba(0,0,0,.35); border-image: url(assets/ui/panel-gold.webp) 40 fill / 14px stretch; }
+.coach, .coach.hint, .coach.done { background: none; border-color: transparent; border-radius: 0; box-shadow: 0 6px 18px rgba(0,0,0,.35); border-image: url(assets/ui/panel3-coach.webp) 70 fill / 28px stretch; padding: 16px 26px; }
+aside.coach p, aside.coach p b { color: #24190c; } aside.coach p.sub, aside.coach p.sub b, aside.coach p.retort { color: #3d2e14; } aside.coach .label, aside.coach.hint .label, aside.coach.done .label, aside.coach.goalonly .label { color: #5a3f0e; } /* dark ink on the brass panel */
 .coach.done .label::before { content: ''; display: inline-block; width: 1.4em; height: 1.4em; vertical-align: -.4em; margin-right: 4px; background: url(assets/ui/icon-check.webp) center / contain no-repeat; }
 textarea, input#pname { background: none; border-color: transparent; border-radius: 0; border-image: url(assets/ui/input-field.webp) 24 fill / 8px stretch; }
 summary { list-style: none; display: flex; align-items: center; gap: 8px; }
@@ -852,7 +853,8 @@ main.solo.map { max-width: 980px; }
 .floors::before { content: ''; position: absolute; left: 16%; right: 16%; top: calc(16px + var(--tok) / 2); border-top: 3px dashed rgba(224,180,80,.45); z-index: 0; }
 .floor { position: relative; z-index: 1; display: grid; gap: 6px; justify-items: center; align-content: start; padding: 16px 12px 18px; border: 1px solid transparent; border-image: url(assets/ui/panel3-floor.webp) 96 fill / 26px stretch; }
 /* Gold marks where you are (the next floor). The boss floor is marked in red, so it never reads as your position. */
-.floor.next { border-image: url(assets/ui/panel-gold.webp) 40 fill / 14px stretch; }
+.floor.next { border-image: url(assets/ui/panel3-next.webp) 96 fill / 26px stretch; }
+.floor.next .tiers, .floor.next .tiers b, .floor.next .label, .floor.next .task, .floor.next .task b, .floor.next .rule, .floor.next h3 { color: #24190c; } .floor.next .label { color: #5a3f0e; } /* dark ink on the brass panel */
 .floor.bossfloor { outline: 2px solid rgba(208,84,91,.6); outline-offset: -7px; }
 .floor .token { width: var(--tok); height: var(--tok); display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle, rgba(60,45,25,.85), rgba(20,16,12,.95) 70%); box-shadow: inset 0 0 0 3px #6b4e33, inset 0 0 0 6px rgba(0,0,0,.5), 0 4px 12px rgba(0,0,0,.6); }
 .floor .token img { width: 62%; height: 62%; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0,0,0,.6)); }
@@ -1519,7 +1521,7 @@ img.clerk { box-shadow: none; border-radius: 0; object-fit: contain !important; 
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.24.1';
+const VERSION = '2.25.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
