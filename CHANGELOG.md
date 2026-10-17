@@ -9,6 +9,9 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
 ## 2.26.0
+- The framed death screen keeps its panel on the left with the goat and helmet scene on the right in every window from 621px wide up. Panel, text and the Top scores / Log bars scale to the window height and width; narrow phones stay stacked.
+
+## 2.26.0
 
 - One pause button: the More button is gone, and How to play, Log and Top scores are now in the pause menu, each on its own page with a Back button.
 - Relic slots: hovering an empty slot no longer shows an "Empty slot" popup.
