@@ -30,23 +30,8 @@ function clearFloor(s) {
 }
 
 // ---------- weapons ----------
-{ const m = M(8), s = game({ relics: ['whetstone'], weapon: [7, 3], room: [m, M(2), M(2), M(2)] });
-  ok(E.canUseWeapon(s, m), 'Whetstone: a dulled weapon still hits an 8');
-  eq(fight(s, m, 'weapon').lost, 1, 'Whetstone: 7 weapon vs 8 loses 1');
-  const s2 = game({ weapon: [7, 3], room: [M(8), M(2), M(2), M(2)] });
-  ok(!E.canUseWeapon(s2, s2.room[0]), 'No Whetstone: a dulled weapon can\'t hit an 8');
-  const s3 = game({ relics: ['whetstone'], weapon: [7, 3], room: [M(9), M(2), M(2), M(2)] });
-  ok(!E.canUseWeapon(s3, s3.room[0]), 'Whetstone: still no help against a 9'); }
-{ const s = game({ relics: ['keenedge'], weapon: [7, 5], room: [M(7), M(8), M(2), M(2)] });
-  ok(E.canUseWeapon(s, s.room[0]), 'Keen Edge: limit 5 hits a 7');
-  ok(!E.canUseWeapon(s, s.room[1]), 'Keen Edge: limit 5 can\'t hit an 8');
-  eq(E.weaponReach(s), 7, 'Keen Edge: the HUD shows the weapon reaching 7'); }
-{ const w = W(6), s = game({ relics: ['grindstone'], room: [w, M(2), M(2), M(2)] });
-  E.handle(s, w.id); eq(s.weapon.v, 7, 'Grindstone: a 6 weapon equips as 7'); }
 
 // ---------- defense and healing ----------
-{ const m = M(9), s = game({ relics: ['ironskin'], room: [m, M(5), M(2), M(2)] });
-  eq(fight(s, m, 'bare').lost, 8, 'Iron Skin: a 9 deals 8'); }
 { const a = M(9), b = M(9), s = game({ relics: ['buckler'], room: [a, b, M(2), M(2)] });
   eq(fight(s, a, 'bare').lost, 7, 'Buckler: first fight in the room deals 2 less');
   eq(fight(s, b, 'bare').lost, 9, 'Buckler: second fight is full damage'); }
@@ -54,13 +39,8 @@ function clearFloor(s) {
   eq(fight(s, m, 'bare').lost, 1, 'Vampire Fang: bare kill of a 3 heals 2 (net -1)');
   const m2 = M(3), s2 = game({ relics: ['fang'], hp: 15, weapon: [2, null], room: [m2, M(2), M(2), M(2)] });
   eq(fight(s2, m2, 'weapon').lost, 1, 'Vampire Fang: weapon kills don\'t heal'); }
-{ const s = game({ relics: ['bloodpact'], hp: 10 }); s.slain = 999; clearFloor(s);
-  eq(s.maxHp, 22, 'Blood Pact: met contract gives +2 max HP'); eq(s.hp, 12, 'Blood Pact: and heals 2'); }
 
 // ---------- movement ----------
-{ const s = game({ relics: ['secondwind'] });
-  ok(E.flee(s), 'Second Wind: first flee'); ok(E.flee(s), 'Second Wind: second flee in a row'); ok(!E.flee(s), 'Second Wind: not a third');
-  const s2 = game(); ok(E.flee(s2), 'Base: first flee'); ok(!E.flee(s2), 'Base: no second flee in a row'); }
 { const s = game({ relics: ['fortune'] }); const old = s.room.map(c => c.id);
   ok(E.redraw(s), 'Fortune Teller: redraw'); ok(!s.room.some(c => old.includes(c.id)), 'Fortune Teller: four new cards');
   ok(!E.redraw(s), 'Fortune Teller: once per floor'); }
@@ -71,46 +51,36 @@ function clearFloor(s) {
   E.handle(s, p.id); eq(s.slain, 5, 'Alchemist: 5 overheal counts 5 points'); }
 
 // ---------- contracts and gold ----------
-{ const s = game({ relics: ['seal'], floor: 3 }); s.slain = 0; clearFloor(s); eq(s.strikes, 0, 'Insurance Seal: first miss in the act is free');
-  E.leaveShop(s); E.bid(s, 0); s.slain = 0; clearFloor(s); eq(s.strikes, 1, 'Insurance Seal: second miss in the act is a strike'); }
 { const s = game({ relics: ['taxman'], floor: 3, gold: 0 }); s.slain = s.contract.target + 10; clearFloor(s);
   const pay = s.contract.pay; eq(s.gold, pay + 5 + Math.min(3, Math.floor((pay + 5) / 5)), 'Taxman: 10 over pays 5'); }
-{ const m = M(3), s = game({ relics: ['pickpocket'], room: [m, M(2), M(2), M(2)] }); eq(fight(s, m, 'bare').gold, 2, 'Pickpocket: bare kill gives 2 gold'); }
 { const s = game({ floor: 3, gold: 20 }); s.phase = 'shop'; s.shop = { relics: ['loanshark'], bought: {} }; E.buy(s, 'loanshark');
   eq(s.gold, 20 - E.cost(s, 'loanshark'), 'Loan Shark: bought'); const g = s.gold; E.leaveShop(s); eq(s.gold, g + 4, 'Loan Shark: +4 at the start of the next floor');
   E.bid(s, 0); s.slain = 0; s.gold = 20; clearFloor(s); ok(s.gold <= 12 + 3, 'Loan Shark: a missed contract costs 8'); }
 
 // ---------- 1.29.0 relics ----------
-{ const a = M(8), b = M(9), s = game({ relics: ['masterwork'], weapon: [9, null], room: [a, b, M(2), M(2)] });
-  fight(s, a, 'weapon'); ok(E.canUseWeapon(s, b), 'Masterwork: an 8 kill does not dull the weapon');
-  const c = M(10), s2 = game({ relics: ['masterwork'], weapon: [10, null], room: [c, M(2), M(2), M(2)] }); fight(s2, c, 'weapon'); eq(s2.weapon.limit, 10, 'Masterwork: a 10 kill dulls it'); }
 { const m = M(12), s = game({ relics: ['executioner'], weapon: [12, null], room: [m, M(2), M(2), M(2)] }); eq(fight(s, m, 'weapon').pts, 18, 'Executioner: weapon kill of 12 counts 18');
   const m2 = M(11), s2 = game({ relics: ['executioner'], weapon: [11, null], room: [m2, M(2), M(2), M(2)] }); eq(fight(s2, m2, 'weapon').pts, 11, 'Executioner: an 11 counts as usual'); }
 { const m = M(13), s = game({ relics: ['unbreaking'], weapon: [9, null], room: [m, M(2), M(2), M(2)] }); fight(s, m, 'weapon'); eq(s.weapon.limit, null, 'Unbreaking Edge: never dulls'); }
-{ const m = M(9), s = game({ relics: ['knuckles', 'fang'], room: [m, M(2), M(2), M(2)] });
-  eq(fight(s, m, 'bare').lost, 9 - 2 - 2, 'Brass Knuckles: 2 off a bare fight (and the fang heals 2)'); }
-{ const m = M(6), s = game({ relics: ['ironfist'], room: [m, M(7), M(2), M(2)] }); eq(fight(s, m, 'bare').lost, 0, 'Iron Fist: a 6 deals nothing bare-handed');
-  eq(fight(s, s.room[0], 'bare').lost, 7, 'Iron Fist: a 7 hits as normal'); }
 { const a = M(4), b = M(4), s = game({ relics: ['haymaker'], room: [a, b, M(2), M(2)] });
   eq(fight(s, a, 'bare').pts, 8, 'Haymaker: first bare kill doubles'); eq(fight(s, b, 'bare').pts, 4, 'Haymaker: second is normal'); }
-{ const a = M(3), b = M(3), s = game({ relics: ['pitfighter'], hp: 10, room: [a, b, M(2), M(2)] });
-  fight(s, a, 'bare'); eq(s.maxHp, 22, 'Pit Fighter: +2 max health'); fight(s, b, 'bare'); eq(s.maxHp, 22, 'Pit Fighter: once per floor'); }
 { const m = M(9), s = game({ relics: ['giantsgrip'], room: [m, M(2), M(2), M(2)] }); eq(fight(s, m, 'bare').lost, 4, "Giant's Grip: a 9 bare deals 4"); }
-{ const p = P(5), s = game({ relics: ['bloodstone'], hp: 5, room: [p, M(2), M(2), M(2)] }); E.handle(s, p.id); eq(s.hp, 5 + 5 + 2, 'Bloodstone: potions heal 2 more'); }
-{ const s = game({ relics: ['bedroll'], floor: 2, hp: 10 }); s.slain = 999; clearFloor(s); E.skipPick(s); E.leaveShop(s); eq(s.hp, 13, 'Bedroll: heal 3 at the start of a floor'); }
-{ const m = M(14), s = game({ relics: ['secondheart'], hp: 6, room: [m, M(2), M(2), M(2)] }); E.handle(s, m.id, 'bare');
-  eq(s.hp, 5, 'Second Heart: live on at 5'); ok(s.phase === 'room' && !s.relics.includes('secondheart'), 'Second Heart: it crumbles'); }
-{ const s = game({ hp: 10 }); E.devGrant(s, 'hagheart'); eq(s.maxHp, 28, "Hag's Heart: +8 max"); eq(s.hp, 18, "Hag's Heart: heals 8");
-  const a = P(3); s.room = [a, M(2), M(2), M(2)]; E.handle(s, a.id); eq(s.hp, 24, "Hag's Heart: first potion heals double"); }
-{ const s = game({ relics: ['tipjar', 'taxman'], gold: 0 }); s.room = [P(2), P(2), P(2), P(2)]; for (let i = 0; i < 3; i++) E.handle(s, s.room[0].id);
-  eq(s.gold, 1, 'Tip Jar: a cleared room gives 1 gold'); }
+{ const s = game({ hp: 5 }); E.devGrant(s, 'hagheart'); eq(s.maxHp, 20, "Hag's Heart: no extra max health");
+  const a = P(3), b = P(3), c = P(3); s.room = [a, b, c, M(2)]; E.handle(s, a.id); eq(s.hp, 11, "Hag's Heart: first potion heals double");
+  E.handle(s, b.id); eq(s.hp, 14, "Hag's Heart: a second potion in the room still works"); E.handle(s, c.id); eq(s.hp, 14, "Hag's Heart: not a third"); }
+{ const s = game({ hp: 5 }); const a = P(3), b = P(3); s.room = [a, b, M(2), M(2)]; E.handle(s, a.id); E.handle(s, b.id); eq(s.hp, 8, 'base: only one potion works per room'); }
+{ const w = W(8), s = game({ relics: ['unbreaking'], weapon: [5, null], room: [w, M(2), M(2), M(2)] }); E.handle(s, w.id);
+  eq(s.weapon.v, 5, 'Unbreaking Edge: a new weapon is thrown away while you hold one');
+  const w2 = W(8), s2 = game({ relics: ['unbreaking'], room: [w2, M(2), M(2), M(2)] }); E.handle(s2, w2.id); eq(s2.weapon.v, 8, 'Unbreaking Edge: bare-handed, you take it'); }
+{ const s = game({ relics: ['livingsteel'] }); const w = s.deck.find(c => c.kind === 'weapon'); const v0 = w.v;
+  s.room = [{ ...w }, M(2), M(2), M(2)]; E.handle(s, w.id); const m = M(3); s.room[0] = m; fight(s, m, 'weapon');
+  eq(s.deck.find(c => c.id === w.id).v, v0 + 1, 'Living Steel: a weapon kill raises that weapon card'); eq(s.weapon.v, v0 + 1, 'Living Steel: and the weapon in hand');
+  for (let i = 0; i < 8; i++) { const m2 = M(2); s.room[0] = m2; s.weapon.limit = null; fight(s, m2, 'weapon'); }
+  eq(s.deck.find(c => c.id === w.id).v, v0 + 5, 'Living Steel: up to +5 a card'); }
 { const m = M(4), s = game({ relics: ['idol'], gold: 32, room: [m, M(2), M(2), M(2)] }); eq(fight(s, m, 'bare').pts, 6, 'Golden Idol: 25 gold adds 2'); }
 { const s = game({ relics: ['bribe'], floor: 3, gold: 15 }); s.slain = 0; clearFloor(s); eq(s.strikes, 0, 'Bribe: no strike'); eq(s.payout.outcome, 'covered', 'Bribe: covered');
   const t = game({ relics: ['bribe'], floor: 3, gold: 5 }); t.slain = 0; clearFloor(t); eq(t.strikes, 1, 'Bribe: a strike when you can\'t pay'); }
 { const s = game({ relics: ['lichledger'], floor: 2, gold: 100 }); s.slain = 999; clearFloor(s);
   ok(/Interest \+\d{2,}/.test(s.lastResult), "Lich's Ledger: interest has no cap"); ok(/Paid 5 gold in guild dues/.test(s.lastResult), "Lich's Ledger: dues halved"); }
-{ const s = E.newGame(1); E.devJump(s, 3); E.devGrant(s, 'oathkeeper'); E.bid(s, 0);
-  eq(s.contract.target, E.TARGETS[3][0] - 4, 'Oathkeeper: 4 off the target'); }
 { const s = game({ relics: ['wardrum'], floor: 4 }); s.room = [P(2), P(2), P(2), P(2)]; for (let i = 0; i < 3; i++) E.handle(s, s.room[0].id);
   const b = s.slain; E.raise(s); eq(s.slain, b + 6, 'War Drum: raising counts 6'); }
 { const s = E.newGame(1); E.devJump(s, 6); E.devGrant(s, 'rulebreaker'); const i = s.offers.findIndex(o => o.clause); s.offers[i].clause = 'sworn'; E.bid(s, i);
@@ -125,14 +95,23 @@ function clearFloor(s) {
   ok(s.pick && s.pick.options.length === 3 && new Set(s.pick.options).size === 3, 'pick: three different relics after a floor');
   ok(!E.buy(s, 'bandage'), 'pick: the shop waits for the pick'); const k = s.pick.options[0];
   ok(E.choose(s, k) && s.relics.includes(k) && !s.pick, 'pick: choosing takes the relic');
-  ok(s.shop.relics.length === 1 && E.RELICS[s.shop.relics[0]].rarity === 'rare', 'shop: one rare relic for sale'); }
-{ const s = game({ floor: 2, tier: 2 }); s.slain = 999; clearFloor(s); ok(s.pick.boss && s.pick.options.every(k => E.RELICS[k].rarity === 'boss'), 'pick: boss floors offer boss relics'); }
-{ const s = game({ floor: 3, tier: 2 }); s.slain = 999; clearFloor(s); ok(s.pick.options.every(k => E.RELICS[k].rarity === 'rare'), 'pick: a met Reckless contract offers rares'); }
+  ok(s.shop.relics.length === 1 && E.RELICS[s.shop.relics[0]].rarity !== 'common', 'shop: one rare or epic relic for sale'); }
+{ const s = game({ floor: 2, tier: 2 }); s.slain = 999; clearFloor(s); ok(s.pick.boss && s.pick.options.every(k => k === 'trophy' || E.RELICS[k]), 'pick: boss floors offer a pick'); }
+{ let epic = 0, trophy = 0; for (let i = 0; i < 400; i++) { const s = E.newGame(100 + i); E.devJump(s, 2); E.bid(s, 0); s.slain = 999; clearFloor(s);
+    if (!s.pick) continue; s.pick.options.forEach(k => { if (k !== 'trophy' && E.RELICS[k].rarity === 'epic') epic++; }); if (s.pick.options.includes('trophy')) trophy++; }
+  ok(epic > 250, 'pick odds: a boss pick rolls plenty of epics (' + epic + ')'); ok(trophy > 50 && trophy < 160, 'pick odds: about 1 in 4 boss picks offers a trophy (' + trophy + ')'); }
+{ let epic = 0, n = 0; for (let i = 0; i < 300; i++) { const s = E.newGame(900 + i); E.devJump(s, 1); E.bid(s, 0); s.slain = 0; clearFloor(s);
+    if (!s.pick) continue; s.pick.options.forEach(k => { n++; if (E.RELICS[k].rarity === 'epic') epic++; }); ok(!s.pick.options.includes('trophy'), 'pick: no trophies on normal floors'); }
+  ok(epic / n < 0.12, 'pick odds: epics are scarce after a normal floor (' + epic + '/' + n + ')'); }
+{ const s = game({ floor: 2, tier: 0 }); s.slain = 999; clearFloor(s); s.pick.trophy = { v: 14, name: 'Test Boss', bossKey: 'ogre' }; s.pick.options[2] = 'trophy';
+  const n = s.deck.length; ok(E.choose(s, 'trophy'), 'trophy: can be chosen'); const t = s.deck[s.deck.length - 1];
+  ok(s.deck.length === n + 1 && t.kind === 'weapon' && t.v === 14 && t.trophy, 'trophy: the boss joins your deck as a 14 weapon'); ok(!s.relics.includes('trophy'), 'trophy: takes no belt slot'); }
+{ const s = game({ floor: 3, tier: 2 }); s.slain = 999; clearFloor(s); ok(s.pick.options.every(k => E.RELICS[k].rarity !== 'common'), 'pick: a met Reckless contract offers no commons'); }
 { const s = game({ floor: 3, gold: 0 }); s.slain = 0; clearFloor(s); const g = s.gold; E.skipPick(s); eq(s.gold, g + E.SKIP_GOLD, 'pick: skipping pays gold'); }
 { const s = game({ floor: 3, gold: 0 }); s.slain = 0; clearFloor(s); eq(E.SKIP_GOLD, 8, 'pick: skipping pays 8 gold');
   ok(!E.rerollShop(s), 'reroll: the pick comes first'); E.skipPick(s); s.gold = 30; const first = s.shop.relics[0];
   eq(E.rerollCost(s), 2, 'reroll: the first costs 2');
-  ok(E.rerollShop(s) && s.gold === 28 && s.shop.relics.length === 1 && s.shop.relics[0] !== first && E.RELICS[s.shop.relics[0]].rarity === 'rare', 'reroll: swaps the relic for another rare one');
+  ok(E.rerollShop(s) && s.gold === 28 && s.shop.relics.length === 1 && s.shop.relics[0] !== first && E.RELICS[s.shop.relics[0]].rarity !== 'common', 'reroll: swaps the relic for another rare or epic one');
   eq(E.rerollCost(s), 4, 'reroll: the next costs 2 more'); E.rerollShop(s); eq(s.gold, 24, 'reroll: the second cost 4');
   E.buy(s, s.shop.relics[0]); const g = s.gold; ok(E.rerollShop(s) && s.gold === g - 6 && !s.shop.bought[s.shop.relics[0]], 'reroll: a sold shelf can be rerolled for a new relic');
   s.gold = 7; ok(!E.rerollShop(s) && s.gold === 7, 'reroll: not without the gold');
@@ -164,9 +143,6 @@ for (const mode of ['full', 'guided']) {
   eq(E.duesAhead(s).floor, 6, 'act 2 dues are collected after floor 6'); }
 
 // ---------- 2.x relics ----------
-{ const s = game({ relics: ['notched'], room: [W(5), M(2), M(2), M(2)] }); s.weaponKills = 16; E.handle(s, s.room[0].id);
-  eq(s.weapon.v, 7, 'Notched Hilt: 16 weapon kills make a 5 equip as 7'); eq(E.relicStack(s, 'notched'), '+2', 'Notched Hilt: the icon shows +2');
-  s.weaponKills = 99; eq(E.relicStack(s, 'notched'), '+3', 'Notched Hilt: up to +3'); }
 { const s = game({ relics: ['hardknuckles'], room: [M(9), M(2), M(2), M(2)] }); s.bareKills = 6;
   eq(fight(s, s.room[0], 'bare').lost, 7, 'Hardened Knuckles: 6 bare kills take 2 off'); eq(s.bareKills, 7, 'Hardened Knuckles: kills keep counting'); }
 { const s = game({ relics: ['twinblades'], room: [W(8), W(4), M(7), M(2)] });
@@ -179,8 +155,6 @@ for (const mode of ['full', 'guided']) {
   s.room = [M(2), M(2), M(2), M(2)]; for (let i = 0; i < 3; i++) E.handle(s, s.room[0].id, 'weapon'); eq(s.weapon, null, 'Glass Blade: shatters after 3 kills'); }
 { const s = game({ relics: ['bell'], room: [M(7), M(2), M(2), M(2)] }); const n = s.draw.length; E.handle(s, s.room[0].id, 'bare');
   ok(s.draw.length === n + 1 && s.draw.some(c => c.bell && c.kind === 'potion' && c.v === 7), "Necromancer's Bell: a 7 comes back as a 7 potion"); }
-{ const s = game({ relics: ['scar'], hp: 20, room: [M(6), M(6), M(2), M(2)] }); E.handle(s, s.room[0].id, 'bare'); eq(s.maxHp, 20, 'Scar Tissue: 6 damage, not yet');
-  E.handle(s, s.room[0].id, 'bare'); eq(s.maxHp, 21, 'Scar Tissue: 12 damage gives +1 max'); eq(s.scarDmg, 2, 'Scar Tissue: the rest carries'); }
 { const s = game({ hp: 10 }); E.devGrant(s, 'ironball'); eq(s.maxHp, 40, 'Iron Ball: +20 max'); eq(s.hp, 30, 'Iron Ball: heals 20'); ok(!E.canFlee(s), 'Iron Ball: no fleeing');
   E.dropRelic(s, 'ironball'); eq(s.maxHp, 20, 'Iron Ball: dropping it takes the 20 back'); }
 { const p = P(5), s = game({ relics: ['alchemykit'], room: [p, M(2), M(2), M(2)] }); ok(E.modes(s, p).includes('equip'), 'Alchemy Kit: a potion can be equipped');
@@ -196,7 +170,6 @@ for (const mode of ['full', 'guided']) {
 { const s = game({ relics: ['miser'], floor: 3, gold: 0 }); s.slain = 999; clearFloor(s); E.skipPick(s); let g = s.gold; E.leaveShop(s); eq(s.gold, g + 2, "Miser's Purse: first shop left pays 2");
   E.bid(s, 0); s.slain = 999; clearFloor(s); E.skipPick(s); g = s.gold; E.leaveShop(s); eq(s.gold, g + 4, "Miser's Purse: second in a row pays 4");
   E.bid(s, 0); s.slain = 999; clearFloor(s); E.skipPick(s); E.buy(s, 'bandage'); g = s.gold; E.leaveShop(s); eq(s.gold, g, "Miser's Purse: spending breaks the streak"); eq(s.miserStreak, 0, "Miser's Purse: streak reset"); }
-{ const s = game({ relics: ['trophybelt'], room: [M(4), M(2), M(2), M(2)] }); s.bossFloors = 2; eq(fight(s, s.room[0], 'bare').pts, 6, 'Trophy Belt: two boss floors add 2'); }
 { const s = game({ relics: ['cursed'], floor: 3 }); eq(E.payout(s, 1), 4 * 2 * 3, 'Cursed Contract: Bold pays triple'); s.slain = 0; clearFloor(s); eq(s.maxHp, 15, 'Cursed Contract: a miss costs 5 max health'); }
 { const s = game({ relics: ['greedy'], gold: 0, room: [P(2), P(2), P(2), P(2)] }); for (let i = 0; i < 3; i++) E.handle(s, s.room[0].id);
   eq(s.roomsCleared, 0, 'Greedy Hands: 3 cards is not enough'); E.handle(s, s.room[0].id); eq(s.roomsCleared, 1, 'Greedy Hands: all 4 clears it'); eq(s.gold, 3, 'Greedy Hands: +3 gold');
@@ -207,8 +180,6 @@ for (const mode of ['full', 'guided']) {
 { const s = game({ relics: ['spyglass'] }); eq(E.nextCards(s).map(c => c.id).join(), s.draw.slice(0, 3).map(c => c.id).join(), 'Spyglass: the next 3 cards'); }
 { const s = game({ relics: ['bait'], room: [M(12), M(5), P(3), W(4)] }); const n = s.draw.length; E.flee(s); eq(s.draw.length, n + 3 - 4, 'Bait: one card fewer goes back (and 4 are dealt)');
   ok(!s.draw.some(c => c.v === 12 && c.kind === 'monster' && c.id === 9999), 'Bait: the 12 is gone'); }
-{ const a = M(12), s = game({ relics: ['escape'], room: [a, M(5), P(3), W(4)] }); E.flee(s); const back = s.draw.find(c => c.id === a.id);
-  eq(back && back.v, 10, 'Escape Artist: a fled 12 comes back as 10'); eq(back && back.face, 12, 'Escape Artist: it keeps its face'); }
 { const s = game({ relics: ['bloodprice'], hp: 10 }); const old = s.room[1], top = s.draw[0];
   ok(E.swapCard(s, old.id), 'Blood Price: swap a card'); eq(s.hp, 9, 'Blood Price: costs 1'); eq(s.room[1].id, top.id, 'Blood Price: the top of the pile takes its place');
   eq(s.draw[s.draw.length - 1].id, old.id, 'Blood Price: the old card goes to the bottom'); ok(!E.canSwap(s, s.room[0].id), 'Blood Price: once a room'); }
@@ -217,10 +188,8 @@ for (const mode of ['full', 'guided']) {
   ok(s.room.some(c => c.id === m.id), 'Hourglass: the card is back'); E.handle(s, m.id, 'bare'); ok(E.undo(s), 'Hourglass: a second undo'); E.handle(s, m.id, 'bare'); ok(!E.canUndo(s), 'Hourglass: twice a floor'); }
 { const s = game({ relics: ['wardrum'], floor: 4 }); s.room = [P(2), P(2), P(2), P(2)]; for (let i = 0; i < 3; i++) E.handle(s, s.room[0].id); E.raise(s);
   const pay = s.contract.pay; s.slain = 999; const g = s.gold; clearFloor(s); ok(s.payout.lines.some(l => l.key === 'raise' && l.gold === Math.ceil(pay / 2)), 'Raise: a met raised contract pays half again'); }
-{ const s = game({ relics: ['pickpocket'], room: [M(3), M(2), M(2), M(2)] }); E.handle(s, s.room[0].id, 'bare');
-  ok(s.fired.some(f => f.k === 'pickpocket'), 'Fired: the pickpocket shows it paid'); s.fired = []; E.monsterDamage(s, s.room[0], false); eq(s.fired.length, 0, 'Fired: previews fire nothing'); }
-{ const s = E.newGame(5); s.relics = ['oil', 'whetstone']; s.phase = 'shop'; s.pick = { options: ['lantern', 'spyglass'] }; s.shop = { relics: ['ledger'], bought: {} };
-  const b = E.loadGame(JSON.parse(JSON.stringify(E.saveGame(s)))); eq(b.relics.join(), 'whetstone', 'save: retired relics drop out of the belt');
+{ const s = E.newGame(5); s.relics = ['oil', 'giantsgrip']; s.phase = 'shop'; s.pick = { options: ['lantern', 'spyglass'] }; s.shop = { relics: ['ledger'], bought: {} };
+  const b = E.loadGame(JSON.parse(JSON.stringify(E.saveGame(s)))); eq(b.relics.join(), 'giantsgrip', 'save: retired relics drop out of the belt');
   eq(b.pick.options.join(), 'spyglass', 'save: and out of the pick'); eq(b.shop.relics.length, 0, 'save: and off the shelf'); }
 
 // ---------- dev helpers ----------
@@ -262,8 +231,8 @@ const inPile = s => s.draw.length + s.room.length;
   const n = s.draw.filter(c => c.kind === 'monster' && c.v === top).length;
   E.buy(s, 'cull');
   eq(s.draw.filter(c => c.kind === 'monster' && c.v === top).length, n - 1, 'one deck: Cull takes the strongest monster still in the pile');
-  const p = s.draw.length; E.buy(s, 'smith');
-  eq(s.draw.length, p + 1, 'one deck: Smith\'s weapon goes into the pile');
+  const p = s.draw.length; E.buy(s, 'recruit', 0);
+  eq(s.draw.length, p + 1, 'one deck: a recruited card goes into the pile');
   const v = E.deckView(s); eq(v.total, s.deck.length, 'deck view lists every card'); eq(v.left, s.draw.length, 'deck view: cards left = the pile'); }
 { // normal runs are unchanged
   const s = E.newGame(7); playFloor(s);
@@ -344,9 +313,9 @@ function bossGame(key, f = 2, seed = 1) {
 { const s = E.newGame(4); E.devJump(s, 8); E.bid(s, 0); s.slain = 999; s.gold = 999; s.hp = 99; s.maxHp = 99;
   for (let n = 0; s.phase === 'room' && n < 40; n++) { s.room = s.room.filter(c => c.boss).concat([W(2), W(2), W(2), W(2)]); const b = s.room.find(c => c.boss); E.handle(s, (b || s.room[0]).id, 'bare'); }
   eq(s.phase, 'won', 'endless: floor 9 still wins'); ok(E.continueEndless(s) && s.phase === 'shop' && s.endless, 'endless: keep going into the shop');
-  const before = s.deck.filter(c => c.kind === 'monster').reduce((n, c) => n + c.v, 0), monsters = s.deck.filter(c => c.kind === 'monster').length;
+  const before = s.deck.filter(c => c.kind === 'monster').reduce((n, c) => n + Math.ceil(c.v * E.ENDLESS_GROWTH), 0);
   E.leaveShop(s); eq(s.floor, 9, 'endless: floor 10');
-  eq(s.deck.filter(c => c.kind === 'monster').reduce((n, c) => n + c.v, 0), before + monsters + 3 * 17, 'endless: monsters grow 1 and 3 more elites arrive');
+  eq(s.deck.filter(c => c.kind === 'monster').reduce((n, c) => n + c.v, 0), before + 3 * Math.ceil(17 * E.ENDLESS_GROWTH), 'endless: monsters grow a fifth and 3 stronger elites arrive');
   ok(E.targetRow(9)[0] > E.TARGETS[7][0] && E.targetRow(11)[0] > E.TARGETS[8][0], 'endless: targets keep climbing'); ok(E.duesFor(s, 3) > E.DUES[2], 'endless: dues keep climbing');
   eq(E.duesAhead(s).floor, 12, 'endless: dues after floor 12'); ok(E.bossFor(s, 11) && !s.bossKeys.slice(0, 3).includes(E.bossFor(s, 11).key), 'endless: a boss not met before'); }
 
@@ -383,14 +352,27 @@ for (const [seed, at] of [[7, 5], [11, 30], [23, 60], [31, 70]]) {
   ok(s.pick && s.pick.options.every(k => E.RELICS[k].rarity !== 'common'), 'rout: the relic pick is all rares'); }
 { const s = E.newGame(5); E.bid(s, 0); s.slain = s.contract.target; E.devEndFloor(s);
   ok(!s.payout.rout, 'rout: just meeting the target is no rout'); }
-{ const s = E.newGame(9); E.devGrant(s, 'ironskin'); E.bid(s, 0);
+{ const s = E.newGame(9); E.devGrant(s, 'giantsgrip'); E.bid(s, 0);
   const m = { id: 9e6, kind: 'monster', v: 6, suit: '♠' }; s.room = [m, ...s.room.slice(1)];
   E.handle(s, m.id, 'bare');
-  eq(s.relicFloor.block, 1, 'credit: Iron Skin counts 1 damage blocked this floor');
-  eq(E.engineReport(s).top && E.engineReport(s).top.k, 'ironskin', 'engine report: the relic that did the most');
-  const d = E.monsterDamage(s, { kind: 'monster', v: 6 }, false); eq(s.relicFloor.block, 1, 'credit: a preview counts nothing');
-  E.devEndFloor(s); eq(s.payout.relics.block, 1, 'payout: carries what relics did this floor');
+  eq(s.relicFloor.block, 3, "credit: Giant's Grip counts 3 damage blocked this floor");
+  eq(E.engineReport(s).top && E.engineReport(s).top.k, 'giantsgrip', 'engine report: the relic that did the most');
+  const d = E.monsterDamage(s, { kind: 'monster', v: 6 }, false); eq(s.relicFloor.block, 3, 'credit: a preview counts nothing');
+  E.devEndFloor(s); eq(s.payout.relics.block, 3, 'payout: carries what relics did this floor');
   eq(E.engineReport(s).startHp, E.MAX_HP, 'engine report: starting health'); }
+
+// ---------- 2.31.0: the kit ----------
+{ const s = game({ floor: 3, gold: 0 }); s.slain = 0; clearFloor(s); E.skipPick(s); s.gold = 300;
+  const w = s.deck.find(c => c.kind === 'weapon'), v0 = w.v, c0 = E.forgeCost(s);
+  eq(c0, 6, 'Forge: the first costs 6'); ok(E.canForge(s, w.id), 'Forge: a weapon can be forged');
+  ok(E.buy(s, 'forge', w.id), 'Forge: bought'); eq(s.deck.find(c => c.id === w.id).v, v0 + 2, 'Forge: +2 to the card'); eq(s.gold, 300 - c0, 'Forge: paid');
+  eq(E.forgeCost(s), 9, 'Forge: the next costs 3 more'); const m = s.deck.find(c => c.kind === 'monster'); ok(!E.canForge(s, m.id), 'Forge: monsters can\'t be forged');
+  for (let i = 0; i < 6; i++) E.buy(s, 'forge', w.id); ok(s.deck.find(c => c.id === w.id).v > 10, 'Forge: no ceiling on card values');
+  const o = s.shop.recruit; ok(o && o.length === 3, 'Recruit: three offers'); const n = s.deck.length, g = s.gold, rc = E.recruitCost(o[0]);
+  ok(E.buy(s, 'recruit', 0), 'Recruit: bought'); eq(s.deck.length, n + 1, 'Recruit: the card joins the deck'); eq(s.gold, g - rc, 'Recruit: paid');
+  ok(!E.buy(s, 'recruit', 1), 'Recruit: one per shop'); }
+{ const s = E.newGame(3); E.devJump(s, 9); E.bid(s, 0); const t9 = E.targetRow(9)[0], t12 = E.targetRow(12)[0], t15 = E.targetRow(15)[0];
+  ok(t15 - t12 > t12 - t9, 'Endless: targets climb faster each act (' + t9 + ', ' + t12 + ', ' + t15 + ')'); eq(E.ENDLESS_GROWTH, 1.2, 'Endless: x1.2 an act'); }
 
 console.log(`${passes} passed, ${fails} failed`);
 process.exit(fails ? 1 : 0);
