@@ -8,6 +8,9 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.27.1
+- The death screen no longer scrolls at any window size: the left panel measures itself and shrinks just enough to fit with the killer card shown.
+
 ## 2.27.0
 
 - Relic pick: three relics on engraved plates, each glowing in its rarity's colour (boss relics on gold), with bigger pictures. Skip is a small button by your belt instead of a fourth card.
