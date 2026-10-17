@@ -8,6 +8,11 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.20.0 (2026-10-17)
+Buttons redrawn at the exact sizes they have in the game.
+- Each button plate is drawn at its real proportions (main 190x56, secondary 104x40, card play 120x52, mode 100x36, square for the pause button) and used 1:1, so only the plain middle stretches and the wax seals stay round.
+- The main button now has a fixed height per layout (56, 48 or 40), and card plays use dark ink text on the bone plate.
+
 ## 2.19.0 (2026-10-17)
 Engraved buttons, panels and end-screen pieces.
 - Buttons are new: a brass plate with red wax seals for the main action, slate paper for secondary buttons, a bronze plate for card plays, oxblood with black seals for a fatal play, a faded one when disabled, and a slate plate that lights up for the chosen mode. Hover and pressed states are the same plates lit or darkened.

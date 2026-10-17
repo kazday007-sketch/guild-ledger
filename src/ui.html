@@ -732,21 +732,24 @@ main .titlecard .logo::after { display: none; } /* the logo has its own letterin
 
 /* ---------- painted UI (batch 2 art): buttons, panels, bars, pips, card frames and numbers ----------
    Buttons and panels are 9-slice images (border-image), so they stretch to any size; the words stay in code. */
-button:not(.link):not(.offer) { border: 1px solid transparent; border-radius: 0; background: none; border-image: url(assets/ui/btn2-secondary.webp) 27 32 fill / 50% 22px stretch; }
-button:not(.link):not(.offer):hover:not(:disabled) { border-color: transparent; border-image-source: url(assets/ui/btn2-secondary-hover.webp); }
-button:not(.link):not(.offer):disabled { opacity: .85; color: #55574f; border-image: url(assets/ui/btn2-disabled.webp) 26 36 fill / 50% 24px stretch; }
-button.primary:not(.link):not(.offer), button.primary:not(.link):not(.offer):hover:not(:disabled) { background: none; border-color: transparent; border-image: url(assets/ui/btn2-primary.webp) 29 46 fill / 50% 32px stretch; color: #2a1d05; }
-button.primary:not(.link):not(.offer) { padding-inline: 38px; }
-button.primary:not(.link):not(.offer):hover:not(:disabled) { border-image-source: url(assets/ui/btn2-primary-hover.webp); filter: drop-shadow(0 0 6px rgba(240,200,110,.45)); }
+button:not(.link):not(.offer) { border: 1px solid transparent; border-radius: 0; background: none; border-image: url(assets/ui/btn3-secondary.webp) 39 40 fill / 19.5px 20px stretch; }
+button:not(.link):not(.offer):hover:not(:disabled) { border-color: transparent; border-image-source: url(assets/ui/btn3-secondary-lit.webp); }
+button:not(.link):not(.offer):disabled { opacity: .85; color: #55574f; border-image: url(assets/ui/btn3-disabled.webp) 39 40 fill / 19.5px 20px stretch; }
+button.primary:not(.link):not(.offer), button.primary:not(.link):not(.offer):hover:not(:disabled) { background: none; border-color: transparent; border-image: url(assets/ui/btn3-primary.webp) 55 70 fill / 27.5px 35px stretch; color: #2a1d05; }
+button.primary:not(.link):not(.offer) { padding-inline: 38px; padding-block: 0; height: 56px; display: inline-flex; align-items: center; justify-content: center; }
+@media (max-width: 620px) { button.primary:not(.link):not(.offer) { height: 48px; } }
+@media (max-height: 520px) { button.primary:not(.link):not(.offer) { height: 40px; } }
+button.pause { border-image: url(assets/ui/btn3-square.webp) 39 39 fill / 19.5px stretch; }
+button.primary:not(.link):not(.offer):hover:not(:disabled) { border-image-source: url(assets/ui/btn3-primary-lit.webp); filter: drop-shadow(0 0 6px rgba(240,200,110,.45)); }
 button.primary:not(.link):not(.offer):active:not(:disabled) { filter: brightness(.82); color: #f1e3bf; }
-.card .acts button:not(.link) { background: none; color: var(--bone); border-color: transparent; border-image: url(assets/ui/btn2-action.webp) 35 40 fill / 50% 26px stretch; }
+.card .acts button:not(.link) { background: none; color: #2b2418; border-color: transparent; border-image: url(assets/ui/btn3-action.webp) 51 44 fill / 25.5px 22px stretch; }
 .card .acts button:hover:not(:disabled) { filter: brightness(1.18); }
-.card .acts button.fatal:not(:disabled) { border-image: url(assets/ui/btn2-danger.webp) 28 46 fill / 50% 30px stretch; }
-.card .acts button:disabled { color: #55574f; border-image: url(assets/ui/btn2-disabled.webp) 26 36 fill / 50% 20px stretch; }
+.card .acts button.fatal:not(:disabled) { color: var(--bone); border-image: url(assets/ui/btn3-fatal.webp) 51 50 fill / 25.5px 25px stretch; }
+.card .acts button:disabled { color: #55574f; border-image: url(assets/ui/btn3-disabled.webp) 39 40 fill / 19.5px 20px stretch; }
 .mode { border: 0; background: none; gap: 6px; overflow: visible; }
 .mode button + button { border-left: 1px solid transparent; }
-.mode button:not(.link), .mode button:not(.link):hover:not(:disabled) { color: var(--bone); border-image: url(assets/ui/btn2-toggle.webp) 24 24 fill / 50% 16px stretch; }
-.mode button[aria-pressed="true"]:not(.link), .mode button[aria-pressed="true"]:not(.link):hover { background: none; color: #fff2cf; filter: sepia(1) saturate(2.4) hue-rotate(-12deg) brightness(1.9) contrast(.9); }
+.mode button:not(.link), .mode button:not(.link):hover:not(:disabled) { color: var(--bone); border-image: url(assets/ui/btn3-toggle-off.webp) 35 36 fill / 17.5px 18px stretch; }
+.mode button[aria-pressed="true"]:not(.link), .mode button[aria-pressed="true"]:not(.link):hover { background: none; color: #2a1d05; border-image: url(assets/ui/btn3-toggle-on.webp) 35 36 fill / 17.5px 18px stretch; }
 .skull { display: inline-block; width: 1.15em; height: 1.15em; vertical-align: -.25em; margin: 0 .3em 0 0; background: url(assets/ui/icon-skull.webp) center / contain no-repeat; }
 .sm .skull { margin: 0 0 0 .2em; }
 
@@ -1501,7 +1504,7 @@ img.clerk { box-shadow: none; border-radius: 0; object-fit: contain !important; 
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.19.0';
+const VERSION = '2.20.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
