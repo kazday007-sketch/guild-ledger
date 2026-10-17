@@ -8,6 +8,11 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.34.0
+
+- **Darker, slower music with real dance synths.** Every loop now runs in minor, harmonic minor or phrygian keys, in a bigger stone-room echo, with a far bell tolling in the quiet parts. The drops have a growling detuned-saw bass, a supersaw pad and a saw lead carrying the tune (the recorder now ghosts above it). The synths are strong but filtered dark, so nothing is shrill.
+- Slower tempos: crypt 98 a minute, sewers 90, vault 101, bosses 105 (still with a rolling growl bass and two drops), and the guild hall 75.
+
 ## 2.33.0
 
 - The death screen now matches its backdrop: the engraved frame and the panel behind the text are in the same dim umber and candlelit stone as the room with the goat, instead of bright crimson. The name and note fields and the Top scores and Log bars under the panel take the same tone.
