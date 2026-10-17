@@ -1521,6 +1521,74 @@ main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(3)) .s
 img.clerk { box-shadow: none; border-radius: 0; object-fit: contain !important; filter: drop-shadow(0 2px 4px rgba(0,0,0,.55)); }
 /* the back covers exactly the printed face while it turns (placed by flipCard), and the name and buttons wait until it lands */
 .card.vint .cardback { inset: auto; border-radius: 5.5% / 3.7%; }
+/* ---------- 2.27.0: screen review: relic pick, shop, act map, the played card's place ----------
+   Where a card was played, the table keeps a faint ink outline of it in the dust, drawn in code so it stays sharp. */
+.slot, .stage .slot { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 6px; background: none; opacity: 1; border: 0; padding: 0; min-height: 0; }
+.slot .spot { display: block; flex: none; width: auto; height: calc(100% - var(--x, 40px)); aspect-ratio: 2 / 3; max-width: 100%; border-radius: 5.5% / 3.7%;
+  background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(8,6,4,.62), rgba(8,6,4,.45) 70%, rgba(8,6,4,.3));
+  box-shadow: inset 0 0 0 1.5px rgba(222,206,170,.5), inset 0 0 0 7px rgba(0,0,0,0), inset 0 0 0 8px rgba(222,206,170,.22), inset 0 0 22px rgba(0,0,0,.45), 0 0 0 1px rgba(0,0,0,.35); }
+.slot .spot::after { content: ''; display: block; width: 100%; height: 100%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Cg fill='none' stroke='%23dccca6' stroke-width='2.2' stroke-linecap='round' opacity='.55'%3E%3Cpath d='M30 12 L44 30 L30 48 L16 30 Z'/%3E%3Cpath d='M30 21 L37 30 L30 39 L23 30 Z' opacity='.7'/%3E%3Cpath d='M6 30 H14 M46 30 H54'/%3E%3C/g%3E%3C/svg%3E") center / 34% auto no-repeat; }
+.slot small, .stage .slot small { background: none; padding: 0; color: rgba(222,206,170,.8); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; text-shadow: 0 1px 2px #000; }
+/* Relic pick: three relics, each on a tall engraved plate tinted by rarity; skipping is a quiet button by your belt. */
+.picks, .picks.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.picks.n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); width: min(100%, 560px); justify-self: center; }
+.picks.n1 { grid-template-columns: minmax(0, 300px); justify-content: center; }
+.pickopt { background: none; border: 1px solid transparent; border-radius: 0; border-image: url(assets/ui/panel3-floor.webp) 96 fill / 22px stretch !important; padding: 18px 14px 18px; gap: 6px; } /* beats the button plates */
+.pickopt::before { content: ''; position: absolute; inset: 8px; pointer-events: none; background: radial-gradient(ellipse 65% 38% at 50% 28%, color-mix(in srgb, var(--fc) 30%, transparent), transparent 75%), rgba(6,8,12,.38); }
+.pickopt.boss::before { background: radial-gradient(ellipse 65% 38% at 50% 28%, rgba(255,240,200,.45), transparent 75%); }
+.pickopt.boss { --fc: #e7c46a; border-image-source: url(assets/ui/panel3-next.webp) !important; } .pickopt.boss b, .pickopt.boss .ptext { color: #24190c; } .pickopt.boss .rtag { color: #6b3f05; }
+.pickopt.rare { box-shadow: none; } .pickopt.boss { box-shadow: none; }
+.pickopt > * { position: relative; }
+.pickopt .rtag { display: inline-block; padding: 1px 10px; border-top: 1px solid color-mix(in srgb, var(--fc) 55%, transparent); border-bottom: 1px solid color-mix(in srgb, var(--fc) 55%, transparent); letter-spacing: .14em; }
+.pickopt:hover:not(:disabled), .pickopt:focus-visible { box-shadow: 0 8px 20px rgba(0,0,0,.55); filter: brightness(1.08); outline: none; }
+.pickopt .pico { width: 96px; height: 96px; filter: drop-shadow(0 4px 4px rgba(0,0,0,.55)); }
+.pickbelt .pickskip { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 15px; padding: 6px 16px; white-space: nowrap; }
+.pickbelt .pickskip .gi { width: 18px; height: 18px; }
+@media (min-width: 900px) and (min-height: 820px) { .pickopt .pico { width: 128px; height: 128px; } }
+@media (max-width: 700px) { .picks, .picks.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; } }
+@media (max-width: 560px) {
+  .pickopt { border-image-width: 12px !important; padding: 10px 5px 12px; gap: 3px; } .pickopt::before { inset: 4px; }
+  .pickopt .pico { width: 56px; height: 56px; } .pickopt b { font-size: 15px; } .pickopt .ptext { font-size: 12px; } .pickopt .rtag { font-size: 9.5px; padding: 0 5px; letter-spacing: .08em; }
+  .pickbelt .pickskip { margin: 2px auto 0; font-size: 14px; }
+}
+@media (max-height: 519px) and (orientation: landscape) {
+  .picks, .picks.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .pickopt { border-image-width: 12px !important; padding: 7px 8px 8px; gap: 1px; } .pickopt::before { inset: 4px; }
+  .pickopt .pico { width: 40px; height: 40px; } .pickbelt .pickskip { font-size: 13px; padding: 3px 12px; }
+}
+/* Shop: each niche is an engraved plate instead of a thin drawn rim. The relic sits on slate (gold for a boss relic),
+   services on dark tooltip stock; price tags are small engraved plates too. Services say what they do. */
+.shop .ware, main.play .stage .shop .ware { border: 1px solid transparent; border-radius: 0; border-image: url(assets/ui/panel3-tip.webp) 44 fill / 20px stretch; background: none;
+  box-shadow: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
+.shop .ware::after { content: ''; position: absolute; inset: 10px; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 60% 45% at 50% 35%, rgba(255,196,104,.16), transparent 75%); }
+.shop .ware > * { position: relative; z-index: 1; }
+.shop .ware.relicware, main.play .stage .shop .ware.relicware { border-image: url(assets/ui/panel3-main.webp) 96 fill / 24px stretch; background: none; }
+.shop .ware.relicware::after { background: radial-gradient(ellipse 22% 80% at 12% 50%, rgba(120,160,255,.2), transparent 75%); }
+.shop .ware.relicware.boss { border-image-source: url(assets/ui/panel3-next.webp); background: none; }
+.shop .ware.relicware.boss b, .shop .ware.relicware.boss .desc { color: #24190c; text-shadow: none; }
+.shop .ware:is(:hover, :focus-visible) { box-shadow: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)) drop-shadow(0 0 8px rgba(241,212,136,.35)); }
+.shop .ware.sold::after { content: ''; inset: auto 8px auto auto; top: 8px; z-index: 2; }
+.shop .ware .tag, main.play .stage .shop .shelf .ware .tag { background: none; border: 1px solid transparent; border-radius: 0; border-image: url(assets/ui/panel3-tip.webp) 44 fill / 9px stretch; box-shadow: none; }
+.shop .ware .tag.short { color: #f0a19a; }
+.shop .ware .sdesc { display: none; }
+@media (min-width: 900px) and (min-height: 700px) { /* roomy screens: a service's line of what it does sits between its name and price */
+  main.play .stage .shop .shelf .ware .sdesc { display: block; grid-column: 1; grid-row: 3; font-size: clamp(14px, 1.8vh, 17px); line-height: 1.25; color: #cbbd9c; max-width: 22em; }
+  main.play .stage .shop .shelf .ware:has(.sdesc) .buyrow { grid-row: 4; } }
+/* Act map: the run's nine floors as a track under the act's name, in place of the divider. */
+.actmap.tracked h2::after { display: none; }
+.runtrack { display: flex; gap: 10px; margin: 6px 0 0; padding: 0; list-style: none; justify-content: center; }
+.runtrack .tact { display: grid; justify-items: center; gap: 3px; padding: 4px 10px 5px; border: 1px solid transparent; border-image: url(assets/ui/panel3-banner.webp) 45 40 fill / 11px 10px stretch; opacity: .75; }
+.runtrack .tact.now { opacity: 1; }
+.runtrack .tact > span { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ash); line-height: 1; }
+.runtrack .tact.now > span { color: var(--gold); }
+.runtrack ol { display: flex; gap: 7px; align-items: center; margin: 0; padding: 0; list-style: none; }
+.runtrack .tf { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid rgba(224,180,80,.55); box-sizing: border-box; }
+.runtrack .tf.tdone { background: rgba(224,180,80,.55); border-color: transparent; }
+.runtrack .tf.there { background: #f1d488; border-color: #fff3c8; box-shadow: 0 0 8px rgba(241,212,136,.9); transform: scale(1.25); }
+.runtrack .tf.tboss { border-radius: 2px; transform: rotate(45deg); border-color: rgba(208,84,91,.8); }
+.runtrack .tf.tboss.tdone { background: rgba(208,84,91,.55); } .runtrack .tf.tboss.there { background: #f08a8f; border-color: #ffd0d3; box-shadow: 0 0 8px rgba(240,138,143,.9); transform: rotate(45deg) scale(1.25); }
+@media (max-width: 620px) { .runtrack { gap: 6px; margin-top: 4px; } .runtrack .tact { padding: 3px 7px 4px; } .runtrack ol { gap: 5px; } .runtrack .tact > span { font-size: 9.5px; } }
+@media (max-height: 519px) and (orientation: landscape) { .runtrack { margin: 0 0 0 6px; align-self: center; } .runtrack .tact > span { display: none; } .runtrack .tact { padding: 4px 8px; } }
 </style>
 
 <div id="scene" aria-hidden="true"></div>
@@ -2404,7 +2472,7 @@ img.clerk { box-shadow: none; border-radius: 0; object-fit: contain !important; 
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.26.0';
+const VERSION = '2.27.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
@@ -3144,7 +3212,7 @@ function roomHTML(active, actions = '') {
   const say = s.handled === 0 ? 'Pick <b>3</b> of these 4 cards. The last one stays for the next room.' : `Pick <b>${left}</b> more card${left === 1 ? '' : 's'} in this room.`;
   const slots = roomSlots.map(id => {
     const c = id != null && s.room.find(x => x.id === id);
-    return c ? cardHTML(c, active) : '<div class="slot"><small>Picked</small></div>';
+    return c ? cardHTML(c, active) : '<div class="slot"><i class="spot"></i><small>Picked</small></div>';
   }).join('');
   return `<section class="chamber ${active ? '' : 'preview'}" aria-label="Room ${s.roomsCleared + 1}">
     <div class="chamber-head"><button class="pile" data-deck aria-label="The pile: ${s.draw.length} cards left. Open the deck."${tipAttr('The pile', `<b>${s.draw.length}</b> cards left. Tap to see what's in it.`)}>${img('cards/vintage/back.webp')}${img('cards/vintage/back.webp')}${img('cards/vintage/back.webp')}<b class="num">${s.draw.length}</b></button>
@@ -3649,12 +3717,20 @@ function floorHTML(f) {
     ${p.boss ? `<h3>${p.boss.name}</h3><p class="rule">${p.boss.rule}</p>` : ''}
     ${task}<span class="state">${state}</span></article>`;
 }
+// The whole run at a glance: nine floors in three acts, the ones behind you inked in, yours lit, each boss a red diamond.
+function runTrack(here) {
+  const acts = [0, 1, 2].map(a => `<li class="tact ${a === actOf() ? 'now' : ''}"><span>${ACTS[a].name.replace('The ', '')}</span><ol>${[0, 1, 2].map(i => {
+    const f = a * 3 + i, boss = E.isBossFloor(f);
+    return `<li class="tf ${boss ? 'tboss' : ''} ${f < here ? 'tdone' : f === here ? 'there' : ''}" title="Floor ${f + 1}${boss ? ', boss' : ''}"></li>`;
+  }).join('')}</ol></li>`).join('');
+  return `<ol class="runtrack" aria-label="Floor ${here + 1} of ${E.FLOORS}">${acts}</ol>`;
+}
 function mapHTML() {
   const a = actOf(), place = mapAct(), first = a * 3, here = nextFloor();
   const dues = !(s.guided && first + 2 < E.UNLOCK.dues);
   const go = mapView === 'auto' ? `<button class="primary go" data-mapgo>Start floor ${here + 1}</button>` : '<button class="go" data-mapback>Back</button>';
   const floors = [first, first + 1, first + 2].map(floorHTML).join('');
-  return `<section class="actmap" aria-label="Act map"><div class="acthead">${img(`ui/crest-${ACT_PLACES[place]}.webp`, 'crest')}<span class="label">${a > 2 ? `Endless · act ${a + 1}` : `Act ${a + 1} of 3`}</span><h2>${a > 2 ? `The Deep ${ACTS[place].name.replace('The ', '')}` : ACTS[place].name}</h2></div>
+  return `<section class="actmap ${a > 2 ? '' : 'tracked'}" aria-label="Act map"><div class="acthead">${img(`ui/crest-${ACT_PLACES[place]}.webp`, 'crest')}<span class="label">${a > 2 ? `Endless · act ${a + 1}` : `Act ${a + 1} of 3`}</span><h2>${a > 2 ? `The Deep ${ACTS[place].name.replace('The ', '')}` : ACTS[place].name}</h2>${a > 2 ? '' : runTrack(here)}</div>
     <div class="floors">${floors}</div>
     <div class="mapfoot">${dues ? `<p class="dues"${tipAttr('Guild dues', 'Collected after the boss floor. If you can\'t pay, it\'s a strike.')}>Dues <b class="num price">${E.duesFor(s, a)}</b> gold · you have <b class="num price">${s.gold}</b></p>` : ''}
     ${go}</div></section>`;
@@ -3784,7 +3860,7 @@ function drawScreen() {
       const price = E.cost(s, k), sold = !!s.shop.bought[k], short = s.gold < price, r = E.RELICS[k];
       return r
         ? `<div class="ware relicware ${r.rarity} ${sold ? 'sold' : ''}" tabindex="0"${tipAttr(item.name, relicTip(k))}>${relicIcon(k)}<div class="wtext"><span class="rtag">${E.RARITIES[r.rarity]} relic</span><b>${item.name}</b><span class="desc">${esc(r.text)}</span></div>${buyrow(k, price, sold, short)}</div>`
-        : `<div class="ware ${sold ? 'sold' : ''}" tabindex="0"${tipAttr(item.name, item.text)}><div class="whead">${img(iconOf(k), 'ico')}<b>${item.name}</b></div>${buyrow(k, price, sold, short)}</div>`;
+        : `<div class="ware ${sold ? 'sold' : ''}" tabindex="0"${tipAttr(item.name, item.text)}><div class="whead">${img(iconOf(k), 'ico')}<b>${item.name}</b></div><span class="sdesc">${esc(item.text)}</span>${buyrow(k, price, sold, short)}</div>`;
     };
     const svc = Object.fromEntries(Object.entries(E.SERVICES).map(([k, v]) => [k, s.oneDeck && v.oneDeck ? { ...v, text: v.oneDeck } : v]));
     const relicShelf = relicsOpen() && s.shop.relics.length;
@@ -3879,8 +3955,9 @@ function pickHTML() {
       <span class="rtag">${E.RARITIES[r.rarity]}</span><span class="ptext">${esc(r.text)}</span></button>`;
   };
   return `<section class="pickview"><div class="phead">${clerk(p.boss || rare ? 'impressed' : 'pleased')}<div><span class="label">Floor <span class="num">${s.floor + 1}</span> reward</span><h2>${p.boss ? 'Choose a boss relic' : 'Choose a relic'}</h2><p class="pline2">${line}</p></div></div>
-    <div class="picks">${p.options.map(opt).join('')}<button class="pickopt skip" data-skip>${img('icons/hud-gold.webp', 'pico')}<b>Skip</b><span class="ptext">Take <b class="num">${E.SKIP_GOLD}</b> gold instead.</span></button></div>
-    <div class="pickbelt"><span class="label ${full ? 'warnfull' : ''}">Your relics (${s.relics.length}/${E.MAX_RELICS})${full ? ' · full: drop one to make room' : ''}</span>${relicsHTML(full, true)}</div></section>`;
+    <div class="picks n${p.options.length}">${p.options.map(opt).join('')}</div>
+    <div class="pickbelt"><span class="label ${full ? 'warnfull' : ''}">Your relics (${s.relics.length}/${E.MAX_RELICS})${full ? ' · full: drop one to make room' : ''}</span>${relicsHTML(full, true)}
+      <button class="pickskip" data-skip${tipAttr('Skip', `Take no relic and get <b>${E.SKIP_GOLD}</b> gold instead.`)}>Skip · take ${img('icons/hud-gold.webp', 'gi')}<span class="num">${E.SKIP_GOLD}</span></button></div></section>`;
 }
 function playPayout() {
   const p = s.payout, box = app.querySelector('.payout'), total = box.querySelector('.ptotal .num'), rows = [...box.querySelectorAll('.pline:not(.carry)')];

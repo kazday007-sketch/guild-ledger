@@ -8,6 +8,13 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.27.0
+
+- Relic pick: three relics on engraved plates, each glowing in its rarity's colour (boss relics on gold), with bigger pictures. Skip is a small button by your belt instead of a fourth card.
+- Shop: the relic and service niches and the price tags use the engraved plates instead of thin drawn outlines, and each service says what it does on roomy screens.
+- Act map: a track under the act's name shows all nine floors of the run, the ones behind you inked in, yours lit, and each boss as a red diamond.
+- A played card now leaves a faint ink outline in the dust instead of the old wooden plank with a green tick.
+
 ## 2.26.0
 
 - One pause button: the More button is gone, and How to play, Log and Top scores are now in the pause menu, each on its own page with a Back button.
