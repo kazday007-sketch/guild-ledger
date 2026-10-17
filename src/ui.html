@@ -1053,6 +1053,11 @@ main.solo:has(> .end) > details.lb { margin: 0; max-width: none; }
 .end .epitaph { margin: 0; max-width: 34ch; font: italic 400 21px/1.3 var(--body); color: var(--bone); text-wrap: balance; }
 .end .epitaph::before { content: '“'; } .end .epitaph::after { content: '”'; }
 .end .tally { margin: 0; font-size: 15px; }
+/* 2.30.0: the engine report on the end screen, and the relic recap on the payout */
+.end .engine { margin: 0; font-size: 14px; color: var(--ash); text-align: center; line-height: 1.5; } .end .engine b { color: var(--bone); }
+.end .engine .pico { width: 20px; height: 20px; vertical-align: -5px; margin-right: 3px; }
+.payout .prelics { margin: 3px 0 0; font-size: 14px; color: var(--ash); } .payout .prelics b { color: #f1d488; }
+.payout.rout h2 { color: #ffd76a; text-shadow: 0 0 18px rgba(243,201,92,.55); }
 .killer { position: relative; width: 138px; aspect-ratio: 4 / 5; transform: rotate(-5deg); animation: killerin .7s cubic-bezier(.2,1.3,.4,1) both; }
 .kcard { width: 100%; height: 100%; border: 9px solid transparent; border-image: url(assets/cards/frame-monster.webp) 60 / 9px stretch; background: #151a21; filter: drop-shadow(0 6px 14px rgba(0,0,0,.7)); }
 .kcard img { display: block; width: 100%; height: 100%; object-fit: cover; filter: sepia(.3) saturate(1.25) brightness(.9); }
@@ -1651,7 +1656,7 @@ img.clerk { box-shadow: none; border-radius: 0; object-fit: contain !important; 
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.29.0';
+const VERSION = '2.30.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -2793,15 +2798,16 @@ function endHTML() {
   const key = 'end-' + (rec ? rec.id : s.floor);
   const medal = won || s.floor >= 9 ? 'gold' : s.floor >= 6 ? 'silver' : s.floor >= 3 ? 'bronze' : 'copper'; // how far you got: act 1, 2, 3 or the end
   const tally = `<p class="muted tally">${img(`ui/medal-${medal}.webp`, 'medal', `${medal[0].toUpperCase() + medal.slice(1)} medal`)}Floor <span class="num">${s.floor + 1}</span> · <span class="num">${runPoints()}</span> points · <span class="num">${s.gold}</span> gold</p>${rec ? statsGrid(runStats(rec).filter(([k]) => END_STATS.includes(k))) : ''}`;
+  const eng = engineHTML();
   let top;
-  if (won) top = `${stamp('paid', key)}<div class="endsum">${img('ui/end-victory.webp', 'endart', 'The ledger, closed')}<h2>You made it out. The goat is mildly impressed. Don't gloat.</h2><p style="margin:0">${esc(s.lastResult || '')}</p>${tally}</div>`;
+  if (won) top = `${stamp('paid', key)}<div class="endsum">${img('ui/end-victory.webp', 'endart', 'The ledger, closed')}<h2>You made it out. The goat is mildly impressed. Don't gloat.</h2><p style="margin:0">${esc(s.lastResult || '')}</p>${tally}${eng}</div>`;
   else {
     const ep = epitaph();
     const pic = ep.kind === 'dead'
       ? `<div class="grave">${ep.card ? `<div class="killer ${ep.card.v >= 15 ? 'elite' : ''}"><div class="kcard">${img(cardArt(ep.card), '', cardName(ep.card))}</div><span class="rank" aria-hidden="true">${digits(ep.card.v)}</span>${img('fx/slash.webp', 'claw')}</div>` : ''}${img('ui/end-died.webp', 'endart')}</div>`
       : `<div class="torn">${stamp('strike', key)}${img('ui/end-revoked.webp', 'endart', 'Your license, torn')}</div>`;
     top = `<div class="endsum">${pic}<span class="label ending">${ep.kind === 'dead' ? 'Here lies an adventurer' : 'By order of the guild'}</span><h2>${esc(ep.title)}</h2>
-      <p class="epitaph">${esc(ep.line)}</p>${tally}</div>`;
+      <p class="epitaph">${esc(ep.line)}</p>${tally}${eng}</div>`;
   }
   return `<section class="end ${won ? 'won' : s.hp > 0 ? 'revoked' : 'dead'}">${top}<div class="endform">${fb}${webReports() && rec ? webFormHTML() : ''}
       ${dbState !== 'on' && rec && !webReports() ? `<p class="muted" style="margin:0">Playtesting? Copy this report and send it to whoever shared the game.</p>
@@ -2812,6 +2818,18 @@ function endHTML() {
 // The run in numbers: four on the end screen, all of them in Past runs.
 const END_STATS = ['Slain', 'Biggest kill', 'Contracts met', 'Time'];
 const statsGrid = stats => `<dl class="runstats">${stats.map(([k, v]) => `<div><dt>${k}</dt><dd class="num">${v}</dd></div>`).join('')}</dl>`;
+// The engine report: the relic that carried the run, your best floor, and how far your weapon and health grew.
+function engineHTML() {
+  const e = E.engineReport(s), bits = [];
+  if (e.top) {
+    const t = e.top, what = [t.pts && `+${t.pts} points`, t.block && `${t.block} blocked`, t.heal && `+${t.heal} health`, t.gold && `+${t.gold} gold`].filter(Boolean).join(', ');
+    bits.push(`Best relic ${relicIcon(e.top.k, 'pico')}<b>${esc(E.RELICS[e.top.k].name)}</b> (${what})`);
+  }
+  if (e.best) bits.push(`Best floor <b class="num">${e.best.floor + 1}</b>: <b class="num">${e.best.slain}</b> of ${e.best.target}`);
+  if (e.weapon) bits.push(`Best weapon <b class="num">${e.weapon}</b>`);
+  bits.push(`Max health <b class="num">${e.startHp}</b> → <b class="num">${e.maxHp}</b>`);
+  return `<p class="engine">${bits.join(' · ')}</p>`;
+}
 function webFormHTML() {
   return `<label class="fb sr" for="pname">Name for Top scores (optional)</label>
       <input id="pname" maxlength="40" placeholder="Your name for Top scores (optional)" value="${esc(store.get('name', ''))}">
@@ -3181,7 +3199,7 @@ function showClerk() {
 // The goat stamps the contract paid or missed, then counts your gold up line by line: the contract's pay, overkill,
 // interest, and anything taken (the loan shark, guild dues). Continue goes on to the shop.
 let payoutView = false, payoutPlayed = null;
-const payIcon = { contract: 'icons/hud-gold.webp', overkill: 'icons/hud-overkill.webp', interest: 'icons/hud-interest.webp', dues: 'icons/hud-strike.webp', loanshark: 'icons/relics/loanshark.webp', bloodpact: 'icons/relics/bloodpact.webp', bribe: 'icons/hud-gold.webp' };
+const payIcon = { contract: 'icons/hud-gold.webp', overkill: 'icons/hud-overkill.webp', rout: 'icons/hud-overkill.webp', interest: 'icons/hud-interest.webp', dues: 'icons/hud-strike.webp', loanshark: 'icons/relics/loanshark.webp', bloodpact: 'icons/relics/bloodpact.webp', bribe: 'icons/hud-gold.webp' };
 // What each payout line means, for its tap / hover tip.
 function payTip(p, l) {
   const has = k => s.relics.includes(k), g = Math.abs(l.gold), over = p.slain - p.target;
@@ -3197,12 +3215,19 @@ function payTip(p, l) {
     cursed: ['Cursed Contract', 'Your Cursed Contract pays double, but a missed one costs 5 max health.'],
     bloodpact: ['Blood Pact', 'Meeting a contract gives +2 max health and heals 2.'],
     bribe: ['Bribe', 'You missed the contract, so your Bribe paid the guild <b>10</b> gold to forget the strike.'],
+    rout: ['Rout', `You killed at least <b>${Math.round(E.ROUT * 10) / 10}</b> times the target. The guild's relic pick is all rares.`],
   }[l.key];
   return tips ? tipAttr(...tips) : '';
 }
+// One line under the kills: what your relics did this floor, so the engine you're building shows its work.
+function relicRecap(p) {
+  const r = p.relics; if (!r) return '';
+  const parts = [r.pts && `<b class="num">+${r.pts}</b> points`, r.block && `<b class="num">${r.block}</b> damage blocked`, r.heal && `<b class="num">+${r.heal}</b> health`, r.gold && `<b class="num">+${r.gold}</b> gold`].filter(Boolean);
+  return parts.length ? `<p class="prelics"${tipAttr('Your relics', 'Everything your relics added up to on this floor.')}>Your relics: ${parts.join(' · ')}</p>` : '';
+}
 function payoutHTML() {
   const p = s.payout, key = 'payout-' + p.floor;
-  const head = { met: 'Contract met', missed: 'Contract missed', covered: 'Missed, but covered', survived: 'Floor survived' }[p.outcome] || 'Floor done';
+  const head = p.rout ? 'A rout' : { met: 'Contract met', missed: 'Contract missed', covered: 'Missed, but covered', survived: 'Floor survived' }[p.outcome] || 'Floor done';
   const mark = p.outcome === 'met' ? stamp('paid', key) : p.outcome === 'missed' ? stamp('strike', key) : '';
   const mood = p.outcome === 'missed' ? 'stamping' : p.outcome === 'met' ? 'counting' : 'neutral';
   const kills = p.survival ? '<p class="pkills">No contract this floor. The guild pays you for getting through.</p>'
@@ -3210,7 +3235,7 @@ function payoutHTML() {
   const lines = p.lines.map(l => `<li class="pline ${l.gold < 0 ? 'neg' : l.gold > 0 ? 'pos' : ''}" data-key="${l.key}" data-gold="${l.gold}"${payTip(p, l)}>${img(payIcon[l.key] || 'icons/hud-gold.webp', 'pico')}<span>${esc(l.label)}</span><b class="num">${l.gold > 0 ? '+' : l.gold < 0 ? '−' : ''}${l.gold ? Math.abs(l.gold) : ''}</b></li>`).join('')
     || '<li class="pline none"><span>Nothing earned this floor.</span></li>';
   const fell = E.isBossFloor(p.floor) && s.boss ? `<div class="pboss">${bossImg(s.boss, true)}<span><b>${esc(s.boss.name)}</b> beaten</span></div>` : '';
-  return `<section class="payout ${p.outcome}">${mark}${fell}<div class="phead">${clerk(mood)}<div><span class="label">Floor <span class="num">${p.floor + 1}</span> settled</span><h2>${head}</h2>${kills}</div></div>
+  return `<section class="payout ${p.outcome}${p.rout ? ' rout' : ''}">${mark}${fell}<div class="phead">${clerk(mood)}<div><span class="label">Floor <span class="num">${p.floor + 1}</span> settled</span><h2>${head}</h2>${kills}${relicRecap(p)}</div></div>
     <ol class="plines">${p.start ? `<li class="pline carry"${tipAttr('Gold you had', 'What you carried into this floor. Everything below is added to it, or taken from it.')}>${img('icons/hud-gold.webp', 'pico')}<span>Gold you had</span><b class="num">${p.start}</b></li>` : ''}${lines}</ol>
     <div class="ptotal">${img('icons/hud-gold.webp', 'pgold')}<b class="num" data-to="${p.end}">${p.start}</b><span>gold</span></div>
     <button class="primary" data-payok>${s.pick ? 'Choose a relic' : 'To the shop'}</button></section>`;
