@@ -442,6 +442,28 @@ main .titlecard .logo::after { display: none; } /* the logo has its own letterin
 .titlecard details.lb { width: 100%; box-sizing: border-box; text-align: left; }
 .titlecard details.lb > summary { justify-content: center; font-size: 17px; }
 .titlecard .lbbody { max-height: 34vh; max-height: 34svh; overflow-y: auto; }
+.titlecard .playrow .daily { flex: 1; display: grid; place-content: center; gap: 0; padding: 4px 6px; line-height: 1.1; }
+.titlecard .daily b { font-family: var(--display); font-weight: 400; letter-spacing: .05em; font-size: clamp(18px, 1.5vw, 22px); }
+.titlecard .daily small { font-size: 12px; white-space: nowrap; }
+.titlecard .tboards { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; align-items: start; }
+.titlecard .tboards:has(details[open]) { grid-auto-flow: row; }
+.titlecard details.hist { width: 100%; box-sizing: border-box; text-align: left; }
+.titlecard details.hist > summary { justify-content: center; font-size: 17px; }
+.titlecard .hbody { max-height: 34vh; max-height: 34svh; overflow-y: auto; }
+.hbody .hbest { margin: 4px 0 6px; font-size: 14px; }
+details.hrun { border-top: 1px solid rgba(233,226,208,.12); padding: 5px 0; }
+details.hrun > summary { display: grid; grid-template-columns: 10px 3.6em minmax(0, 1fr) auto 4.4em; gap: 8px; align-items: center; cursor: pointer; list-style: none; font-weight: 400; }
+details.hrun > summary::-webkit-details-marker { display: none; }
+details.hrun .when, details.hrun .depth, details.hrun .num { font-size: 13px; } details.hrun .num { text-align: right; }
+details.hrun .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+details.hrun.best .depth { color: var(--gold); font-weight: 700; }
+details.hrun .hend { margin: 4px 0 0; font-size: 13px; }
+.hrelics { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; } .hrelics .ico { width: 28px; height: 28px; display: block; }
+dl.runstats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px 10px; margin: 6px 0 0; }
+dl.runstats div { display: grid; text-align: center; min-width: 0; }
+dl.runstats dt { font-size: 10px; line-height: 1.2; letter-spacing: .04em; text-transform: uppercase; color: var(--ash); }
+dl.runstats dd { margin: 0; font-size: 16px; color: var(--bone); white-space: nowrap; text-transform: none; }
+.end .runstats { margin: 8px auto 0; max-width: 460px; }
 .titlecard .sync, .titlecard .version { margin: 0; font-size: 13px; text-align: center; }
 .titlecard .sync + .version { margin-top: -12px; }
 @media (max-width: 620px) {
@@ -1493,6 +1515,8 @@ main.play .stage .shop .shelf .ware.relicware .desc { display: block; font-size:
 .card.vint .art { background: none; box-shadow: none; border-radius: 0; overflow: visible; }
 .card.vint .art img { filter: drop-shadow(0 3px 2px rgba(0,0,0,.55)) drop-shadow(0 8px 14px rgba(0,0,0,.35)); }
 .card.vint .art::after, .card.vint .rank { display: none; }
+.card.vint.vboss .rank { display: flex; top: 3.5%; left: 5%; } /* a boss card prints a crowned skull, not its value */
+.card.vint.bosscard .art img { filter: drop-shadow(0 0 3px rgba(208,84,91,.95)) drop-shadow(0 0 14px rgba(208,84,91,.55)) drop-shadow(0 8px 14px rgba(0,0,0,.35)); }
 .card.vint .name .face { color: var(--bone); text-shadow: 0 1px 2px #000; }
 /* 2.10.2: on the table a card's picture is always the same size, whatever buttons sit under it: the picture gets the slot minus the
    space the layout reserves for the name and one row of buttons, and several buttons share that one row. */
@@ -1627,7 +1651,7 @@ img.clerk { box-shadow: none; border-radius: 0; object-fit: contain !important; 
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.28.0';
+const VERSION = '2.29.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -1652,8 +1676,12 @@ const ART = 'assets/';
 const img = (path, cls = '', alt = '') => `<img src="${ART}${path}" alt="${alt}"${cls ? ` class="${cls}"` : ''} decoding="async">`;
 const potionSize = v => v >= 8 ? 'large' : v >= 5 ? 'medium' : 'small';
 // Test build: every ordinary card uses its vintage playing-card face (the whole printed card, numbers and pips included).
-const isVintage = c => !c.bossKey;
+// Bosses with an engraved boss card use it on the table; the rest keep their old art until their cards are drawn.
+const VINTAGE_BOSSES = new Set('warden goblinking jailer mummy banshee vampire skeletonking troll'.split(' '));
+const vintageBoss = c => !!c.bossKey && c.name !== 'Spiderling' && VINTAGE_BOSSES.has(c.bossKey);
+const isVintage = c => !c.bossKey || vintageBoss(c);
 function cardArt(c) {
+  if (vintageBoss(c)) return `cards/vintage/boss-${c.bossKey}.webp`;
   if (c.bossKey) return BOSS_ART[c.name === 'Spiderling' ? 'spiderling' : c.bossKey];
   const v = c.face || c.v; // Endless makes monsters stronger; they keep their own face
   if (c.kind === 'monster') return c.suit === '★' ? `cards/vintage/elite-${v >= 17 ? 17 : 15}.webp` : `cards/vintage/${c.suit === '♠' ? 'spades' : 'clubs'}-${Math.max(2, Math.min(14, v))}.webp`;
@@ -1683,12 +1711,13 @@ function relicIcon(k, cls = 'ico') {
 const relicTip = k => `${E.RELICS[k].text}<br><i>${E.RARITIES[E.RELICS[k].rarity]} relic</i>`;
 const tierSeal = t => `ui/seal-tier-${['safe', 'bold', 'reckless'][t]}.webp`;
 const clauseSeal = k => `ui/seal-clause-${({ sworn: 'sworn', abstain: 'abstinent', steel: 'steel-oath', bare: 'bare-oath' })[k]}.webp`;
-// Boss art: the three bosses with portraits use them; the rest use their monster card's art until portraits are made.
-const BOSS_ART = { warden: 'portraits/boss-warden.webp', hag: 'portraits/boss-plague-hag.webp', lich: 'portraits/boss-lich-auditor.webp',
-  goblinking: 'cards/clubs-13.webp', jailer: 'cards/spades-11.webp', mummy: 'cards/spades-9.webp', banshee: 'cards/spades-12.webp',
-  vampire: 'cards/spades-14.webp', broodmother: 'cards/clubs-12.webp', skeletonking: 'cards/spades-13.webp', golem: 'cards/spades-10.webp',
-  dragon: 'cards/elite-17.webp', horror: 'cards/elite-15.webp', troll: 'cards/clubs-10.webp', wyrm: 'cards/clubs-14.webp', spiderling: 'cards/spades-3.webp' };
-const bossImg = (b, beaten) => img(beaten && BOSS_ART[b.key].startsWith('portraits/') ? BOSS_ART[b.key].replace('.webp', '-beaten.webp') : BOSS_ART[b.key], beaten ? 'beaten' : '', b.name);
+// Boss portraits (intro, boss box, map, payout): the eight bosses with an engraved boss card show the figure cut from it,
+// the Plague Hag and Lich Auditor keep their painted portraits, and the rest use old monster art until their cards are drawn.
+const BOSS_ART = { warden: 'portraits/bosscard-warden.webp', hag: 'portraits/boss-plague-hag.webp', lich: 'portraits/boss-lich-auditor.webp',
+  goblinking: 'portraits/bosscard-goblinking.webp', jailer: 'portraits/bosscard-jailer.webp', mummy: 'portraits/bosscard-mummy.webp', banshee: 'portraits/bosscard-banshee.webp',
+  vampire: 'portraits/bosscard-vampire.webp', broodmother: 'cards/clubs-12.webp', skeletonking: 'portraits/bosscard-skeletonking.webp', golem: 'cards/spades-10.webp',
+  dragon: 'cards/elite-17.webp', horror: 'cards/elite-15.webp', troll: 'portraits/bosscard-troll.webp', wyrm: 'cards/clubs-14.webp', spiderling: 'cards/spades-3.webp' };
+const bossImg = (b, beaten) => img(beaten && BOSS_ART[b.key].startsWith('portraits/boss-') ? BOSS_ART[b.key].replace('.webp', '-beaten.webp') : BOSS_ART[b.key], beaten ? 'beaten' : '', b.name);
 // Azazel the goat (it replaced the guild clerk in 1.20.0, and got its name in 1.38.0; the CSS class is still .clerk). It has lived in the dungeon
 // for years, finds it all rather easy, and talks you through it.
 const clerk = (mood, cls = 'clerk') => img(`portraits/goat-${mood}.webp`, cls, 'Azazel the goat');
@@ -2209,10 +2238,25 @@ function newRec() {
 // 'onedeck' is the full game played down one deck: the pile isn't reshuffled between floors, only when an act starts.
 const MODES = { guided: 'Guided start', full: 'Full game', onedeck: 'One deck' };
 const gameMode = () => { const m = store.get('mode', 'guided'); return MODES[m] ? m : 'guided'; };
-function startRun(tutorial = gameMode() === 'guided') {
+// What a run was played as: one of the modes above, or the daily dungeon.
+const RUN_MODES = { ...MODES, daily: 'Daily dungeon' };
+const runModeName = r => RUN_MODES[r && r.mode] || MODES.guided;
+// ---------- daily dungeon ----------
+// Everyone gets the same dungeon on the same day (UTC): full rules, dealt from a seed made from the date. One try a day:
+// starting it uses the day's try, so a bad start can't be thrown away for a better deal.
+const dailyKey = (d = new Date()) => d.toISOString().slice(0, 10);
+function dailySeed(key) { let h = 2166136261; for (const ch of 'scapegrace-daily-' + key) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return h >>> 0; }
+const dailyLabel = key => new Date(key + 'T12:00:00Z').toLocaleDateString(undefined, { day: 'numeric', month: 'short', timeZone: 'UTC' });
+const dailyToday = () => { const d = store.get('daily', null); return d && d.key === dailyKey() ? d : null; };
+const runResult = r => r.outcome === 'won' ? 'Won' : `Floor ${r.floorReached}`;
+function startRun(tutorial = gameMode() === 'guided', daily = null) {
+  if (daily) tutorial = false;
   if (tutorial) { store.set('mode', 'guided'); TUTORIAL_HINTS.forEach(k => { seenHints[k] = k === 'survive'; }); store.set('hints', seenHints); }
   tut = tutorial ? { step: 0 } : null; lastHit = null; lastTip = null; recall = false; introStep = tutorial ? 0 : null;
-  s = E.newGame(undefined, { guided: gameMode() === 'guided', oneDeck: gameMode() === 'onedeck', tutorial }); rec = newRec(); rec.mode = gameMode(); rec.tutorial = tutorial;
+  const mode = daily ? 'daily' : gameMode();
+  s = E.newGame(daily ? dailySeed(daily) : undefined, { guided: mode === 'guided', oneDeck: mode === 'onedeck', tutorial }); rec = newRec(); rec.mode = mode; rec.tutorial = tutorial;
+  rec.stats = { kills: 0, best: 0, taken: 0, healed: 0, earned: 0, ms: 0, hp: s.hp, gold: s.gold, at: Date.now() };
+  if (daily) { rec.daily = daily; store.set('daily', { key: daily }); }
   if (tutorial) rec.tut = { intro: null, guided: 0, skipped: false, spared: 0, recap: false }; // where tutorial players get to, for the playtest report
   noteSurvivalFloor(); mapView = 'auto';
 }
@@ -2267,6 +2311,7 @@ let db = null, uid = null, owner = false, myDoc = null, saving = Promise.resolve
   render();
 })();
 function save() {
+  noteHistory();
   if (DEV || dbState !== 'on' || !rec) return;
   const snapshot = JSON.parse(JSON.stringify(rec));
   saving = saving.then(async () => {
@@ -2283,9 +2328,42 @@ function save() {
 // A death ends the floor early, so its points aren't in totalSlain yet. Win and strike-out already counted them.
 const runPoints = () => s.totalSlain + (s.phase === 'lost' && s.hp === 0 ? s.slain : 0);
 const curFloor = () => rec && rec.floors[rec.floors.length - 1];
+// Run stats, kept up after every move from what changed since the last one. Time counts at most a minute between
+// moves, so a run left open overnight doesn't claim the night.
+function trackStats() {
+  const st = rec.stats || (rec.stats = { kills: 0, best: 0, taken: 0, healed: 0, earned: 0, ms: 0, hp: s.hp, gold: s.gold, at: Date.now() });
+  const kills = (s.weaponKills || 0) + (s.bareKills || 0);
+  if (kills > st.kills && lastHit) st.best = Math.max(st.best, lastHit.v);
+  st.kills = kills; st.bosses = s.bossFloors || 0;
+  if (s.hp < st.hp) st.taken += st.hp - s.hp; else st.healed += s.hp - st.hp;
+  if (s.gold > st.gold) st.earned += s.gold - st.gold;
+  const now = Date.now(); st.ms += Math.max(0, Math.min(now - st.at, 60000)); st.at = now; st.hp = s.hp; st.gold = s.gold;
+}
+// The numbers the end screen and Past runs show, from a run's record.
+function runStats(r = rec) {
+  const st = r.stats || {}, bids = r.floors.filter(f => !f.survival && f.met != null);
+  const min = Math.round((st.ms || 0) / 60000);
+  return [
+    ['Slain', st.kills || 0], ['Biggest kill', st.best || '–'],
+    ['Contracts met', `${bids.filter(f => f.met).length}/${bids.length}`], ['Bosses beaten', st.bosses || 0],
+    ['Damage taken', st.taken || 0], ['Gold earned', st.earned || 0],
+    ['Flees', r.floors.reduce((n, f) => n + (f.flees || 0), 0)], ['Time', min < 1 ? '<1 min' : `${min} min`],
+  ];
+}
+// Past runs: the last 20 finished or abandoned runs, kept in this browser only.
+const HISTORY_SIZE = 20;
+function noteHistory(r = rec) {
+  if (DEV || !r || r.status === 'in_progress' || !r.floors.length) return;
+  const h = store.get('history', []).filter(x => x.id !== r.id);
+  h.unshift({ id: r.id, at: r.endedAt || new Date().toISOString(), mode: r.mode, daily: r.daily || null, endless: !!r.endless,
+    outcome: r.outcome || 'abandoned', floorReached: r.floorReached, points: r.totalSlain, gold: r.gold, relics: r.relics.slice(),
+    killer: r.outcome === 'died' ? r.killer || null : null, stats: runStats(r) });
+  store.set('history', h.slice(0, HISTORY_SIZE));
+}
 function afterAction(prevPhase) {
   if (!rec) return;
   rec.actions++;
+  trackStats();
   noteSurvivalFloor();
   const f = curFloor();
   if (prevPhase === 'room' && s.phase !== 'room' && f) { // floor or run just ended
@@ -2298,6 +2376,8 @@ function afterAction(prevPhase) {
   if (s.phase === 'won' || s.phase === 'lost') {
     rec.status = 'finished'; rec.outcome = s.phase === 'won' ? 'won' : s.hp === 0 ? 'died' : 'struck_out';
     rec.endedAt = new Date().toISOString(); rec.lastResult = s.lastResult;
+    if (rec.outcome === 'died' && lastHit) rec.killer = lastHit.name;
+    if (rec.daily) store.set('daily', { key: rec.daily, result: runResult(rec), points: rec.totalSlain });
   }
   if (prevPhase !== s.phase || s.phase === 'won' || s.phase === 'lost') save();
 }
@@ -2525,7 +2605,7 @@ function cardExtras(c) {
 }
 function cardShell(c, active, acts, extras = '') {
   const lit = tut && TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.v === c.v && s.phase === 'room';
-  return `<article class="card ${c.kind} ${isVintage(c) ? 'vint' : ''} ${c.v >= 15 || c.bossKey ? 'elite' : ''} ${c.boss ? 'bosscard' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''}" data-card="${c.id}" style="${handPlaced(c.id)}"${isBossCard(c) ? ' data-boss="1"' : ''}${c.boss ? tipAttr(cardName(c), 'Must die before you can leave this room.') : ''}>
+  return `<article class="card ${c.kind} ${isVintage(c) ? 'vint' : ''} ${vintageBoss(c) ? 'vboss' : ''} ${c.v >= 15 || c.bossKey ? 'elite' : ''} ${c.boss ? 'bosscard' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''}" data-card="${c.id}" style="${handPlaced(c.id)}"${isBossCard(c) ? ' data-boss="1"' : ''}${c.boss ? tipAttr(cardName(c), 'Must die before you can leave this room.') : ''}>
     <div class="art">${img(cardArt(c))}<span class="rank" role="img" aria-label="${c.v}">${digits(c.v)}</span></div>
     <div class="name ${extras ? 'withx' : ''}"><span class="face">${cardName(c)}</span>${extras}</div>
     <div class="acts ${(acts.match(/data-act=/g) || []).length > 2 ? 'many' : ''}">${acts}</div></article>`;
@@ -2582,6 +2662,22 @@ function stashHTML() {
   return `<div class="stashbox"${tipAttr('Stash Pouch', `Your stashed ${cardName(c)} ${c.v}. Play it in any room on this floor; it doesn't count toward the room's cards. It's lost when the floor ends.`)}>${relicIcon('stash')}<span class="sname">${cardName(c)} <b>${c.v}</b></span><span class="sacts">${cardActs(c, 'sact')}</span></div>`;
 }
 const logHTML = (open = false) => `<details class="rules" ${open ? 'open' : ''}><summary>Log</summary><div class="log">${s.log.map(l => `<p>${esc(l)}</p>`).join('') || '<p class="muted">Your deeds will be recorded here.</p>'}</div></details>`;
+// Past runs: newest first, each opening to its numbers and relics. Your best run sits on top.
+const HOW_ENDED = { won: 'Made it out', died: 'Slain', struck_out: 'License revoked', abandoned: 'Gave up' };
+function historyHTML(open = false) {
+  const h = store.get('history', []);
+  let body = '<p class="muted" style="margin:6px 0 0">No runs yet. Every run you finish shows up here.</p>';
+  if (h.length) {
+    const asBoard = r => ({ outcome: r.outcome, floor: r.floorReached, points: r.points, gold: r.gold });
+    const best = h.reduce((b, r) => boardBetter(asBoard(r), asBoard(b)) > 0 ? r : b);
+    const when = r => new Date(r.at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+    const row = r => `<details class="hrun${r === best ? ' best' : ''}"><summary><span class="when">${when(r)}</span><span class="who">${r.daily ? 'Daily ' + dailyLabel(r.daily) : esc(RUN_MODES[r.mode] || '')}</span><span class="depth">${r.outcome === 'won' ? 'Won' : 'Floor ' + r.floorReached}</span><span class="num muted">${r.points} pts</span></summary>
+      <p class="muted hend">${HOW_ENDED[r.outcome] || 'Ended'}${r.outcome === 'died' && r.killer ? ' by ' + esc(theName(r.killer.replace(/^The /, ''))) : ''}${r.endless ? ' in Endless' : ''} · ${r.gold} gold left</p>
+      ${r.stats ? statsGrid(r.stats) : ''}${r.relics.length ? `<div class="hrelics">${r.relics.filter(k => E.RELICS[k]).map(k => `<span${tipAttr(E.RELICS[k].name, relicTip(k))}>${relicIcon(k, 'ico')}</span>`).join('')}</div>` : ''}</details>`;
+    body = `<p class="muted hbest">Best: ${best.outcome === 'won' ? 'won' : 'floor ' + best.floorReached}, ${best.points} points (${when(best)})</p>${h.map(row).join('')}`;
+  }
+  return `<details class="rules lb hist" ${open ? 'open' : ''}><summary>Past runs</summary><div class="hbody">${body}</div></details>`;
+}
 function coachHTML() {
   if (tut && TUTORIAL[tut.step]) { shownHint = null; return `<aside class="coach">${clerk('neutral')}<span class="label">Azazel says</span><p>${TUTORIAL[tut.step].text}</p><button class="link" data-skiptut>Skip tutorial</button></aside>`; }
   let h = currentHint(); const g = goal();
@@ -2696,7 +2792,7 @@ function endHTML() {
       <button data-fb>${rec.note ? 'Update note' : 'Save note'}</button><span id="fbstate" class="muted"></span>` : '';
   const key = 'end-' + (rec ? rec.id : s.floor);
   const medal = won || s.floor >= 9 ? 'gold' : s.floor >= 6 ? 'silver' : s.floor >= 3 ? 'bronze' : 'copper'; // how far you got: act 1, 2, 3 or the end
-  const tally = `<p class="muted tally">${img(`ui/medal-${medal}.webp`, 'medal', `${medal[0].toUpperCase() + medal.slice(1)} medal`)}Floor <span class="num">${s.floor + 1}</span> · <span class="num">${runPoints()}</span> points · <span class="num">${s.gold}</span> gold</p>`;
+  const tally = `<p class="muted tally">${img(`ui/medal-${medal}.webp`, 'medal', `${medal[0].toUpperCase() + medal.slice(1)} medal`)}Floor <span class="num">${s.floor + 1}</span> · <span class="num">${runPoints()}</span> points · <span class="num">${s.gold}</span> gold</p>${rec ? statsGrid(runStats(rec).filter(([k]) => END_STATS.includes(k))) : ''}`;
   let top;
   if (won) top = `${stamp('paid', key)}<div class="endsum">${img('ui/end-victory.webp', 'endart', 'The ledger, closed')}<h2>You made it out. The goat is mildly impressed. Don't gloat.</h2><p style="margin:0">${esc(s.lastResult || '')}</p>${tally}</div>`;
   else {
@@ -2713,6 +2809,9 @@ function endHTML() {
       ${won && !s.endless ? '<button class="primary" data-endless>Keep going: Endless</button><p class="muted" style="margin:0;font-size:13px">Go deeper until you fall. Every act gets harder, with a new boss each time.</p>' : ''}
       <div class="endbtns"><button class="${won && !s.endless ? '' : 'primary'}" data-new>New run</button><button data-title>Main menu</button></div></div></section>`;
 }
+// The run in numbers: four on the end screen, all of them in Past runs.
+const END_STATS = ['Slain', 'Biggest kill', 'Contracts met', 'Time'];
+const statsGrid = stats => `<dl class="runstats">${stats.map(([k, v]) => `<div><dt>${k}</dt><dd class="num">${v}</dd></div>`).join('')}</dl>`;
 function webFormHTML() {
   return `<label class="fb sr" for="pname">Name for Top scores (optional)</label>
       <input id="pname" maxlength="40" placeholder="Your name for Top scores (optional)" value="${esc(store.get('name', ''))}">
@@ -2748,7 +2847,7 @@ function runReport(r = rec) {
   const bought = r.shops.flatMap(sh => sh.bought.filter(k => E.RELICS[k]).map(k => E.RELICS[k].name)).join(', ') || 'none';
   const skipped = [...new Set(r.shops.flatMap(sh => sh.offered.filter(k => !sh.bought.includes(k)).map(k => E.RELICS[k].name)))].join(', ') || 'none';
   const t = r.tut ? `\nTutorial: intro ${r.tut.intro || 'not finished'}, ${r.tut.skipped ? `skipped after ${r.tut.guided} of ${TUTORIAL.length} guided moves` : `${r.tut.guided} of ${TUTORIAL.length} guided moves`}, ${r.tut.recap ? 'reached the recap' : 'no recap'}${r.tut.spared ? ', saved from death' : ''}` : '';
-  return `Scapegrace v${VERSION} run report${r.mode === 'full' ? ' (full game)' : r.mode === 'onedeck' ? ' (one deck)' : ''}${r.endless ? ' (endless)' : ''}: ${out} on floor ${r.floorReached}, ${r.totalSlain} points, ${r.gold} gold.\nFloors: ${floors}\nRelics taken: ${bought}\nRelics passed on: ${skipped}${t}`;
+  return `Scapegrace v${VERSION} run report${r.mode === 'full' ? ' (full game)' : r.mode === 'onedeck' ? ' (one deck)' : r.mode === 'daily' ? ` (daily ${r.daily})` : ''}${r.endless ? ' (endless)' : ''}: ${out} on floor ${r.floorReached}, ${r.totalSlain} points, ${r.gold} gold.\nFloors: ${floors}\nRelics taken: ${bought}\nRelics passed on: ${skipped}${t}`;
 }
 // ---------- leaderboard (top scores from the Sheet's published Leaderboard tab) ----------
 // The tab has one row per reported run: mode, name, points, floor, outcome, gold, version, date.
@@ -2781,10 +2880,12 @@ function boardFromCSV(text) {
   const col = k => head.findIndex(h => h.trim().toLowerCase() === k);
   const at = { mode: col('mode'), name: col('name'), points: col('points'), floor: col('floor'), outcome: col('outcome'), gold: col('gold'), version: col('version') };
   if (Object.values(at).some(i => i < 0)) throw new Error('unexpected columns');
-  const out = { guided: [], full: [], onedeck: [] }, best = {};
+  const day = col('day') >= 0 ? col('day') : col('date'); // a daily run's dungeon date (older Sheets only have the report date)
+  const out = { guided: [], full: [], onedeck: [], daily: [] }, best = {}, today = dailyKey();
   for (const r of rows) {
     const e = { mode: r[at.mode], name: (r[at.name] || '').trim().slice(0, 40), points: +r[at.points], floor: +r[at.floor], outcome: r[at.outcome], gold: +r[at.gold] || 0 };
     if (!boardVersionOK(r[at.version])) continue;
+    if (e.mode === 'daily' && day >= 0 && (r[day] || '').trim() !== today) continue; // only today's dungeon
     if (!out[e.mode] || !Number.isInteger(e.points) || e.points < 0 || e.points > BOARD_MAX_POINTS || !(e.floor >= 1 && e.floor <= BOARD_MAX_FLOOR)) continue;
     if (e.name) {
       const k = e.mode + '|' + e.name.toLowerCase();
@@ -2808,8 +2909,8 @@ async function loadBoard() {
   paintBoards();
 }
 function boardBody() {
-  const m = boardMode || gameMode();
-  const tabs = `<div class="mode boardtabs" role="group" aria-label="Leaderboard mode">${Object.entries(MODES).map(([k, label]) =>
+  const m = boardMode || (rec && rec.mode === 'daily' ? 'daily' : gameMode());
+  const tabs = `<div class="mode boardtabs" role="group" aria-label="Leaderboard mode">${Object.entries({ ...MODES, daily: 'Daily' }).map(([k, label]) =>
     `<button data-board="${k}" aria-pressed="${m === k}">${label}</button>`).join('')}</div>`;
   if (!board) return tabs + `<p class="muted" style="margin:6px 0 0">${boardState === 'error' ? 'Couldn\'t load the leaderboard. Try again later.' : 'Loading…'}</p>`;
   const me = store.get('name', '').toLowerCase(), list = board[m];
@@ -2910,21 +3011,21 @@ function deckHTML() {
 }
 // The pause menu also holds How to play, the run's log and Top scores, each on its own page with a Back button.
 let pauseView = null; // null: the menu. 'rules' | 'log' | 'scores' | 'stats': one of its pages
-const PAUSE_PAGES = { rules: 'How to play', log: 'Log', scores: 'Top scores', stats: 'Playtest stats' };
+const PAUSE_PAGES = { rules: 'How to play', log: 'Log', scores: 'Top scores', history: 'Past runs', stats: 'Playtest stats' };
 function pauseHTML() {
   if (pauseView) {
-    const page = pauseView === 'rules' ? rulesHTML(true) : pauseView === 'log' ? logHTML(true) : pauseView === 'scores' ? boardHTML(true) : statsHTML(true);
+    const page = pauseView === 'rules' ? rulesHTML(true) : pauseView === 'log' ? logHTML(true) : pauseView === 'scores' ? boardHTML(true) : pauseView === 'history' ? historyHTML(true) : statsHTML(true);
     return `<div class="overlay" role="dialog" aria-modal="true" aria-label="${PAUSE_PAGES[pauseView]}"><section class="pausebox pagebox"><h2>${PAUSE_PAGES[pauseView]}</h2>
   <div class="ppage">${page}</div><button class="primary" data-pauseback>Back</button></section></div>`;
   }
   return `<div class="overlay" role="dialog" aria-modal="true" aria-label="Paused"><section class="pausebox"><h2>Paused</h2>
   <button class="primary" data-resume>Resume</button>
   <button data-map>${img('ui/icon-map.webp', 'bi')}Map</button>
-  <div class="prow"><button data-pausepage="rules">How to play</button><button data-pausepage="log">Log</button>${boardState === 'off' ? '' : '<button data-pausepage="scores">Top scores</button>'}${statsHTML() ? '<button data-pausepage="stats">Stats</button>' : ''}</div>
+  <div class="prow"><button data-pausepage="rules">How to play</button><button data-pausepage="log">Log</button>${boardState === 'off' ? '' : '<button data-pausepage="scores">Top scores</button>'}<button data-pausepage="history">Past runs</button>${statsHTML() ? '<button data-pausepage="stats">Stats</button>' : ''}</div>
   <button data-title>Main menu</button>
   <label class="volume"><span>Sounds</span><input type="range" min="0" max="100" step="5" value="${Math.round(SFX.volume * 100)}" data-volume aria-label="Sound volume"></label>
   <label class="volume"><span>Music</span><input type="range" min="0" max="100" step="5" value="${Math.round(SFX.musicVolume * 100)}" data-musicvol aria-label="Music volume"></label>
-  <p class="muted">${MODES[gameMode()]} · <span class="mutenote">${SFX.muted ? 'Muted · M to unmute' : 'M mutes'}</span> · v${VERSION}</p>${syncNote()}</section></div>`;
+  <p class="muted">${rec ? runModeName(rec) + (rec.daily ? ' ' + dailyLabel(rec.daily) : '') : MODES[gameMode()]} · <span class="mutenote">${SFX.muted ? 'Muted · M to unmute' : 'M mutes'}</span> · v${VERSION}</p>${syncNote()}</section></div>`;
 }
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape' || !canPause() || busy) return;
@@ -2951,11 +3052,18 @@ function renderTitle() {
     <div class="logo"><h1>${img('ui/logo.webp', 'logoart', 'Scapegrace')}</h1></div>
     <p class="tagline">The goat knows the way down. Sign contracts, clear the dungeon, get paid. Try to keep up.</p>
     ${modes}
-    ${saved ? `<div class="playrow"><button class="primary play" data-continue${tipAttr('Continue', `Pick up your run where you left it: floor ${saved.s.floor + 1}, ${MODES[saved.rec.mode] || 'Guided start'}.`)}>Continue</button><button class="play newrun" data-play${tipAttr('New run', 'Start over. Your saved run ends.')}>New run</button></div>`
-      : `<button class="primary play" data-play${tipAttr('Play', 'Your first Guided start run teaches you as you play.')}>Play</button>`}
-    ${boardHTML()}
+    <div class="playrow">${saved ? `<button class="primary play" data-continue${tipAttr('Continue', `Pick up your run where you left it: floor ${saved.s.floor + 1}, ${runModeName(saved.rec)}.`)}>Continue</button><button class="play newrun" data-play${tipAttr('New run', 'Start over. Your saved run ends.')}>New run</button>`
+      : `<button class="primary play" data-play${tipAttr('Play', 'Your first Guided start run teaches you as you play.')}>Play</button>`}${dailyButton(saved)}</div>
+    <div class="tboards">${boardHTML()}${store.get('history', []).length ? historyHTML() : ''}</div>
     ${syncNote()}<p class="muted version"><button class="link soundtoggle" data-soundtoggle>${SFX.muted ? 'Sound off' : 'Sound on'}</button> · v${VERSION}</p>
   </section>`;
+}
+// The daily dungeon's button: today's date, or how today's try went.
+function dailyButton(saved) {
+  const d = dailyToday(), key = dailyKey();
+  if (!d) return `<button class="daily" data-daily${tipAttr('Daily dungeon', 'Everyone gets the same dungeon today, with every rule from floor 1. One try. A new one every day at midnight UTC.')}><b>Daily</b><small>${dailyLabel(key)}</small></button>`;
+  const live = saved && saved.rec.daily === key;
+  return `<button class="daily" disabled${tipAttr('Daily dungeon', 'One try a day. A new dungeon at midnight UTC.')}><b>Daily</b><small>${d.result ? `${d.result} · ${d.points} pts` : live ? 'in progress' : 'given up'}</small></button>`;
 }
 const narrow = () => !(window.matchMedia && matchMedia('(min-width: 900px) and (min-height: 520px)').matches);
 // Every redraw goes through here, so motion sees what changed whatever caused it.
@@ -3300,6 +3408,11 @@ app.addEventListener('click', async e => {
     else if ('play' in d) {
       if ((runLive() || savedRun()) && !confirm('Start a new run? Your saved run will end.')) return;
       dropSavedRun(); titleOn = false; startRun(); render();
+    }
+    else if ('daily' in d) {
+      if (dailyToday()) return;
+      if ((runLive() || savedRun()) && !confirm('Start today\'s daily dungeon? Your saved run will end.')) return;
+      dropSavedRun(); titleOn = false; startRun(false, dailyKey()); render();
     }
     return;
   }
