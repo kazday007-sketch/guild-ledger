@@ -1012,7 +1012,7 @@ main.solo:has(> .end) > details[open] { grid-column: 1 / -1; }
 main.solo:has(> .end) > details.lb { margin: 0; max-width: none; }
 #scene.dead::after { background: linear-gradient(90deg, rgba(14,2,4,.86), rgba(40,4,8,.5) 45%, rgba(30,3,6,.12) 75%), radial-gradient(ellipse at 70% 50%, transparent 40%, rgba(40,2,6,.7) 100%); animation: deadglow 2.4s ease-out both; }
 @keyframes deadglow { from { background-color: rgba(150,20,26,.55); } to { background-color: transparent; } }
-.end.dead { border-image-source: url(assets/ui/panel3-dead.webp); }
+.end.dead, main.solo .end.dead { border-image: url(assets/ui/frame-dead.webp) 170 fill / 34px stretch; padding: 24px 26px; } /* the engraved death frame on every screen; roomy ones draw it larger below */
 .end .label.ending { color: #b5666b; letter-spacing: .2em; }
 .end.dead h2 { color: #c9575c; font-size: 38px; text-shadow: 0 2px 0 #000; }
 .end .epitaph { margin: 0; max-width: 34ch; font: italic 400 21px/1.3 var(--body); color: var(--bone); text-wrap: balance; }
@@ -1521,7 +1521,7 @@ img.clerk { box-shadow: none; border-radius: 0; object-fit: contain !important; 
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.25.0';
+const VERSION = '2.25.1';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board

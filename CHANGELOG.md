@@ -8,6 +8,10 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.25.1
+
+- Fix: the new death-screen frame now shows on every screen size, not only roomy desktop windows.
+
 ## 2.25.0
 
 - The gold coach box and the highlighted next-floor panel are redrawn as engraved brass-and-honey panels, so no old-style panel pieces are left.
