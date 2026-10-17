@@ -8,6 +8,10 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.33.0
+
+- The death screen now matches its backdrop: the engraved frame and the panel behind the text are in the same dim umber and candlelit stone as the room with the goat, instead of bright crimson. The name and note fields and the Top scores and Log bars under the panel take the same tone.
+
 ## 2.32.0
 
 - The spot a played card leaves behind is now an engraved stone recess with brass corners and a hoof print, drawn by Dude, instead of the faint ink outline. It is already there under the card as the card starts to leave, so the card lifts off it.
