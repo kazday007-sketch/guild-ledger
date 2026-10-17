@@ -8,6 +8,11 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.35.0
+
+- **Darker, slower music with real dance synths.** Every loop now runs in minor, harmonic minor or phrygian keys, in a bigger stone-room echo, with a far bell tolling in the quiet parts. The drops have a growling detuned-saw bass, a supersaw pad and a saw lead carrying the tune (the recorder now ghosts above it). The synths are strong but filtered dark, so nothing is shrill.
+- Slower tempos: crypt 98 a minute, sewers 90, vault 101, bosses 105 (still with a rolling growl bass and two drops), and the guild hall 75.
+
 ## 2.34.0
 
 - **Your deck is your kit.** Two new shop services. **Forge** makes one of your weapon or potion cards 2 stronger for the rest of the run, with no ceiling (6 gold, then 3 more each time, and you can forge more than once a shop). **Recruit** offers three new cards (two weapons, one potion) and one joins the dungeon. Smith is gone. Forged cards wear a gold plate with their new value, and the deck view shows them in gold.
