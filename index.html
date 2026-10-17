@@ -1030,7 +1030,7 @@ main.solo:has(> .end) > details.lb { margin: 0; max-width: none; }
 .torn { position: relative; display: grid; justify-items: center; }
 .torn .stamp { top: 26px; left: 50%; margin-left: -66px; }
 @media (min-width: 1000px) and (min-height: 760px) { /* roomy screens: the death panel steps left so the painted scene stays in view */
-  main.solo .end.dead { grid-template-columns: 1fr; width: min(100%, 540px); justify-self: start; margin-left: 4vw; padding: 34px 34px 30px; row-gap: 14px; }
+  main.solo .end.dead { grid-template-columns: 1fr; width: min(100%, 540px); justify-self: start; margin-left: 4vw; padding: 54px 52px 48px; row-gap: 14px; border-image: url(assets/ui/frame-dead.webp) 170 fill / 64px stretch; }
   main.solo:has(> .end.dead) > details { max-width: 540px; margin-left: 4vw; }
   main.solo section.end.dead h2 { font-size: 56px; letter-spacing: .04em; }
   .end.dead .epitaph { font-size: 24px; }
@@ -2387,7 +2387,7 @@ img.clerk { box-shadow: none; border-radius: 0; object-fit: contain !important; 
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.23.0';
+const VERSION = '2.24.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
