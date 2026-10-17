@@ -8,10 +8,21 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
-## 2.34.0
+## 2.35.0
 
 - **Darker, slower music with real dance synths.** Every loop now runs in minor, harmonic minor or phrygian keys, in a bigger stone-room echo, with a far bell tolling in the quiet parts. The drops have a growling detuned-saw bass, a supersaw pad and a saw lead carrying the tune (the recorder now ghosts above it). The synths are strong but filtered dark, so nothing is shrill.
 - Slower tempos: crypt 98 a minute, sewers 90, vault 101, bosses 105 (still with a rolling growl bass and two drops), and the guild hall 75.
+
+## 2.34.0
+
+- **Your deck is your kit.** Two new shop services. **Forge** makes one of your weapon or potion cards 2 stronger for the rest of the run, with no ceiling (6 gold, then 3 more each time, and you can forge more than once a shop). **Recruit** offers three new cards (two weapons, one potion) and one joins the dungeon. Smith is gone. Forged cards wear a gold plate with their new value, and the deck view shows them in gold.
+- **Rarities are common, rare and epic.** Boss relics are gone. Every pick rolls each slot: after a floor mostly common (5% epic), after a boss mostly rare and epic (35% epic), and the shop sells rare or epic. A rout or a met Bold, Reckless or Wildcard contract still turns commons into rares.
+- **Trophies.** About one boss pick in four swaps a slot for the boss itself: take it and it joins your deck as a weapon of its value. It takes no relic slot.
+- **Every relic should make you think.** 21 relics that were plain stat bumps or overlapped others are retired: Whetstone, Keen Edge, Grindstone, Masterwork, Notched Hilt, Brass Knuckles, Iron Fist, Pickpocket, Pit Fighter, Blood Pact, Bloodstone, Bedroll, Second Heart, Scar Tissue, Iron Skin, Tip Jar, Oathkeeper, Insurance Seal, Trophy Belt, Escape Artist and Second Wind. A saved run that held one simply loses it.
+- Reworked: **Unbreaking Edge** (epic) still never dulls, but while you hold a weapon, new weapons you take are thrown away. **Hag's Heart** lets you drink two potions a room, and the first heals double (no more max health).
+- New: **Living Steel** (rare). Every weapon kill raises that weapon card by 1 for the rest of the run, up to +5 a card.
+- **Endless gets harder fast.** Each Endless act makes monsters, elites, bosses and targets a fifth stronger, compounding (x1.2, x1.44, x1.73...). Simulated runs now usually end in the first Endless act (median floor 12, was 15).
+- Simulator wins: cautious 19%, balanced 21%, greedy 17%.
 
 ## 2.33.0
 
