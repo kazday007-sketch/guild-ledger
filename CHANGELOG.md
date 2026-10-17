@@ -8,6 +8,10 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.22.1
+
+- Death screen: on roomy screens the panel steps to the left and the scene shows on the right (the goat looking down at the helmet), with a bigger title and epitaph and a lighter red wash.
+
 ## 2.22.0
 
 - Five engraved scene paintings replace the old ones (title, guild hall, training, victory, defeat), each with Azazel on all fours and his lantern hung from his satchel.
