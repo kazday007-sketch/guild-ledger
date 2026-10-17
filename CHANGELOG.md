@@ -8,6 +8,12 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.21.0 (2026-10-17)
+Panels and end-screen pieces redrawn at their real proportions.
+- New dark engraved panels drawn per use: main (status, shop, end, contract board, menus), a wider short one for payouts, a tall one for the floor map, a thin banner for the Top scores and Log rows, a notched tooltip, deckled note paper for shop wares, and a recessed ring for empty relic slots.
+- Filled relic slots are a plain dark square so the icon stays clear.
+- Death, revoked and win screens have new pieces (brass helmet and candle, torn licence with a quill, closed ledger with a hoof print).
+
 ## 2.20.0 (2026-10-17)
 Buttons redrawn at the exact sizes they have in the game.
 - Each button plate is drawn at its real proportions (main 190x56, secondary 104x40, card play 120x52, mode 100x36, square for the pause button) and used 1:1, so only the plain middle stretches and the wax seals stay round.
