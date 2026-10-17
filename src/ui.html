@@ -1589,6 +1589,31 @@ img.clerk { box-shadow: none; border-radius: 0; object-fit: contain !important; 
 .runtrack .tf.tboss.tdone { background: rgba(208,84,91,.55); } .runtrack .tf.tboss.there { background: #f08a8f; border-color: #ffd0d3; box-shadow: 0 0 8px rgba(240,138,143,.9); transform: rotate(45deg) scale(1.25); }
 @media (max-width: 620px) { .runtrack { gap: 6px; margin-top: 4px; } .runtrack .tact { padding: 3px 7px 4px; } .runtrack ol { gap: 5px; } .runtrack .tact > span { font-size: 9.5px; } }
 @media (max-height: 519px) and (orientation: landscape) { .runtrack { margin: 0 0 0 6px; align-self: center; } .runtrack .tact > span { display: none; } .runtrack .tact { padding: 4px 8px; } }
+/* ---------- 2.28.0: shop fit and engraved boss boxes ----------
+   The shop's dues reminder lives in the left column, under your status, so it never covers the services. */
+.side .sidedues:empty { display: none; }
+.side .sidedues .warn.dueswarn { display: block !important; text-align: center; border: 1px solid transparent; border-radius: 0; background: none; border-image: url(assets/ui/panel3-mid.webp) 96 fill / 20px stretch; padding: 10px 16px; }
+.side .sidedues .warn.dueswarn.ok, .side .sidedues .warn.dueswarn.ok b { color: var(--gold); }
+.side .sidedues .warn.dueswarn.short, .side .sidedues .warn.dueswarn.short b { color: #f08a8f; }
+@media (max-height: 519px) and (orientation: landscape) { .side .sidedues .warn.dueswarn { padding: 4px 10px; font-size: 12.5px; border-image-width: 12px; } }
+@media (max-width: 899px) and (orientation: portrait) { .side .sidedues .warn.dueswarn { padding: 5px 10px; font-size: 13px; border-image-width: 12px; } }
+/* The relic's price and Buy sit side by side as one unit, the same height; Reroll is the quieter button under them, as wide as both. */
+@media (min-width: 900px) and (min-height: 600px) {
+  main.play .stage .shop .shelf .ware.relicware .buyrow { display: grid; grid-template-columns: auto auto; gap: 8px; align-items: stretch; justify-content: end; flex-direction: initial; }
+  main.play .stage .shop .shelf .ware.relicware .buyrow .tag { height: auto; justify-content: center; padding: 0 14px 0 10px; }
+  main.play .stage .shop .shelf .ware.relicware .buyrow [data-buy] { min-width: 5.2em; padding: .45em 1em; }
+  main.play .stage .shop .shelf .ware.relicware .buyrow .reroll { grid-column: 1 / -1; font-size: calc(var(--btnf) * .85); padding: .35em .8em; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+  main.play .stage .shop .shelf .ware.relicware .buyrow .reroll .gi { width: 1em; height: 1em; }
+}
+/* Boss boxes, notices and the beaten-boss badge use the engraved dark plate, with the boss's name in red. */
+.boss, .side .boss, .stage > .boss, .shop .boss { background: none; border: 1px solid transparent; border-radius: 0; border-image: url(assets/ui/panel3-tip.webp) 44 fill / 18px stretch; box-shadow: none; padding: 10px 16px; filter: drop-shadow(0 4px 8px rgba(0,0,0,.45)); }
+.boss img { border-radius: 2px; box-shadow: 0 0 0 1px #8a6a3a, 0 0 0 3px rgba(0,0,0,.6), 0 0 12px rgba(208,84,91,.35); }
+.boss .who .label { color: #e0767c; letter-spacing: .14em; }
+.boss b { color: #f08a8f; text-shadow: 0 1px 2px #000; }
+.warn { border: 1px solid transparent; border-radius: 0; background: none; border-image: url(assets/ui/panel3-tip.webp) 44 fill / 16px stretch; padding: 8px 16px; }
+.warn.short, .warn.short b { color: #f08a8f; }
+.pboss { border-radius: 0; background: none; border: 1px solid transparent; border-image: url(assets/ui/panel3-tip.webp) 44 fill / 12px stretch; box-shadow: 0 4px 14px rgba(0,0,0,.6); padding: 4px 14px 4px 6px; }
+.pboss img { border-radius: 2px; box-shadow: 0 0 0 1px #8a6a3a; }
 </style>
 
 <div id="scene" aria-hidden="true"></div>
@@ -1602,7 +1627,7 @@ img.clerk { box-shadow: none; border-radius: 0; object-fit: contain !important; 
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.27.1';
+const VERSION = '2.28.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -3005,13 +3030,13 @@ function drawScreen() {
     };
     const svc = Object.fromEntries(Object.entries(E.SERVICES).map(([k, v]) => [k, s.oneDeck && v.oneDeck ? { ...v, text: v.oneDeck } : v]));
     const relicShelf = relicsOpen() && s.shop.relics.length;
-    body = cols(`${coachHTML()}${statusHTML()}${settleHTML()}`, `
+    body = cols(`${coachHTML()}${statusHTML()}${settleHTML()}<div class="sidedues">${duesWarning()}</div>`, `
       <section class="shop"><div class="shopsign"><h2>Guild Shop</h2><span class="purse">${img('ui/shop-purse.webp')}<b class="num">${s.gold}</b> gold</span></div>
         ${relicShelf ? `<div class="shelf rareshelf"><div class="label">${s.shop.relics.length > 1 ? 'Relics' : 'Relic'}${full ? ' · your slots are full' : ''}</div>
         <div class="shopgrid relicgrid">${s.shop.relics.map(k => ware(k, E.RELICS[k])).join('')}</div></div>` : ''}
         <div class="shelf"><div class="label">Services</div>
         <div class="shopgrid services">${Object.entries(svc).map(([k, v]) => ware(k, v)).join('')}</div></div>
-        ${duesWarning()}${relicsOpen() ? `<div class="label yours">Your relics (${s.relics.length}/${E.MAX_RELICS})</div>` : ''}
+        ${relicsOpen() ? `<div class="label yours">Your relics (${s.relics.length}/${E.MAX_RELICS})</div>` : ''}
         <div class="shopexit">${relicsOpen() ? relicsHTML(true) : ''}<button class="deckbtn" data-deck${tipAttr('The deck', 'See every card in the dungeon. Cull and Smith change it.')}>${img('icons/hud-draw-pile.webp', 'bi')}Deck</button><button class="primary" data-leave>Leave shop</button></div>
       </section>`);
   } else {
