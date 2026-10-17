@@ -331,7 +331,7 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 @media (prefers-reduced-motion: reduce) { #dust { display: none; } #danger.beat, .chamber .card .art img, .chamber .card.vint .art { animation: none; } }
 /* big moments: the boss walking in, a boss falling, the end of the run */
 .bossintro { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 16px; cursor: pointer; background: radial-gradient(ellipse at 50% 42%, rgba(70,10,12,.6), rgba(6,4,6,.94) 72%); }
-.bossintro .bi { display: grid; justify-items: center; gap: 8px; text-align: center; width: min(100%, 680px); }
+.bossintro .bibox { display: grid; justify-items: center; gap: 8px; text-align: center; width: min(100%, 680px); }
 .bossintro img { width: min(40vw, 200px); max-height: 34vh; aspect-ratio: 4 / 5; object-fit: contain; border-radius: 10px; filter: drop-shadow(0 0 30px rgba(208,84,91,.55)) drop-shadow(0 10px 20px rgba(0,0,0,.8)); }
 .bossintro .kind { font: 700 13px/1 var(--mono); letter-spacing: .3em; text-transform: uppercase; color: #e0767c; }
 .bossintro h2 { margin: 0; font-family: var(--display); font-size: clamp(30px, min(7vw, 7vh), 54px); line-height: 1; color: #f1e3bf; text-shadow: 0 3px 0 #000, 0 0 26px rgba(208,84,91,.55); }
@@ -379,17 +379,22 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 .stashbox .sname { white-space: nowrap; color: var(--ash); } .stashbox .sname b { color: var(--bone); }
 .stashbox .sacts { display: flex; gap: 4px; flex-wrap: wrap; } .belt .stashbox .sacts button { padding: 2px 6px; font-size: 12px; min-height: 0; white-space: nowrap; }
 .stashbox .sacts .sm { display: inline; } .stashbox .sacts .lg { display: none; }
-.card .acts .xact { font-size: 12px; padding: 2px 4px; min-height: 0; background: none; border-color: transparent; color: var(--verdigris); text-align: center; }
+.card .name.withx { display: flex; justify-content: center; align-items: baseline; gap: 2px 8px; flex-wrap: wrap; }
+.card .name .xact { font-size: 13px; padding: 0 2px; min-height: 0; color: var(--verdigris); white-space: nowrap; }
 .stat.weapon .off { font-size: .7em; }
 .card .acts.many { grid-template-columns: 1fr 1fr; } .card .acts.many .lg { display: none; } .card .acts.many .sm { display: inline; }
-.card .acts.many button { text-align: center; padding: 5px 3px; } .card .acts .xact { grid-column: 1 / -1; }
+.card .acts.many button { text-align: center; padding: 5px 3px; }
 .peek svg { width: 20px; height: 20px; vertical-align: -5px; margin-right: 4px; }
 .belt:has(.stashbox) { flex-wrap: wrap; row-gap: 4px; } .belt .stashbox { flex: 1 1 100%; order: 3; justify-content: center; }
 .hurtflash { position: fixed; inset: 0; z-index: 4; pointer-events: none; box-shadow: inset 0 0 90px 30px rgba(190,20,20,.9); opacity: 0; }
 .hpbar .chip { position: absolute; top: 0; bottom: 0; background: #f6d2c4; transform-origin: left; }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .chamber:not(.preview) .card:not(.idle):not(.hidden) { transition: transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .18s; }
-  .chamber:not(.preview) .card:not(.idle):not(.hidden):hover { transform: translateY(-5px); box-shadow: 0 3px 0 rgba(0,0,0,.35), 0 14px 22px rgba(0,0,0,.5); }
+  /* hovering lifts the card itself; its name and play buttons stay where they are on the table */
+  .chamber:not(.preview) .card:not(.idle):not(.hidden) :is(.art, .acts) { transition: translate .18s cubic-bezier(.2,.8,.2,1), filter .18s; }
+  .chamber:not(.preview) .card.vint:not(.idle):not(.hidden):hover .art { translate: 0 -7px; filter: drop-shadow(0 10px 10px rgba(0,0,0,.45)); }
+  .chamber:not(.preview) .card:not(.vint):not(.idle):not(.hidden) { transition: transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .18s; }
+  .chamber:not(.preview) .card:not(.vint):not(.idle):not(.hidden):hover { transform: translateY(-5px); box-shadow: 0 3px 0 rgba(0,0,0,.35), 0 14px 22px rgba(0,0,0,.5); }
+  .chamber:not(.preview) .card:not(.vint):not(.idle):not(.hidden):hover .acts { translate: 0 5px; }
 }
 @media (prefers-reduced-motion: reduce) { .stamp { animation: none; } .offer { transition: none; } }
 
@@ -471,12 +476,11 @@ main .titlecard .logo::after { display: none; } /* the logo has its own letterin
 .mode button[aria-pressed="true"] { background: color-mix(in srgb, var(--gold) 22%, var(--slab-2)); color: var(--bone); }
 .cols, .side, .stage { display: grid; gap: 14px; min-width: 0; }
 .side .version { margin: 0; }
-.sm, .more { display: none; }
+.sm { display: none; }
 .stat .lim { font-size: 13px; }
 .mode-row { display: flex; gap: 12px; align-items: baseline; font-size: 14px; }
-.extras { display: grid; gap: 10px; }
 /* Phones and other narrow screens: one column that fits the screen. Status and talk on top, the table below with
-   the cards shrinking to the height that's left, and How to play / Top scores behind the More button. */
+   the cards shrinking to the height that's left. How to play and Top scores are in the pause menu. */
 @media not ((min-width: 900px) and (min-height: 520px)) {
   body { padding: 8px 10px; }
   main.play { height: calc(100dvh - 16px); grid-template-rows: auto minmax(0, 1fr); gap: 8px; }
@@ -484,13 +488,10 @@ main .titlecard .logo::after { display: none; } /* the logo has its own letterin
   main:is(.play, .solo) header h1 { font-size: 0; gap: 0; } main:is(.play, .solo) h1 .emblem { width: 30px; height: 30px; }
   main.solo header .mode button { padding: 4px 8px; font-size: 12px; } main.solo header .where { font-size: 12px; margin-left: auto; }
   main.solo { gap: 8px; } main.solo .end .endform label { font-size: 14px; }
-  main.play .more { display: inline-block; padding: 4px 10px; font-size: 13px; }
   main.play header .where { font-size: 12px; margin-left: auto; white-space: nowrap; }
   .cols { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
   .side { display: flex; flex-direction: column; gap: 8px; flex: none; }
   .side > * { flex: none; }
-  .extras { display: none; }
-  main.more-open .extras { display: grid; position: fixed; z-index: 20; top: 52px; left: 10px; right: 10px; max-height: calc(100dvh - 70px); overflow-y: auto; padding: 12px; background: var(--stone); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.7); }
   .stage { display: flex; flex-direction: column; gap: 8px; flex: 1 1 auto; min-height: 0; }
   .stage > * { flex: none; }
   .stage section.chamber { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; padding: 6px; gap: 6px; border-radius: 10px; }
@@ -698,8 +699,6 @@ main .titlecard .logo::after { display: none; } /* the logo has its own letterin
   .side:has(.contract.paper) .coach.goalonly { display: none; } /* the contract shows the same target */
   .side .boss { padding: 6px 12px; } .side .boss img { width: 44px; height: 55px; } .side .boss .who .label { display: none; }
   .side .warn { display: none; } /* the Guild box shows the dues in red when you're short */
-  .side .extras { display: none; } main.play .more { display: inline-block; padding: 5px 12px; font-size: 14px; }
-  main.more-open .side .extras { display: grid; position: fixed; z-index: 20; top: 60px; left: 16px; width: 380px; max-height: calc(100vh - 80px); overflow-y: auto; padding: 12px; background: var(--stone); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.7); }
   .side .coach p { font-size: 18px; line-height: 1.3; }
   .side .coach .ok { font-size: 15px; padding: 6px 16px; }
   .side .coach > .clerk { width: 52px; height: 65px; }
@@ -716,11 +715,9 @@ main .titlecard .logo::after { display: none; } /* the logo has its own letterin
   main.solo .end { padding: 18px 20px; grid-template-columns: 1.1fr 1fr; align-items: center; column-gap: 28px; text-align: center; }
   main.solo .end .endform { align-content: center; }
 }
-@media (min-width: 900px) and (min-height: 821px) and (max-height: 1000px) { /* How to play and Top scores go behind More here too, so the side column never scrolls */
+@media (min-width: 900px) and (min-height: 821px) and (max-height: 1000px) { /* the end screen side by side here too */
   main.solo:has(.endform) { max-width: 1100px; } /* the end screen side by side, as on shorter screens */
   main.solo .end { padding: 18px 20px; grid-template-columns: 1.1fr 1fr; align-items: center; column-gap: 28px; text-align: center; } main.solo .end .endform { align-content: center; }
-  .side .extras { display: none; } main.play .more { display: inline-block; padding: 5px 12px; font-size: 14px; }
-  main.more-open .side .extras { display: grid; position: fixed; z-index: 20; top: 60px; left: 16px; width: 380px; max-height: calc(100vh - 80px); overflow-y: auto; padding: 12px; background: var(--stone); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.7); }
 }
 @media (min-width: 900px) and (min-height: 520px) and (max-height: 580px) {
   .stage .shop .shopsign { display: none; } /* the gold is in the status box beside it */
@@ -757,6 +754,9 @@ button.primary:not(.link):not(.offer):active:not(:disabled) { filter: brightness
 .status, .shop, .end, .contract.board { background: none; border-color: transparent; border-radius: 0; border-image: url(assets/ui/panel3-main.webp) 96 fill / 26px stretch; }
 .settle { background: none; border-color: transparent; border-radius: 0; border-image: url(assets/ui/panel3-mid.webp) 96 fill / 26px stretch; }
 details.rules { background: none; border-color: transparent; border-radius: 0; border-image: url(assets/ui/panel3-banner.webp) 45 40 fill / 22.5px 20px stretch; }
+/* the banner plate is drawn for one line: once a box is open and grows (Top scores, the log) it takes the panel border instead,
+   so its end caps and bottom edge don't stretch */
+details.rules[open] { border-image: url(assets/ui/panel3-main.webp) 96 fill / 26px stretch; padding: 14px 18px; }
 .ware { background: none; border-color: transparent; border-radius: 0; border-image: url(assets/ui/panel3-note.webp) 100 fill / 34px stretch; }
 .relic { background: rgba(8,12,18,.55); border: 1px solid #6e5a35; border-radius: 3px; border-image: none; }
 .relic.empty { background: none; border-color: transparent; border-radius: 0; border-image: url(assets/ui/panel3-slot.webp) 57 fill / 28.5px stretch; }
@@ -823,6 +823,19 @@ header .pause img { width: 24px; height: 24px; }
 .pausebox h2::after { content: ''; display: block; width: 200px; height: 30px; margin: 2px auto 0; background: url(assets/ui/divider.webp) center / contain no-repeat; }
 .pausebox button { font-size: 17px; padding: 11px 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .pausebox .muted { margin: 0; font-size: 13px; }
+.pausebox .prow { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; }
+.pausebox .prow button { font-size: 14px; padding: 9px 4px; white-space: nowrap; }
+.pausebox .sync { font-size: 12px; }
+/* a page of the pause menu (How to play, Log, Top scores): its own box, the page scrolls inside it if it must */
+.pausebox.pagebox { width: min(100%, 520px); max-height: calc(100dvh - 32px); grid-template-rows: auto minmax(0, 1fr) auto; text-align: left; }
+.pausebox.pagebox h2 { text-align: center; }
+.pagebox .ppage { min-height: 0; overflow-y: auto; }
+.pagebox .ppage details.rules { background: none; border: 0; border-image: none; padding: 0; }
+.pagebox .ppage details.rules > summary { display: none; }
+.pagebox .ppage .log { max-height: none; }
+.pagebox .ppage details.rules ol { margin-top: 0; }
+.pagebox .ppage .lbbody { max-height: none; }
+.pagebox .boardtabs button { font-size: 14px; padding: 6px 8px; }
 /* the deck view: every card in the dungeon as a small numbered chip, dealt ones dimmed */
 .deckbox { width: min(100%, 560px); gap: 10px; text-align: left; max-height: calc(100dvh - 32px); overflow-y: auto; }
 .deckbox h2 { text-align: center; }
@@ -1487,7 +1500,6 @@ main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(2)) { 
 main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(2)) .lg { display: none; }
 main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(2)) .sm { display: inline; }
 main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(2)) button { text-align: center; padding-inline: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-main.play .stage .chamber:not(.preview) .card.vint .acts .xact { grid-column: auto; }
 .acts img.hit { height: 1.5em; width: 1.5em; vertical-align: middle; margin: -.3em 3px -.25em 0; filter: drop-shadow(0 1px 1px rgba(0,0,0,.6)); }
 .acts .hitv { font-size: .7em; margin: 0 2px 0 -4px; vertical-align: -.2em; }
 .acts:has(> :nth-child(3)) img.hit { width: 1.35em; height: 1.35em; margin: 0; }
@@ -1521,7 +1533,7 @@ img.clerk { box-shadow: none; border-radius: 0; object-fit: contain !important; 
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.25.1';
+const VERSION = '2.26.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -1735,7 +1747,7 @@ function motionSound(was, now, snap) {
 }
 // The screen changed: its parts rise into place one after another, and lists of choices deal in.
 function screenIn() {
-  const parts = app.querySelector('.cols') ? [...app.querySelectorAll('.cols > .side > :not(.extras), .cols > .stage > *')] : [...app.children].filter(el => el.tagName !== 'HEADER' && !el.classList.contains('version'));
+  const parts = app.querySelector('.cols') ? [...app.querySelectorAll('.cols > .side > *, .cols > .stage > *')] : [...app.children].filter(el => el.tagName !== 'HEADER' && !el.classList.contains('version'));
   parts.slice(0, 8).forEach((el, i) => anim(el, [{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }], { duration: 380, delay: 40 * i, fill: 'backwards' }));
   if (app.querySelector('.pickview')) pickReveal();
   app.querySelectorAll('.offers > .offer').forEach((el, i) =>
@@ -1856,17 +1868,17 @@ function bossIntro() {
   seen.add(s.floor);
   const b = s.boss, el = document.createElement('div');
   el.className = 'bossintro'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', `Boss: ${b.name}`);
-  el.innerHTML = `<div class="bi">${bossImg(b)}<span class="kind">${esc(b.kind)}</span><h2>${esc(b.name)}</h2><p>${esc(b.rule)}</p><small>Tap to go on</small></div>`;
+  el.innerHTML = `<div class="bibox">${bossImg(b)}<span class="kind">${esc(b.kind)}</span><h2>${esc(b.name)}</h2><p>${esc(b.rule)}</p><small>Tap to go on</small></div>`;
   document.body.appendChild(el);
   SFX.play('toll', { gain: .9 }); SFX.play('hurt', { gain: .6, delay: .35 });
-  const [pic, kind, name, rule, hint] = el.querySelector('.bi').children;
+  const [pic, kind, name, rule, hint] = el.querySelector('.bibox').children;
   anim(el, [{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
   anim(pic, [{ opacity: 0, transform: 'scale(1.35)', filter: 'blur(8px) brightness(.3)' }, { opacity: 1, transform: 'none', filter: 'none' }], { duration: 900, easing: EASE.out });
   anim(kind, [{ opacity: 0, letterSpacing: '.8em' }, { opacity: 1, letterSpacing: '.3em' }], { duration: 700, delay: 350, fill: 'backwards' });
   anim(name, [{ opacity: 0, transform: 'translateY(16px) scale(.96)' }, { opacity: 1, transform: 'none' }], { duration: 600, delay: 450, fill: 'backwards' });
   anim(rule, [{ opacity: 0 }, { opacity: 1 }], { duration: 600, delay: 900, fill: 'backwards' });
   anim(hint, [{ opacity: 0 }, { opacity: .6 }], { duration: 600, delay: 1600, fill: 'backwards' });
-  anim(el.querySelector('.bi'), [{ transform: 'none' }, { transform: 'translate(-4px, 2px)' }, { transform: 'translate(3px, -2px)' }, { transform: 'none' }], { duration: 260, delay: 380, easing: 'linear' });
+  anim(el.querySelector('.bibox'), [{ transform: 'none' }, { transform: 'translate(-4px, 2px)' }, { transform: 'translate(3px, -2px)' }, { transform: 'none' }], { duration: 260, delay: 380, easing: 'linear' });
   let gone = false;
   const opened = performance.now();
   const close = e => {
@@ -2132,7 +2144,7 @@ function resumeRun() {
     try { s = E.loadGame(v.s); } catch { store.drop('run'); return false; }
     rec = v.rec; tut = v.tut || null; mapView = v.map ? 'auto' : null;
   }
-  titleOn = false; introStep = null; lastHit = null; lastTip = null; recall = false; paused = false; moreOpen = false;
+  titleOn = false; introStep = null; lastHit = null; lastTip = null; recall = false; paused = false; pauseView = null;
   return true;
 }
 function dropSavedRun() { // starting over: the old run ends as abandoned, and its report goes out
@@ -2140,7 +2152,7 @@ function dropSavedRun() { // starting over: the old run ends as abandoned, and i
   if (rec && rec.status === 'in_progress' && rec.floors.length) { rec.status = 'abandoned'; save(); sendReport(rec); }
   store.drop('run'); s = null; rec = null;
 }
-function startTutorial() { readReportForm(); if (rec && rec.status === 'in_progress' && rec.floors.length) { rec.status = 'abandoned'; save(); } sendReport(rec); moreOpen = false; startRun(true); }
+function startTutorial() { readReportForm(); if (rec && rec.status === 'in_progress' && rec.floors.length) { rec.status = 'abandoned'; save(); } sendReport(rec); pauseView = null; startRun(true); }
 
 // ---------- shared playtest log (db capability) ----------
 let db = null, uid = null, owner = false, myDoc = null, saving = Promise.resolve(), dbState = 'connecting';
@@ -2386,7 +2398,7 @@ function allowed(c, mode) {
 function cardHTML(c, active) {
   if (c.hidden) return `<article class="card vint hidden ${active ? '' : 'idle'}" data-card="${c.id}" style="${handPlaced(c.id)}"${tipAttr('Face down', 'The Banshee hides this card. Take another card first, and it turns over.')}>
     <div class="art">${img('cards/vintage/back.webp')}</div><div class="name"><span class="face">Face down</span></div><div class="acts"><button disabled>${dual('Take another card first', 'Hidden')}</button></div></article>`;
-  return cardShell(c, active, cardActs(c, 'act'));
+  return cardShell(c, active, cardActs(c, 'act'), active ? cardExtras(c) : '');
 }
 // The buttons for playing a card, one per way it can be played (see E.modes). `attr` is the click's data key:
 // 'act' for a card in the room, 'sact' for the card in the Stash Pouch.
@@ -2407,17 +2419,21 @@ function cardActs(c, attr) {
     if (ms.includes('bare')) acts += btn('bare', fightLabel(c, false));
     if (ms.includes('drink')) acts += btn('drink', iconLabel('heal', 'Drink', `+${Math.min(E.potionHeal(s, c), s.maxHp - s.hp)}`), tipAttr("Mimic's Tongue", 'Drink this little monster as a potion.'));
   }
-  if (attr === 'act' && !tut) { // relics that work on a card in the room
-    if (E.canStash(s, c.id)) acts += `<button class="link xact" data-stash="${c.id}"${tipAttr('Stash Pouch', 'Set this card aside. It counts as taken, and you can play it in any later room on this floor.')}>Stash</button>`;
-    if (E.canSwap(s, c.id)) acts += `<button class="link xact" data-swap="${c.id}"${tipAttr('Blood Price', 'Pay 1 health: this card goes to the bottom of the pile and the next one takes its place. Once a room.')}>Swap −1</button>`;
-  }
   return acts;
 }
-function cardShell(c, active, acts) {
+// Relics that work on a card in the room add a small link beside its name, so the play buttons keep their full width.
+function cardExtras(c) {
+  if (tut) return '';
+  let x = '';
+  if (E.canStash(s, c.id)) x += `<button class="link xact" data-stash="${c.id}"${tipAttr('Stash Pouch', 'Set this card aside. It counts as taken, and you can play it in any later room on this floor.')}>Stash</button>`;
+  if (E.canSwap(s, c.id)) x += `<button class="link xact" data-swap="${c.id}"${tipAttr('Blood Price', 'Pay 1 health: this card goes to the bottom of the pile and the next one takes its place. Once a room.')}>Swap −1</button>`;
+  return x;
+}
+function cardShell(c, active, acts, extras = '') {
   const lit = tut && TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.v === c.v && s.phase === 'room';
   return `<article class="card ${c.kind} ${isVintage(c) ? 'vint' : ''} ${c.v >= 15 || c.bossKey ? 'elite' : ''} ${c.boss ? 'bosscard' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''}" data-card="${c.id}" style="${handPlaced(c.id)}"${isBossCard(c) ? ' data-boss="1"' : ''}${c.boss ? tipAttr(cardName(c), 'Must die before you can leave this room.') : ''}>
     <div class="art">${img(cardArt(c))}<span class="rank" role="img" aria-label="${c.v}">${digits(c.v)}</span></div>
-    <div class="name"><span class="face">${cardName(c)}</span></div>
+    <div class="name ${extras ? 'withx' : ''}"><span class="face">${cardName(c)}</span>${extras}</div>
     <div class="acts ${(acts.match(/data-act=/g) || []).length > 2 ? 'many' : ''}">${acts}</div></article>`;
 }
 // The Guild box's dues: the next dues ahead (in the shop, the coming act's), or none once the last are paid.
@@ -2443,7 +2459,7 @@ const bossHTML = () => s.boss ? bossCard(s.boss, s.boss.kind) : '';
 function relicsHTML(withDrop, slots = withDrop) {
   if (!relicsOpen()) return '';
   if (!s.relics.length && !slots) return '';
-  const empty = slots ? Array.from({ length: E.MAX_RELICS - s.relics.length }, () => `<div class="relic empty"${tipAttr('Empty slot', 'You get a free relic after every floor. The shop sells one too.')}>${img('icons/hud-relic-slot.webp', 'ico', 'Empty slot')}</div>`).join('') : '';
+  const empty = slots ? Array.from({ length: E.MAX_RELICS - s.relics.length }, () => `<div class="relic empty">${img('icons/hud-relic-slot.webp', 'ico', 'Empty slot')}</div>`).join('') : '';
   const stack = k => { const n = E.relicStack(s, k); return n == null ? '' : `<span class="stack">${n}</span>`; }; // a growing relic's count so far
   return `<div class="relics">${s.relics.map(k => `<div class="relic" data-relic="${k}" tabindex="0" role="group" aria-label="${E.RELICS[k].name}: ${E.RELICS[k].text}"${tipAttr(E.RELICS[k].name, relicTip(k))}>${relicIcon(k)}${stack(k)}${withDrop ? `<button class="link" data-drop="${k}">Drop</button>` : ''}</div>`).join('')}${empty}</div>`;
 }
@@ -2471,7 +2487,7 @@ function stashHTML() {
   const c = s.stash;
   return `<div class="stashbox"${tipAttr('Stash Pouch', `Your stashed ${cardName(c)} ${c.v}. Play it in any room on this floor; it doesn't count toward the room's cards. It's lost when the floor ends.`)}>${relicIcon('stash')}<span class="sname">${cardName(c)} <b>${c.v}</b></span><span class="sacts">${cardActs(c, 'sact')}</span></div>`;
 }
-const logHTML = () => `<details class="rules"><summary>Log</summary><div class="log">${s.log.map(l => `<p>${esc(l)}</p>`).join('') || '<p class="muted">Your deeds will be recorded here.</p>'}</div></details>`;
+const logHTML = (open = false) => `<details class="rules" ${open ? 'open' : ''}><summary>Log</summary><div class="log">${s.log.map(l => `<p>${esc(l)}</p>`).join('') || '<p class="muted">Your deeds will be recorded here.</p>'}</div></details>`;
 function coachHTML() {
   if (tut && TUTORIAL[tut.step]) { shownHint = null; return `<aside class="coach">${clerk('neutral')}<span class="label">Azazel says</span><p>${TUTORIAL[tut.step].text}</p><button class="link" data-skiptut>Skip tutorial</button></aside>`; }
   let h = currentHint(); const g = goal();
@@ -2493,7 +2509,7 @@ function retireHint(key) {
   [key, ...(hintCovers[key] || [])].forEach(k => { seenHints[k] = true; });
   store.set('hints', seenHints);
 }
-const rulesHTML = () => `<details class="rules"><summary>How to play</summary><ol>
+const rulesHTML = (open = false) => `<details class="rules" ${open ? 'open' : ''}><summary>How to play</summary><ol>
   <li><b>Goal:</b> stay alive. If your health hits 0, the run is over.</li>
   <li><b>Rooms:</b> each room shows 4 cards. Pick 3; the last one stays for the next room.</li>
   <li><b>Monsters</b> hurt you by their number. <b>Weapons</b> block that much damage, but after a kill they only work on smaller monsters. <b>Potions</b> heal (one per room).</li>
@@ -2711,9 +2727,9 @@ let boardOpen = false;
 const boardHTML = (open = boardOpen) => boardState === 'off' ? '' : `<details class="rules lb" ${open ? 'open' : ''}><summary>Top scores</summary><div class="lbbody">${boardBody()}</div></details>`;
 function paintBoards() { app.querySelectorAll('.lbbody').forEach(el => { el.innerHTML = boardBody(); }); }
 app.addEventListener('toggle', e => { if (e.target.classList && e.target.classList.contains('lb')) { boardOpen = e.target.open; if (boardOpen && boardState === 'idle') loadBoard(); } }, true);
-function statsHTML() {
+function statsHTML(open = false) {
   if (!owner || dbState === 'off') return '';
-  return `<details class="rules" id="stats"><summary>Playtest stats (only you see this)</summary><div id="statsbody"><button data-stats>Load stats</button></div></details>`;
+  return `<details class="rules" id="stats" ${open ? 'open' : ''}><summary>Playtest stats (only you see this)</summary><div id="statsbody"><button data-stats>Load stats</button></div></details>`;
 }
 
 // The clerk reads out how the floor was settled, and stamps it.
@@ -2790,20 +2806,32 @@ function deckHTML() {
     <p class="muted"><b class="num">${v.left}</b> of ${v.total} cards ${shop && v.left === v.total ? 'in the deck' : 'left'}. ${note}</p>${rows}
     <button class="primary" data-deckclose>Close</button></section></div>`;
 }
-const pauseHTML = () => `<div class="overlay" role="dialog" aria-modal="true" aria-label="Paused"><section class="pausebox"><h2>Paused</h2>
+// The pause menu also holds How to play, the run's log and Top scores, each on its own page with a Back button.
+let pauseView = null; // null: the menu. 'rules' | 'log' | 'scores' | 'stats': one of its pages
+const PAUSE_PAGES = { rules: 'How to play', log: 'Log', scores: 'Top scores', stats: 'Playtest stats' };
+function pauseHTML() {
+  if (pauseView) {
+    const page = pauseView === 'rules' ? rulesHTML(true) : pauseView === 'log' ? logHTML(true) : pauseView === 'scores' ? boardHTML(true) : statsHTML(true);
+    return `<div class="overlay" role="dialog" aria-modal="true" aria-label="${PAUSE_PAGES[pauseView]}"><section class="pausebox pagebox"><h2>${PAUSE_PAGES[pauseView]}</h2>
+  <div class="ppage">${page}</div><button class="primary" data-pauseback>Back</button></section></div>`;
+  }
+  return `<div class="overlay" role="dialog" aria-modal="true" aria-label="Paused"><section class="pausebox"><h2>Paused</h2>
   <button class="primary" data-resume>Resume</button>
   <button data-map>${img('ui/icon-map.webp', 'bi')}Map</button>
+  <div class="prow"><button data-pausepage="rules">How to play</button><button data-pausepage="log">Log</button>${boardState === 'off' ? '' : '<button data-pausepage="scores">Top scores</button>'}${statsHTML() ? '<button data-pausepage="stats">Stats</button>' : ''}</div>
   <button data-title>Main menu</button>
   <label class="volume"><span>Sounds</span><input type="range" min="0" max="100" step="5" value="${Math.round(SFX.volume * 100)}" data-volume aria-label="Sound volume"></label>
   <label class="volume"><span>Music</span><input type="range" min="0" max="100" step="5" value="${Math.round(SFX.musicVolume * 100)}" data-musicvol aria-label="Music volume"></label>
-  <p class="muted">${MODES[gameMode()]} · <span class="mutenote">${SFX.muted ? 'Muted · M to unmute' : 'M mutes'}</span></p></section></div>`;
+  <p class="muted">${MODES[gameMode()]} · <span class="mutenote">${SFX.muted ? 'Muted · M to unmute' : 'M mutes'}</span> · v${VERSION}</p>${syncNote()}</section></div>`;
+}
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape' || !canPause() || busy) return;
   if (deckOpen) { deckOpen = false; render(); return; }
+  if (paused && pauseView) { pauseView = null; render(); return; } // a page of the pause menu goes back to the menu
   if (mapView === 'pause') mapView = null;
   else if (mapView) return;
   else paused = !paused;
-  moreOpen = false; render();
+  render();
 });
 
 // ---------- title screen ----------
@@ -2827,7 +2855,6 @@ function renderTitle() {
     ${syncNote()}<p class="muted version"><button class="link soundtoggle" data-soundtoggle>${SFX.muted ? 'Sound off' : 'Sound on'}</button> · v${VERSION}</p>
   </section>`;
 }
-let moreOpen = false; // phones: the How to play / Top scores panel
 const narrow = () => !(window.matchMedia && matchMedia('(min-width: 900px) and (min-height: 520px)').matches);
 // Every redraw goes through here, so motion sees what changed whatever caused it.
 function render() { const snap = motionSnap(); drawScreen(); motionPlay(snap); smallTouches(); SFX.music(musicFor()); }
@@ -2845,10 +2872,9 @@ function drawScreen() {
   if (where) app.dataset.place = where; else delete app.dataset.place;
   if (s) app.dataset.act = ACT_PLACES[E.act(s) % 3]; else delete app.dataset.act;
   const pauseBtn = canPause() && !mapView ? `<button class="pause" data-pause aria-label="Pause" title="Pause (Esc)">${img('icons/hud-pause.webp')}</button>` : '';
-  const more = `<button class="more" data-more aria-expanded="${moreOpen}" title="How to play and top scores">${moreOpen ? 'Close' : 'More'}</button>`;
-  const head = `<header><h1>${img('icons/emblem-goat.webp', 'emblem')}Scapegrace</h1>${more}<span class="muted where">${img(crestOf(where), 'crest')}${s.endless ? `Floor <span class="num">${s.floor + 1}</span> · Endless · Act ${E.act(s) + 1}` : `Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span>${pauseBtn}</header>`;
-  // extras (rules, scores, footer) sit under the side column on wide screens and behind the More button on phones
-  const cols = (side, stage, extras = '') => `<div class="cols"><div class="side">${side}<div class="extras">${extras}${syncNote()}<p class="muted version">v${VERSION}</p></div></div><div class="stage">${stage}</div></div>`;
+  const head = `<header><h1>${img('icons/emblem-goat.webp', 'emblem')}Scapegrace</h1><span class="muted where">${img(crestOf(where), 'crest')}${s.endless ? `Floor <span class="num">${s.floor + 1}</span> · Endless · Act ${E.act(s) + 1}` : `Floor <span class="num">${s.floor + 1}</span>/${E.FLOORS} · Act ${E.act(s) + 1}`}</span>${pauseBtn}</header>`;
+  // How to play, the log, Top scores and the version live in the pause menu
+  const cols = (side, stage) => `<div class="cols"><div class="side">${side}</div><div class="stage">${stage}</div></div>`;
   let body = '';
   if (mapView) {
     body = mapHTML();
@@ -2863,13 +2889,13 @@ function drawScreen() {
           ${o.clause ? `<span class="cl">${E.CLAUSES[o.clause].name}</span>` : ''}</button>`;
         }).join('')}</div>
       </section>
-      ${relicsHTML(false)}`, `${rulesHTML()}${boardHTML()}${statsHTML()}`);
+      ${relicsHTML(false)}`);
   } else if (s.phase === 'room') {
     const up = E.canRaise(s) && { tier: s.contract.tier + 1, target: E.target(s, s.contract.tier + 1), pay: E.payout(s, s.contract.tier + 1, s.contract.clause) };
     const fleeOk = E.canFlee(s) && !tut; // the tutorial's guided moves come first
     body = cols(`${coachHTML()}${statusHTML()}${bossHTML()}${survival() ? '' : contractHTML()}${duesWarning()}`, `
       ${roomHTML(true, `${up ? `<button data-raise${tipAttr('Raise your contract', `Kill <b>${up.target}</b> points instead, for <b>${up.pay}</b> gold. Between rooms, once per floor (your War Drum). Meet it and it pays half again.`)}>${img('icons/hud-raise.webp', 'bi')}${s.contract.clause ? 'Raise' : `Raise<span class="rto"> to ${E.TIERS[up.tier]}</span>`}</button>` : ''}
-        ${E.canRedraw(s) ? `<button data-redraw${tipAttr('Fortune Teller', 'Redraw this room. Once per floor, before you pick a card.')}>Redraw room</button>` : ''}${E.canUndo(s) ? `<button data-undo${tipAttr('Hourglass', 'Take back the last card you played. Twice per floor.')}>Undo</button>` : ''}<button data-flee ${fleeOk ? '' : 'disabled'}>${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room</button>`)}<div class="belt">${relicsHTML(false)}${stashHTML()}${peekHTML()}</div>`, `${rulesHTML()}${boardHTML()}${statsHTML()}`);
+        ${E.canRedraw(s) ? `<button data-redraw${tipAttr('Fortune Teller', 'Redraw this room. Once per floor, before you pick a card.')}>Redraw room</button>` : ''}${E.canUndo(s) ? `<button data-undo${tipAttr('Hourglass', 'Take back the last card you played. Twice per floor.')}>Undo</button>` : ''}<button data-flee ${fleeOk ? '' : 'disabled'}>${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room</button>`)}<div class="belt">${relicsHTML(false)}${stashHTML()}${peekHTML()}</div>`);
   } else if (s.phase === 'shop' && payoutView && s.payout) {
     body = payoutHTML();
   } else if (s.phase === 'shop' && s.pick) {
@@ -2899,17 +2925,17 @@ function drawScreen() {
         <div class="shopgrid services">${Object.entries(svc).map(([k, v]) => ware(k, v)).join('')}</div></div>
         ${duesWarning()}${relicsOpen() ? `<div class="label yours">Your relics (${s.relics.length}/${E.MAX_RELICS})</div>` : ''}
         <div class="shopexit">${relicsOpen() ? relicsHTML(true) : ''}<button class="deckbtn" data-deck${tipAttr('The deck', 'See every card in the dungeon. Cull and Smith change it.')}>${img('icons/hud-draw-pile.webp', 'bi')}Deck</button><button class="primary" data-leave>Leave shop</button></div>
-      </section>`, `${rulesHTML()}${boardHTML()}${statsHTML()}`);
+      </section>`);
   } else {
     body = endHTML() + boardHTML(!narrow() && innerHeight > 1100) + logHTML() + statsHTML();
   }
   const framed = body.startsWith('<div class="cols">');
-  app.className = (framed ? 'play' : 'solo') + (moreOpen && framed ? ' more-open' : '') + (mapView ? ' map' : '');
+  app.className = (framed ? 'play' : 'solo') + (mapView ? ' map' : '');
   const endForm = (s.phase === 'won' || s.phase === 'lost') && webReports() && rec; // its own note already says the report is sent
   app.innerHTML = head + body + (framed ? '' : (endForm ? '' : syncNote()) + `<p class="muted version">v${VERSION}</p>`) + (paused && !mapView ? pauseHTML() : '') + (deckOpen ? deckHTML() : '');
   if ((paused && !mapView) || deckOpen) { // only the menu takes clicks and focus while paused or reading the deck
     app.querySelectorAll(':scope > :not(.overlay)').forEach(el => { el.inert = true; });
-    app.querySelector('.overlay [data-resume], .overlay [data-deckclose]').focus();
+    app.querySelector('.overlay [data-resume], .overlay [data-pauseback], .overlay [data-deckclose]').focus();
   }
   dealIn();
   if (app.querySelector('.payout')) playPayout();
@@ -3169,10 +3195,11 @@ app.addEventListener('click', async e => {
     else if ('introskip' in d) endIntro(true);
     render(); return;
   }
-  if ('more' in d) { moreOpen = !moreOpen; render(); return; }
   if ('lasttip' in d) { recall = true; render(); return; }
-  if ('pause' in d) { paused = true; moreOpen = false; render(); return; }
-  if ('deck' in d) { deckOpen = true; moreOpen = false; render(); return; }
+  if ('pause' in d) { paused = true; pauseView = null; render(); return; }
+  if ('pausepage' in d) { pauseView = d.pausepage; if (pauseView === 'scores' && boardState === 'idle') loadBoard(); render(); return; }
+  if ('pauseback' in d) { pauseView = null; render(); return; }
+  if ('deck' in d) { deckOpen = true; render(); return; }
   if ('deckclose' in d) { deckOpen = false; render(); return; }
   if ('resume' in d) { paused = false; render(); return; }
   if ('map' in d) { mapView = 'pause'; render(); return; }
@@ -3191,7 +3218,6 @@ app.addEventListener('click', async e => {
   if ('payok' in d) { payoutView = false; payoutPlayed = null; render(); return; } // on to the shop
   if ('mapback' in d) { mapView = null; render(); return; } // back to the pause menu
   if ('mapgo' in d) { mapView = null; paused = false; render(); return; }
-  if (moreOpen && !e.target.closest('.extras')) moreOpen = false;
   let acted = true, effect = null;
   if (s) s.fired = []; // relics that fire on this move pulse once it renders
   const cardEl = b.closest('.card');
@@ -3262,12 +3288,12 @@ app.addEventListener('click', async e => {
     startRun(); acted = false;
   }
   else if ('title' in d) { // back to the title screen, where the game mode is picked
-    if (runLive()) { keepRun(); moreOpen = false; paused = false; mapView = null; titleOn = true; render(); return; } // the run waits there under Continue
+    if (runLive()) { keepRun(); pauseView = null; paused = false; mapView = null; titleOn = true; render(); return; } // the run waits there under Continue
     const underway = rec && rec.status === 'in_progress' && (rec.floors.length > 1 || s.handled > 0 || s.roomsCleared > 0);
     readReportForm();
     if (underway) { rec.status = 'abandoned'; save(); } // an untouched run isn't worth a report
     if (underway || (rec && rec.status === 'finished')) sendReport(rec);
-    rec = null; moreOpen = false; paused = false; mapView = null; titleOn = true; render(); return;
+    rec = null; pauseView = null; paused = false; mapView = null; titleOn = true; render(); return;
   }
   else if ('tutorial' in d) { startTutorial(); acted = false; }
   else if ('skiptut' in d) { if (rec && rec.tut) rec.tut.skipped = true; tut = null; TUTORIAL_ONLY.forEach(k => { seenHints[k] = true; }); store.set('hints', seenHints); acted = false; }
@@ -3422,7 +3448,7 @@ render();
     s = E.newGame(undefined, { guided: mode === 'guided', oneDeck: mode === 'onedeck' });
     rec = newRec(); rec.mode = s.guided ? 'guided' : s.oneDeck ? 'onedeck' : 'full'; rec.dev = true;
   }
-  function done() { mapView = null; paused = false; moreOpen = false; if (typeof noteSurvivalFloor === 'function') noteSurvivalFloor(); render(); paint(); }
+  function done() { mapView = null; paused = false; pauseView = null; if (typeof noteSurvivalFloor === 'function') noteSurvivalFloor(); render(); paint(); }
   const num = (id, d) => { const v = parseInt(panel.querySelector('#' + id).value, 10); return Number.isFinite(v) ? v : d; };
 
   const actions = {
