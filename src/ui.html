@@ -1551,13 +1551,12 @@ img.clerk { box-shadow: none; border-radius: 0; object-fit: contain !important; 
 /* the back covers exactly the printed face while it turns (placed by flipCard), and the name and buttons wait until it lands */
 .card.vint .cardback { inset: auto; border-radius: 5.5% / 3.7%; }
 /* ---------- 2.27.0: screen review: relic pick, shop, act map, the played card's place ----------
-   Where a card was played, the table keeps a faint ink outline of it in the dust, drawn in code so it stays sharp. */
+   Where a card was played, the table shows an empty stone recess marked with a hoof print. */
 .slot, .stage .slot { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 6px; background: none; opacity: 1; border: 0; padding: 0; min-height: 0; }
 .slot .spot { display: block; flex: none; width: auto; height: calc(100% - var(--x, 40px)); aspect-ratio: 2 / 3; max-width: 100%; border-radius: 5.5% / 3.7%;
-  background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(8,6,4,.62), rgba(8,6,4,.45) 70%, rgba(8,6,4,.3));
-  box-shadow: inset 0 0 0 1.5px rgba(222,206,170,.5), inset 0 0 0 7px rgba(0,0,0,0), inset 0 0 0 8px rgba(222,206,170,.22), inset 0 0 22px rgba(0,0,0,.45), 0 0 0 1px rgba(0,0,0,.35); }
-.slot .spot::after { content: ''; display: block; width: 100%; height: 100%;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Cg fill='none' stroke='%23dccca6' stroke-width='2.2' stroke-linecap='round' opacity='.55'%3E%3Cpath d='M30 12 L44 30 L30 48 L16 30 Z'/%3E%3Cpath d='M30 21 L37 30 L30 39 L23 30 Z' opacity='.7'/%3E%3Cpath d='M6 30 H14 M46 30 H54'/%3E%3C/g%3E%3C/svg%3E") center / 34% auto no-repeat; }
+  /* 2.32.0: Dude's engraved stone recess with brass corners and Azazel's hoof print */
+  background: url(assets/ui/slot-played.webp) center / 100% 100% no-repeat; box-shadow: none; filter: drop-shadow(0 3px 6px rgba(0,0,0,.55)); }
+.slot .spot::after { content: none; }
 .slot small, .stage .slot small { background: none; padding: 0; color: rgba(222,206,170,.8); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; text-shadow: 0 1px 2px #000; }
 /* Relic pick: three relics, each on a tall engraved plate tinted by rarity; skipping is a quiet button by your belt. */
 .picks, .picks.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -1656,7 +1655,7 @@ img.clerk { box-shadow: none; border-radius: 0; object-fit: contain !important; 
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.31.0';
+const VERSION = '2.32.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -2061,7 +2060,7 @@ async function playCard(c, mode, el) {
   const name = kind === 'monster' ? (mode === 'bare' ? 'punch' : 'slash') : kind === 'potion' && E.potionHeal(s, c) > 0 && s.hp < s.maxHp ? 'heal' : null;
   SFX.play(kind === 'weapon' ? 'equip' : name === 'heal' ? 'potion' : name || 'flip');
   if (el && !reduceMotion) {
-    busy = true; if (name) fx(name, el.getBoundingClientRect());
+    busy = true; spotUnder(el); if (name) fx(name, el.getBoundingClientRect());
     await (isBossCard(c) && fought ? bossFalls(el) : leaveCard(el, { ...c, kind }, mode === 'weapon2' ? 'weapon' : mode)); busy = false;
   }
   if (fought) {
@@ -2071,6 +2070,16 @@ async function playCard(c, mode, el) {
   }
   if (kind === 'weapon' && s.weapon && !s.relics.includes('twinblades')) { const at = rectOf('.stat.weapon'); return () => fx('weapon-break', at); } // the old weapon is dropped
   return null;
+}
+// The stone spot a played card leaves behind is laid under it before it moves, so as the card goes the spot is
+// simply there. The next render draws the real one in the same place and drops this copy.
+function spotUnder(el) {
+  if (!el.parentElement || !el.parentElement.classList.contains('room')) return;
+  const g = document.createElement('div'); g.className = 'slot'; g.setAttribute('aria-hidden', 'true');
+  g.innerHTML = '<i class="spot"></i><small>Picked</small>';
+  Object.assign(g.style, { position: 'absolute', left: el.offsetLeft + 'px', top: el.offsetTop + 'px', width: el.offsetWidth + 'px', height: el.offsetHeight + 'px', margin: 0, zIndex: 0, pointerEvents: 'none' });
+  if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
+  el.style.zIndex = 4; el.before(g);
 }
 // A played card leaves the table its own way: a weapon flies to your weapon slot, a potion into your health,
 // a monster recoils from the blow and drops away. Resolves when it's gone.
