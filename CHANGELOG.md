@@ -16,6 +16,9 @@ The version lives in `VERSION` near the top of the script in `src/ui.html`. It i
 - A played card now leaves a faint ink outline in the dust instead of the old wooden plank with a green tick.
 
 ## 2.26.0
+- The framed death screen keeps its panel on the left with the goat and helmet scene on the right in every window from 621px wide up. Panel, text and the Top scores / Log bars scale to the window height and width; narrow phones stay stacked.
+
+## 2.26.0
 
 - One pause button: the More button is gone, and How to play, Log and Top scores are now in the pause menu, each on its own page with a Back button.
 - Relic slots: hovering an empty slot no longer shows an "Empty slot" popup.
