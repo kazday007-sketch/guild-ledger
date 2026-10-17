@@ -1656,7 +1656,7 @@ img.clerk { box-shadow: none; border-radius: 0; object-fit: contain !important; 
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.30.0';
+const VERSION = '2.31.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -2100,8 +2100,8 @@ const store = {
 let seenHints = store.get('hints', {});
 
 // ---------- sound and music ----------
-// Short sounds in assets/sfx (src/synth_sfx.py) and a slow loop for each place in assets/music (src/synth_music.py),
-// all low and soft. Sounds are fetched at load and decoded on the first tap, since browsers only allow sound after
+// Short sounds in assets/sfx (src/synth_sfx.py) and a loop for each place in assets/music (src/synth_music.py,
+// medieval meets EDM), all low and soft. Sounds are fetched at load and decoded on the first tap, since browsers only allow sound after
 // one; a music loop is fetched when its place first comes up. The pause menu has a slider for each, M mutes both,
 // and all three settings are kept per browser.
 const SFX = (() => {
@@ -2135,16 +2135,18 @@ const SFX = (() => {
   }
   const song = n => songs[n] || (songs[n] = fetch(`${ART}music/${n}.mp3`).then(r => r.ok ? r.arrayBuffer() : null)
     .then(b => b && new Promise(res => ctx.decodeAudioData(b, res, () => res(null)))).catch(() => null));
-  // Loops overlap by XF seconds, each fading into the next, so the seam never clicks whatever padding the decoder adds.
+  // Each file is a whole-second loop with its first XF seconds repeated at the end. Copies start exactly one loop
+  // apart and crossfade over that repeat, so the beat never slips and the seam never clicks, whatever padding the
+  // decoder adds (it pads every copy the same).
   const XF = 3;
   function loopFrom(cur, at) {
     if (track !== cur) return;
-    const len = cur.buf.duration, src = ctx.createBufferSource(), g = ctx.createGain();
+    const len = cur.buf.duration, loop = Math.round(len - XF), src = ctx.createBufferSource(), g = ctx.createGain();
     src.buffer = cur.buf; src.connect(g); g.connect(cur.g);
     g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(1, at + XF);
-    g.gain.setValueAtTime(1, at + len - XF); g.gain.linearRampToValueAtTime(0, at + len);
+    g.gain.setValueAtTime(1, at + loop); g.gain.linearRampToValueAtTime(0, at + loop + XF);
     src.start(at); src.stop(at + len + .1); cur.srcs.push(src);
-    cur.timer = setTimeout(() => loopFrom(cur, at + len - XF), Math.max(0, (at + len - XF - ctx.currentTime - 2) * 1000));
+    cur.timer = setTimeout(() => loopFrom(cur, at + loop), Math.max(0, (at + loop - ctx.currentTime - 2) * 1000));
   }
   // The place's loop: the old one fades out as the new one fades in. Null is silence.
   function music(n, force) {
