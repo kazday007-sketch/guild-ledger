@@ -371,5 +371,11 @@ for (const [seed, at] of [[7, 5], [11, 30], [23, 60], [31, 90]]) {
   ok(s.deck.some(c => c.id > 5e6), 'save: cards added after loading get new ids');
   eq(new Set(s.deck.map(c => c.id)).size, s.deck.length, 'save: no two cards share an id'); }
 
+// Daily dungeon: one seed deals the same dungeon every time, and a different seed a different one.
+{
+  const deal = seed => { const s = E.newGame(seed); return JSON.stringify([s.room, s.draw, s.offers].map(x => (x || []).map(c => c.v + (c.suit || c.tier || '')))); };
+  eq(deal(20261017), deal(20261017), 'same seed, same dungeon');
+  ok(deal(20261017) !== deal(20261018), 'next day, a different dungeon');
+}
 console.log(`${passes} passed, ${fails} failed`);
 process.exit(fails ? 1 : 0);

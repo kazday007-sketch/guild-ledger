@@ -8,6 +8,13 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.29.0
+
+- **Daily dungeon.** A Daily button next to Play deals everyone the same dungeon each day (full rules, new one at midnight UTC). One try a day: once you start it, the button shows how it went. Daily runs get their own tab in Top scores, showing only today's dungeon.
+- **Past runs.** Your last 20 runs are kept in your browser: on the title screen and in the pause menu, newest first, with your best run marked. Open one to see how it ended, its numbers and the relics you held.
+- **Run summary.** The end screen shows monsters slain, your biggest kill, contracts met and time played. All eight numbers (plus bosses beaten, damage taken, gold earned and flees) are in Past runs and in the run report.
+- **Engraved boss cards.** The Warden, Goblin King, Jailer, Mummy, Banshee, Vampire Lord, Skeleton King and Cave Troll now fight you as engraved boss cards that match the deck, with their value on a gold plate. Their boss boxes, map tokens, intros and payouts show the figure from the card. The other seven bosses keep their old art until their cards are drawn.
+
 ## 2.28.0
 
 - Shop: the dues reminder moved to the left column under your status, so it no longer covers the services.
