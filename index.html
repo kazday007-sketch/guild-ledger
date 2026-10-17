@@ -346,7 +346,7 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 @keyframes rays { to { transform: rotate(360deg); } }
 .mote { position: fixed; top: -12px; z-index: 5; width: 5px; height: 5px; border-radius: 50%; background: #f3c95c; box-shadow: 0 0 8px 2px rgba(243,201,92,.6); pointer-events: none; }
 #scene { transition: filter 2s; }
-#scene.dead { filter: saturate(.3) sepia(.35) hue-rotate(-20deg) brightness(.8); }
+#scene.dead { filter: saturate(.55) sepia(.3) hue-rotate(-22deg) brightness(.95) contrast(1.05); }
 @media (prefers-reduced-motion: reduce) { .endrays { animation: none; } #scene { transition: none; } }
 /* relic pick: the cards turn to face you, rare ones catch the light, the icons float, the taken one flies */
 .picks { perspective: 1000px; }
@@ -1009,7 +1009,7 @@ main.solo:has(> .end) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 main.solo:has(> .end) > :not(details) { grid-column: 1 / -1; }
 main.solo:has(> .end) > details[open] { grid-column: 1 / -1; }
 main.solo:has(> .end) > details.lb { margin: 0; max-width: none; }
-#scene.dead::after { background: radial-gradient(ellipse at 50% 40%, rgba(90,8,12,.5), rgba(14,2,4,.9) 80%); animation: deadglow 2.4s ease-out both; }
+#scene.dead::after { background: linear-gradient(90deg, rgba(14,2,4,.86), rgba(40,4,8,.5) 45%, rgba(30,3,6,.12) 75%), radial-gradient(ellipse at 70% 50%, transparent 40%, rgba(40,2,6,.7) 100%); animation: deadglow 2.4s ease-out both; }
 @keyframes deadglow { from { background-color: rgba(150,20,26,.55); } to { background-color: transparent; } }
 .end.dead { border-image-source: url(assets/ui/panel3-dead.webp); }
 .end .label.ending { color: #b5666b; letter-spacing: .2em; }
@@ -1029,6 +1029,13 @@ main.solo:has(> .end) > details.lb { margin: 0; max-width: none; }
 .end.revoked h2 { color: #f0b46a; }
 .torn { position: relative; display: grid; justify-items: center; }
 .torn .stamp { top: 26px; left: 50%; margin-left: -66px; }
+@media (min-width: 1000px) and (min-height: 760px) { /* roomy screens: the death panel steps left so the painted scene stays in view */
+  main.solo .end.dead { grid-template-columns: 1fr; width: min(100%, 540px); justify-self: start; margin-left: 4vw; padding: 34px 34px 30px; row-gap: 14px; }
+  main.solo:has(> .end.dead) > details { max-width: 540px; margin-left: 4vw; }
+  main.solo section.end.dead h2 { font-size: 56px; letter-spacing: .04em; }
+  .end.dead .epitaph { font-size: 24px; }
+  .end.dead .endform { border-top: 1px solid rgba(201,87,92,.35); padding-top: 14px; }
+}
 @media (prefers-reduced-motion: reduce) { #scene.dead::after, .killer, .killer .claw { animation: none; } }
 @media not ((min-width: 900px) and (min-height: 520px)) {
   .killer { width: 84px; } .killer .rank { font-size: 15px; left: -6px; top: -6px; }
@@ -2380,7 +2387,7 @@ img.clerk { box-shadow: none; border-radius: 0; object-fit: contain !important; 
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.22.0';
+const VERSION = '2.22.1';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
