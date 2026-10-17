@@ -8,6 +8,10 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.21.1
+
+- The death screen drops its glowing red outline and rounded box; it now uses the same engraved panel as every other end screen, with a flat oxblood title.
+
 ## 2.21.0 (2026-10-17)
 Panels and end-screen pieces redrawn at their real proportions.
 - New dark engraved panels drawn per use: main (status, shop, end, contract board, menus), a wider short one for payouts, a tall one for the floor map, a thin banner for the Top scores and Log rows, a notched tooltip, deckled note paper for shop wares, and a recessed ring for empty relic slots.
