@@ -8,6 +8,10 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.24.0
+
+- Death screen has its own engraved frame: blackened iron and oak with a skull, raven, crossed bones and a candle in the corners, and a red glow that fades to black toward the middle.
+
 ## 2.23.0
 
 - The seven full-screen backgrounds behind the tables (three acts, three boss halls, contract desk) are redrawn as engravings to match the rest of the game.
