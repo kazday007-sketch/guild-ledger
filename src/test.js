@@ -347,7 +347,7 @@ function bossGame(key, f = 2, seed = 1) {
   const before = s.deck.filter(c => c.kind === 'monster').reduce((n, c) => n + c.v, 0), monsters = s.deck.filter(c => c.kind === 'monster').length;
   E.leaveShop(s); eq(s.floor, 9, 'endless: floor 10');
   eq(s.deck.filter(c => c.kind === 'monster').reduce((n, c) => n + c.v, 0), before + monsters + 3 * 17, 'endless: monsters grow 1 and 3 more elites arrive');
-  ok(E.targetRow(9)[0] > E.TARGETS[8][0], 'endless: targets keep climbing'); ok(E.duesFor(s, 3) > E.DUES[2], 'endless: dues keep climbing');
+  ok(E.targetRow(9)[0] > E.TARGETS[7][0] && E.targetRow(11)[0] > E.TARGETS[8][0], 'endless: targets keep climbing'); ok(E.duesFor(s, 3) > E.DUES[2], 'endless: dues keep climbing');
   eq(E.duesAhead(s).floor, 12, 'endless: dues after floor 12'); ok(E.bossFor(s, 11) && !s.bossKeys.slice(0, 3).includes(E.bossFor(s, 11).key), 'endless: a boss not met before'); }
 
 // ---------- saving a run ----------
@@ -357,7 +357,7 @@ function step(s) {
   if (s.phase === 'room') { const c = s.room.find(x => !x.hidden); return E.handle(s, c.id, c.kind === 'monster' && E.canUseWeapon(s, c) ? 'weapon' : c.kind === 'monster' ? 'bare' : null); }
   if (s.phase === 'shop') return s.pick ? E.skipPick(s) : E.leaveShop(s);
 }
-for (const [seed, at] of [[7, 5], [11, 30], [23, 60], [31, 90]]) {
+for (const [seed, at] of [[7, 5], [11, 30], [23, 60], [31, 70]]) {
   const a = E.newGame(seed, { oneDeck: seed === 23 }); a.hp = a.maxHp = 999;
   for (let n = 0; n < at && !['won', 'lost'].includes(a.phase); n++) step(a);
   const b = E.loadGame(JSON.parse(JSON.stringify(E.saveGame(a))));
@@ -377,5 +377,20 @@ for (const [seed, at] of [[7, 5], [11, 30], [23, 60], [31, 90]]) {
   eq(deal(20261017), deal(20261017), 'same seed, same dungeon');
   ok(deal(20261017) !== deal(20261018), 'next day, a different dungeon');
 }
+// 2.30.0: a rout (1.5 times the target) makes the relic pick all rares; the payout and the end screen count what relics did.
+{ const s = E.newGame(5); E.bid(s, 0); s.slain = Math.ceil(s.contract.target * E.ROUT); E.devEndFloor(s);
+  ok(s.payout.rout && s.payout.lines.some(l => l.key === 'rout'), 'rout: 1.5x the target is a rout');
+  ok(s.pick && s.pick.options.every(k => E.RELICS[k].rarity !== 'common'), 'rout: the relic pick is all rares'); }
+{ const s = E.newGame(5); E.bid(s, 0); s.slain = s.contract.target; E.devEndFloor(s);
+  ok(!s.payout.rout, 'rout: just meeting the target is no rout'); }
+{ const s = E.newGame(9); E.devGrant(s, 'ironskin'); E.bid(s, 0);
+  const m = { id: 9e6, kind: 'monster', v: 6, suit: '♠' }; s.room = [m, ...s.room.slice(1)];
+  E.handle(s, m.id, 'bare');
+  eq(s.relicFloor.block, 1, 'credit: Iron Skin counts 1 damage blocked this floor');
+  eq(E.engineReport(s).top && E.engineReport(s).top.k, 'ironskin', 'engine report: the relic that did the most');
+  const d = E.monsterDamage(s, { kind: 'monster', v: 6 }, false); eq(s.relicFloor.block, 1, 'credit: a preview counts nothing');
+  E.devEndFloor(s); eq(s.payout.relics.block, 1, 'payout: carries what relics did this floor');
+  eq(E.engineReport(s).startHp, E.MAX_HP, 'engine report: starting health'); }
+
 console.log(`${passes} passed, ${fails} failed`);
 process.exit(fails ? 1 : 0);

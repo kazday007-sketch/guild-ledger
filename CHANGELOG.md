@@ -8,6 +8,13 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.30.0
+
+- Feeling stronger: ordinary floors in acts 2 and 3 have lower targets, so a run that builds well beats them by more each act and can afford Bold and Reckless late. Boss floors (3, 6, 9) have higher targets and are now the real test. Endless keeps climbing from there. Simulator wins: cautious 24%, balanced 29%, greedy 20% (were about 16% each).
+- Rout: meet a contract with 1.5 times its target in points and the relic pick is all rares.
+- The payout shows what your relics did on the floor (points added, damage blocked, healing, gold).
+- The end screen has an engine report: the relic that did the most, your best floor against its target, your best weapon, and your max health from start to finish.
+
 ## 2.29.0
 
 - **Daily dungeon.** A Daily button next to Play deals everyone the same dungeon each day (full rules, new one at midnight UTC). One try a day: once you start it, the button shows how it went. Daily runs get their own tab in Top scores, showing only today's dungeon.

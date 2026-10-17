@@ -8,12 +8,13 @@
   const TIERS = ['Safe', 'Bold', 'Reckless'];
   const TIER_MULT = [1, 2, 4];
   // [Safe, Bold, Reckless] monster points to slay on each floor. Tuned with sim.js.
-  // Targets climb steeply after act 1, because by then your relics add points of their own.
-  // About 4% lower since 2.5.0, when the "+N points" relics were retired.
+  // Since 2.30.0 ordinary floors climb slower than your relics add points, so a run that builds well feels it: you beat
+  // the target by more each act, and can afford Bold and Reckless late. The boss floors (3, 6, 9) are the test instead,
+  // with targets well above the floors around them.
   const TARGETS = [
-    [26, 36, 46], [33, 42, 52], [39, 48, 57],
-    [48, 57, 67], [58, 68, 77], [69, 78, 88],
-    [77, 87, 97], [86, 96, 106], [92, 101, 111],
+    [26, 36, 46], [33, 42, 52], [42, 51, 60],
+    [45, 54, 64], [49, 59, 68], [76, 85, 95],
+    [54, 64, 74], [58, 68, 78], [98, 107, 117],
   ];
   // Guild dues, paid at the end of each act (after floors 3, 6, 9). Failing to pay is a strike.
   const DUES = [10, 22, 34];
@@ -54,6 +55,9 @@
   // next tier up, while the simulator's guided win rate stays within about 1 point (tuned with sim.js).
   const WILDCARD_MULT = 2.5;
   const RAISE_BONUS = 0.5; // a met contract you raised pays half its pay again
+  // A Rout: a met contract with at least ROUT times its target in points. The guild's relic pick is then all rares.
+  // It's the reward for a build that has outgrown the floor, so a strong engine has somewhere to show.
+  const ROUT = 1.5;
   const CLAUSES = {
     sworn: { name: 'Sworn', text: 'You cannot flee this floor.' },
     abstain: { name: 'Abstinent', text: 'Potions do not heal this floor.' },
@@ -192,9 +196,18 @@
   // A relic just did something: the UI pulses its icon, with a short label. Only real moves fire (resolveCard sets
   // s.resolving), never the previews that call the same rules, and never the simulator's scratch copies.
   const fire = (s, k, t) => { if (s.resolving && s.fired) s.fired.push({ k, t: t == null ? '' : String(t) }); };
+  // What relics did, counted for the payout's recap (this floor) and the end screen's engine report (each relic, the
+  // whole run). Kinds: pts (points), block (damage stopped), heal, gold. Same rule as fire: real moves only.
+  function credit(s, k, kind, n) {
+    if (!(s.resolving && s.fired) || !(n > 0)) return;
+    const f = s.relicFloor || (s.relicFloor = { pts: 0, block: 0, heal: 0, gold: 0 });
+    f[kind] += n;
+    const run = s.relicRun || (s.relicRun = {}), r = run[k] || (run[k] = { pts: 0, block: 0, heal: 0, gold: 0 });
+    r[kind] += n;
+  }
   function monsterDamage(s, m, useWeapon) {
     let d = useWeapon ? Math.max(0, m.v - Math.max(0, s.weapon.v - (m.armor || 0))) : m.v;
-    const cut = (k, n) => { if (n > 0 && d > 0) { fire(s, k, `−${Math.min(n, d)}`); d -= n; } };
+    const cut = (k, n) => { if (n > 0 && d > 0) { fire(s, k, `−${Math.min(n, d)}`); credit(s, k, 'block', Math.min(n, d)); d -= n; } };
     if (!useWeapon) {
       if (has(s, 'ironfist') && m.v <= 6) cut('ironfist', d);
       if (has(s, 'giantsgrip')) cut('giantsgrip', d - Math.floor(d / 2));
@@ -210,7 +223,7 @@
     const cl = clause(s);
     if ((cl === 'steel' && bare) || (cl === 'bare' && !bare)) return 0;
     let p = m.v;
-    const add = (k, n) => { if (n > 0) { p += n; fire(s, k, `+${n}`); } };
+    const add = (k, n) => { if (n > 0) { p += n; fire(s, k, `+${n}`); credit(s, k, 'pts', n); } };
     if (bare && has(s, 'haymaker') && !s.roomBare) add('haymaker', m.v);
     if (!bare && has(s, 'executioner') && m.v >= 12) add('executioner', Math.floor(m.v / 2));
     if (has(s, 'berserk') && s.hp <= 5) add('berserk', 5);
@@ -245,6 +258,7 @@
     if (has(s, 'twinblades') && s.weapon) { s.weapon2 = s.weapon; fire(s, 'twinblades'); } // the old one moves to your off hand
     s.weapon = { v: Math.max(1, v + (has(s, 'grindstone') ? 1 : 0) + notchBonus(s) + (glass ? 3 : 0) - (bossIs(s, 'mummy') ? 3 : 0)), limit: null };
     if (glass) { s.weapon.glass = 3; fire(s, 'glassblade', '+3'); }
+    s.topWeapon = Math.max(s.topWeapon || 0, s.weapon.v); // the end screen's engine report: your best blade
     if (notchBonus(s)) fire(s, 'notched', `+${notchBonus(s)}`);
   }
   function resolveCard(s, c, mode) {
@@ -281,10 +295,10 @@
       if (s.hp > 0) {
         out.points = contractPoints(s, c, !useWeapon); s.slain += out.points;
         if (useWeapon) s.weaponKills = (s.weaponKills || 0) + 1; else s.bareKills = (s.bareKills || 0) + 1;
-        if (!useWeapon && has(s, 'fang')) { const h = healBy(s, 2); out.heal += h; fire(s, 'fang', `+${h}`); }
-        if (!useWeapon && has(s, 'pickpocket')) { s.gold += 2; out.gold = 2; fire(s, 'pickpocket', '+2g'); }
-        if (!useWeapon && has(s, 'pitfighter') && !s.floorBare) { s.maxHp += 2; out.heal += healBy(s, 2); out.grew = 2; fire(s, 'pitfighter', '+2 max'); }
-        if (has(s, 'hunger')) { const h = healBy(s, 2); out.heal += h; fire(s, 'hunger', `+${h}`); }
+        if (!useWeapon && has(s, 'fang')) { const h = healBy(s, 2); out.heal += h; fire(s, 'fang', `+${h}`); credit(s, 'fang', 'heal', h); }
+        if (!useWeapon && has(s, 'pickpocket')) { s.gold += 2; out.gold = 2; fire(s, 'pickpocket', '+2g'); credit(s, 'pickpocket', 'gold', 2); }
+        if (!useWeapon && has(s, 'pitfighter') && !s.floorBare) { s.maxHp += 2; out.heal += healBy(s, 2); out.grew = 2; fire(s, 'pitfighter', '+2 max'); credit(s, 'pitfighter', 'heal', 2); }
+        if (has(s, 'hunger')) { const h = healBy(s, 2); out.heal += h; fire(s, 'hunger', `+${h}`); credit(s, 'hunger', 'heal', h); }
         if (has(s, 'bell') && !c.boss && s.draw && s.r) { // it comes back later this floor as a potion
           const p = card('potion', Math.max(1, c.v), '♥'); p.bell = true;
           s.draw.splice(Math.floor(s.r() * (s.draw.length + 1)), 0, p); fire(s, 'bell', `potion ${p.v}`);
@@ -300,7 +314,7 @@
       const h = potionHeal(s, c);
       out.heal = healBy(s, h);
       if (c.kind === 'monster') fire(s, 'mimic', `+${out.heal}`);
-      if (has(s, 'alchemist') && h > out.heal) { out.points = h - out.heal; s.slain += out.points; fire(s, 'alchemist', `+${out.points}`); }
+      if (has(s, 'alchemist') && h > out.heal) { out.points = h - out.heal; s.slain += out.points; fire(s, 'alchemist', `+${out.points}`); credit(s, 'alchemist', 'pts', out.points); }
       if (has(s, 'hunger')) fire(s, 'hunger', 'no healing');
       s.potionUsed = true;
       if (bossIs(s, 'vampire') && s.room) { s.bossBuff = (s.bossBuff || 0) + 2; s.room.forEach(x => { if (x.boss) x.v += 2; }); }
@@ -315,7 +329,7 @@
       hp: MAX_HP, maxHp: MAX_HP, weapon: null, floor: 0, roomsCleared: 0, slain: 0, totalSlain: 0,
       gold: 0, strikes: 0, relics: [], pick: null, roomBare: 0, floorBare: false, contract: null, offers: [], raises: 0, fortuneUsed: false,
       phase: 'bid', log: [], sealUsed: false, boss: null, shop: null, lastResult: null, bossKeys: [], endless: false,
-      weapon2: null, stash: null, fired: [], weaponKills: 0, bareKills: 0, bossFloors: 0, purseFloors: 0, miserStreak: 0, scarDmg: 0,
+      weapon2: null, stash: null, fired: [], relicFloor: null, relicRun: {}, topWeapon: 0, bestFloor: null, weaponKills: 0, bareKills: 0, bossFloors: 0, purseFloors: 0, miserStreak: 0, scarDmg: 0,
       guided: !!(opts && opts.guided),
       // One deck: the dungeon isn't reshuffled between floors, only when a new act starts. Dealt cards stay gone
       // until then, and if the pile runs out first, everything not in play is shuffled back in. Full game rules otherwise.
@@ -375,6 +389,7 @@
     }
     if (bossIs(s, 'banshee')) hideOne(s);
     s.stash = null; s.undo = null; s.hourglassUsed = 0;
+    s.relicFloor = { pts: 0, block: 0, heal: 0, gold: 0 };
     s.roomsCleared = 0; s.slain = 0; s.floorBare = false; s.contract = null; s.raises = 0; s.fortuneUsed = false;
     const tiers = allowedTiers(s);
     const clauseTier = tiers[Math.floor(s.r() * tiers.length)];
@@ -399,8 +414,13 @@
     return cl ? Math.ceil(base * WILDCARD_MULT) : base;
   }
   // The points a contract of this tier needs on this floor (Oathkeeper lowers it).
-  // Endless floors past the last row keep climbing by 8 a floor.
-  const targetRow = f => f < TARGETS.length ? TARGETS[f] : TARGETS[TARGETS.length - 1].map(t => t + 8 * (f - TARGETS.length + 1));
+  // Endless floors past the last row keep climbing by 8 a floor from the last ordinary floor, and its boss floors keep
+  // the same jump over that as floor 9 has over floor 8.
+  const targetRow = f => {
+    if (f < TARGETS.length) return TARGETS[f];
+    const last = TARGETS.length - 2, top = TARGETS[TARGETS.length - 1];
+    return TARGETS[last].map((t, i) => t + 8 * (f - last) + (isBossFloor(f) ? top[i] - t - 8 : 0));
+  };
   const target = (s, tier) => targetRow(s.floor)[tier] - (has(s, 'oathkeeper') ? 4 : 0);
   function makeContract(s, tier, cl) {
     return { tier, clause: cl || null, target: target(s, tier), pay: payout(s, tier, cl) };
@@ -432,7 +452,7 @@
     if (!canRaise(s)) return false;
     s.contract = makeContract(s, s.contract.tier + 1, s.contract.clause);
     s.raises++; s.undo = null;
-    if (has(s, 'wardrum')) { s.slain += 6; s.resolving = true; fire(s, 'wardrum', '+6'); delete s.resolving; log(s, 'The war drum sounds: +6 points.'); }
+    if (has(s, 'wardrum')) { s.slain += 6; s.resolving = true; fire(s, 'wardrum', '+6'); credit(s, 'wardrum', 'pts', 6); delete s.resolving; log(s, 'The war drum sounds: +6 points.'); }
     log(s, `Raised ${s.contract.clause ? 'the Wildcard' : `to ${TIERS[s.contract.tier]}`}: slay ${s.contract.target} for ${s.contract.pay} gold.`);
     return true;
   }
@@ -498,8 +518,8 @@
     if (!roomDone(s)) return;
     s.roomsCleared++; s.fledStreak = 0; newRoom(s);
     s.resolving = true;
-    if (has(s, 'tipjar')) { s.gold += 1; fire(s, 'tipjar', '+1g'); }
-    if (has(s, 'greedy')) { s.gold += 3; healBy(s, 2); fire(s, 'greedy', '+3g'); }
+    if (has(s, 'tipjar')) { s.gold += 1; fire(s, 'tipjar', '+1g'); credit(s, 'tipjar', 'gold', 1); }
+    if (has(s, 'greedy')) { s.gold += 3; credit(s, 'greedy', 'heal', healBy(s, 2)); fire(s, 'greedy', '+3g'); credit(s, 'greedy', 'gold', 3); }
     delete s.resolving;
     if (s.roomsCleared >= ROOMS_PER_FLOOR) endFloor(s);
     else nextRoom(s);
@@ -613,7 +633,8 @@
     const c = s.contract; s.totalSlain += s.slain; clearBossCards(s);
     let msg;
     // The payout screen counts these up line by line: what the contract paid, the extras, and what was taken.
-    const pay = s.payout = { floor: s.floor, slain: s.slain, target: c.target, survival: !!c.survival, outcome: null, start: s.gold, lines: [], strikes: s.strikes };
+    const pay = s.payout = { floor: s.floor, slain: s.slain, target: c.target, survival: !!c.survival, outcome: null, start: s.gold, lines: [], strikes: s.strikes,
+      relics: { ...(s.relicFloor || { pts: 0, block: 0, heal: 0, gold: 0 }) } }; // what your relics did this floor
     const line = (key, label, gold) => pay.lines.push({ key, label, gold });
     if (c.survival) {
       pay.outcome = 'survived'; line('contract', 'Survival pay', c.pay);
@@ -624,6 +645,7 @@
       s.gold += c.pay + over;
       pay.outcome = 'met'; line('contract', 'Contract', c.pay); if (over) line('overkill', 'Overkill', over);
       msg = `Contract met: ${s.slain}/${c.target}. +${c.pay} gold` + (over ? `, +${over} overkill.` : '.');
+      if (s.slain >= ROUT * c.target) { pay.rout = true; line('rout', 'Rout: an all-rare relic pick', 0); msg += ' A rout: the guild hands over its best relics.'; }
       if (s.raises) { const b = Math.ceil(c.pay * RAISE_BONUS); s.gold += b; line('raise', 'Raised contract bonus', b); msg += ` Raise bonus +${b}.`; }
       if (has(s, 'bloodpact')) { s.maxHp += 2; s.hp += 2; msg += ' Blood Pact: +2 max HP.'; line('bloodpact', 'Blood Pact: +2 max health', 0); }
     } else {
@@ -634,6 +656,7 @@
       if (has(s, 'loanshark')) { line('loanshark', 'Loan shark', -Math.min(8, s.gold)); s.gold = Math.max(0, s.gold - 8); msg += ' The loan shark takes 8 gold.'; }
       if (has(s, 'cursed')) { s.maxHp = Math.max(1, s.maxHp - 5); s.hp = Math.min(s.hp, s.maxHp); msg += ' The cursed contract takes 5 max health.'; line('cursed', 'Cursed Contract: −5 max health', 0); }
     }
+    if (!c.survival && c.target && (!s.bestFloor || s.slain / c.target > s.bestFloor.slain / s.bestFloor.target)) s.bestFloor = { floor: s.floor, slain: s.slain, target: c.target };
     if (has(s, 'compound')) s.purseFloors++;
     if (isBossFloor(s.floor)) s.bossFloors++;
     const interest = c.survival ? 0 : Math.min(interestCap(s), Math.floor(s.gold / 5));
@@ -649,7 +672,7 @@
     }
     log(s, msg); s.lastResult = msg; pay.end = s.gold; pay.strikesAfter = s.strikes;
     if (s.strikes >= 3) { s.phase = 'lost'; s.lastResult = msg + ' The guild revokes your license.'; return; }
-    const rares = c.survival ? 0 : pay.outcome !== 'met' ? 0 : c.tier === 2 || c.clause ? PICK_SIZE : c.tier === 1 ? 1 : 0;
+    const rares = c.survival ? 0 : pay.outcome !== 'met' ? 0 : c.tier === 2 || c.clause || pay.rout ? PICK_SIZE : c.tier === 1 ? 1 : 0;
     if (s.floor === FLOORS - 1 && !s.endless) { s.phase = 'won'; s.wonRares = rares; return; }
     openShop(s, rares);
   }
@@ -788,6 +811,13 @@
   const nextCard = s => s.draw[0] || null;
   // What the Spyglass shows: the next 3 cards in the pile.
   const nextCards = (s, n = 3) => s.draw.slice(0, n);
+  // The end screen's engine report: the relic that did the most this run (points, damage stopped, healing and gold
+  // all count one each), your best floor against its target, and your best weapon and max health against the start.
+  function engineReport(s) {
+    const run = s.relicRun || {}, sum = r => r.pts + r.block + r.heal + r.gold;
+    const top = Object.keys(run).filter(k => RELICS[k] && sum(run[k]) > 0).sort((a, b) => sum(run[b]) - sum(run[a]))[0];
+    return { top: top ? { k: top, ...run[top] } : null, best: s.bestFloor || null, weapon: s.topWeapon || 0, maxHp: s.maxHp, startHp: MAX_HP };
+  }
   // A growing relic's count so far, shown on its icon, or null for relics that don't grow.
   function relicStack(s, k) {
     if (!has(s, k)) return null;
@@ -861,7 +891,7 @@
     bossFor, isBossFloor, targetRow, continueEndless,
     RARITIES, PICK_SIZE, SKIP_GOLD, REROLL_BASE, REROLL_STEP, rerollCost, canReroll, rerollShop,
     newGame, saveGame, loadGame, safeFloor, bid, flee, canFlee, handle, buy, cost, choose, skipPick, relicsFull, target, duesFor, interestCap, dropRelic, leaveShop, allowedTiers, payout,
-    canRaise, raise, raisesPerFloor, canRedraw, redraw, RAISE_BONUS,
+    canRaise, raise, raisesPerFloor, canRedraw, redraw, RAISE_BONUS, ROUT, engineReport,
     modes, canStash, stash, canUseStash, useStash, canSwap, swapCard, canUndo, undo, nextCards, relicStack,
     canUseWeapon, monsterDamage, contractPoints, potionHeal, resolveCard, rankLabel, act,
     duesAhead, weaponReach, nextCard, deckView, devJump, devRoom, devGrant, devEndFloor,
