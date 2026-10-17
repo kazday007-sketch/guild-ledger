@@ -8,6 +8,12 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.19.0 (2026-10-17)
+Engraved buttons, panels and end-screen pieces.
+- Buttons are new: a brass plate with red wax seals for the main action, slate paper for secondary buttons, a bronze plate for card plays, oxblood with black seals for a fatal play, a faded one when disabled, and a slate plate that lights up for the chosen mode. Hover and pressed states are the same plates lit or darkened.
+- Panels are new: dark slate with an engraved double rule and corner flourishes, a small notched tooltip, and deckled note paper for shop wares.
+- The three end screens have new pieces: the dented helmet and candle for a death, the torn licence for a revoked one, the closed ledger with the hoof print for a win.
+
 ## 2.18.0 (2026-10-16)
 Engraved screen icons and crests.
 

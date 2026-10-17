@@ -733,25 +733,26 @@ main .titlecard .logo::after { display: none; } /* the logo has its own letterin
 
 /* ---------- painted UI (batch 2 art): buttons, panels, bars, pips, card frames and numbers ----------
    Buttons and panels are 9-slice images (border-image), so they stretch to any size; the words stay in code. */
-button:not(.link):not(.offer) { border: 1px solid transparent; border-radius: 0; background: none; border-image: url(assets/ui/btn-secondary.webp) 34 44 fill / 10px 13px stretch; }
-button:not(.link):not(.offer):hover:not(:disabled) { border-color: transparent; border-image-source: url(assets/ui/btn-secondary-hover.webp); }
-button:not(.link):not(.offer):disabled { opacity: .75; color: #3b3b3b; border-image-source: url(assets/ui/btn-disabled.webp); }
-button.primary:not(.link):not(.offer), button.primary:not(.link):not(.offer):hover:not(:disabled) { background: none; border-color: transparent; border-image: url(assets/ui/btn-primary.webp) 34 44 fill / 10px 13px stretch; color: #2a1d05; }
-button.primary:not(.link):not(.offer):hover:not(:disabled) { filter: brightness(1.1) drop-shadow(0 0 6px rgba(240,200,110,.45)); }
-button.primary:not(.link):not(.offer):active:not(:disabled) { border-image-source: url(assets/ui/btn-primary-pressed.webp); color: #f1e3bf; filter: none; }
-.card .acts button:not(.link) { background: none; color: var(--bone); border-color: transparent; border-image: url(assets/ui/btn-action.webp) 30 40 fill / 8px 11px stretch; }
-.card .acts button:hover:not(:disabled) { border-image-source: url(assets/ui/btn-action-hover.webp); }
-.card .acts button.fatal:not(:disabled) { border-image: url(assets/ui/btn-danger.webp) 38 48 fill / 9px 12px stretch; }
-.card .acts button:disabled { color: #3b3b3b; border-image: url(assets/ui/btn-disabled.webp) 34 44 fill / 8px 11px stretch; }
+button:not(.link):not(.offer) { border: 1px solid transparent; border-radius: 0; background: none; border-image: url(assets/ui/btn2-secondary.webp) 27 32 fill / 50% 22px stretch; }
+button:not(.link):not(.offer):hover:not(:disabled) { border-color: transparent; border-image-source: url(assets/ui/btn2-secondary-hover.webp); }
+button:not(.link):not(.offer):disabled { opacity: .85; color: #55574f; border-image: url(assets/ui/btn2-disabled.webp) 26 36 fill / 50% 24px stretch; }
+button.primary:not(.link):not(.offer), button.primary:not(.link):not(.offer):hover:not(:disabled) { background: none; border-color: transparent; border-image: url(assets/ui/btn2-primary.webp) 29 46 fill / 50% 32px stretch; color: #2a1d05; }
+button.primary:not(.link):not(.offer) { padding-inline: 38px; }
+button.primary:not(.link):not(.offer):hover:not(:disabled) { border-image-source: url(assets/ui/btn2-primary-hover.webp); filter: drop-shadow(0 0 6px rgba(240,200,110,.45)); }
+button.primary:not(.link):not(.offer):active:not(:disabled) { filter: brightness(.82); color: #f1e3bf; }
+.card .acts button:not(.link) { background: none; color: var(--bone); border-color: transparent; border-image: url(assets/ui/btn2-action.webp) 35 40 fill / 50% 26px stretch; }
+.card .acts button:hover:not(:disabled) { filter: brightness(1.18); }
+.card .acts button.fatal:not(:disabled) { border-image: url(assets/ui/btn2-danger.webp) 28 46 fill / 50% 30px stretch; }
+.card .acts button:disabled { color: #55574f; border-image: url(assets/ui/btn2-disabled.webp) 26 36 fill / 50% 20px stretch; }
 .mode { border: 0; background: none; gap: 6px; overflow: visible; }
 .mode button + button { border-left: 1px solid transparent; }
-.mode button:not(.link), .mode button:not(.link):hover:not(:disabled) { color: var(--bone); border-image: url(assets/ui/btn-toggle-off.webp) 22 60 fill / 8px 16px stretch; }
-.mode button[aria-pressed="true"]:not(.link), .mode button[aria-pressed="true"]:not(.link):hover { background: none; color: #2a1d05; border-image: url(assets/ui/btn-primary.webp) 34 44 fill / 10px 13px stretch; }
+.mode button:not(.link), .mode button:not(.link):hover:not(:disabled) { color: var(--bone); border-image: url(assets/ui/btn2-toggle.webp) 24 24 fill / 50% 16px stretch; }
+.mode button[aria-pressed="true"]:not(.link), .mode button[aria-pressed="true"]:not(.link):hover { background: none; color: #fff2cf; filter: sepia(1) saturate(2.4) hue-rotate(-12deg) brightness(1.9) contrast(.9); }
 .skull { display: inline-block; width: 1.15em; height: 1.15em; vertical-align: -.25em; margin: 0 .3em 0 0; background: url(assets/ui/icon-skull.webp) center / contain no-repeat; }
 .sm .skull { margin: 0 0 0 .2em; }
 
 /* panels */
-.status, details.rules, .shop, .end, .contract.board, .ware, .relic, .settle { background: none; border-color: transparent; border-radius: 0; border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; }
+.status, details.rules, .shop, .end, .contract.board, .ware, .relic, .settle { background: none; border-color: transparent; border-radius: 0; border-image: url(assets/ui/panel2-main.webp) 32 fill / 12px stretch; }
 .status { gap: 0; } .status .stat { background: transparent; }
 .relic.empty { border-style: solid; }
 .coach, .coach.hint, .coach.done { background: none; border-color: transparent; border-radius: 0; box-shadow: 0 6px 18px rgba(0,0,0,.35); border-image: url(assets/ui/panel-gold.webp) 40 fill / 14px stretch; }
@@ -806,7 +807,7 @@ details[open] > summary::before { transform: rotate(90deg); }
 header .pause { flex: none; width: 40px; height: 40px; padding: 6px; display: grid; place-items: center; }
 header .pause img { width: 24px; height: 24px; }
 .overlay { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 16px; background: rgba(8,10,14,.72); backdrop-filter: blur(2px); }
-.pausebox { display: grid; gap: 12px; width: min(100%, 320px); padding: 22px 22px 24px; text-align: center; border: 1px solid transparent; border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; box-shadow: 0 12px 40px rgba(0,0,0,.6); }
+.pausebox { display: grid; gap: 12px; width: min(100%, 320px); padding: 22px 22px 24px; text-align: center; border: 1px solid transparent; border-image: url(assets/ui/panel2-main.webp) 32 fill / 12px stretch; box-shadow: 0 12px 40px rgba(0,0,0,.6); }
 .pausebox h2 { font-size: 28px; }
 .pausebox .volume { display: flex; align-items: center; gap: 10px; justify-content: center; }
 .pausebox .volume span { width: 54px; text-align: left; }
@@ -842,7 +843,7 @@ main.solo.map { max-width: 980px; }
 .actmap h2::after { content: ''; display: block; width: 240px; height: 34px; margin: 2px auto 0; background: url(assets/ui/divider.webp) center / contain no-repeat; }
 .floors { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; width: 100%; }
 .floors::before { content: ''; position: absolute; left: 16%; right: 16%; top: calc(16px + var(--tok) / 2); border-top: 3px dashed rgba(224,180,80,.45); z-index: 0; }
-.floor { position: relative; z-index: 1; display: grid; gap: 6px; justify-items: center; align-content: start; padding: 16px 12px 18px; border: 1px solid transparent; border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; }
+.floor { position: relative; z-index: 1; display: grid; gap: 6px; justify-items: center; align-content: start; padding: 16px 12px 18px; border: 1px solid transparent; border-image: url(assets/ui/panel2-main.webp) 32 fill / 12px stretch; }
 /* Gold marks where you are (the next floor). The boss floor is marked in red, so it never reads as your position. */
 .floor.next { border-image: url(assets/ui/panel-gold.webp) 40 fill / 14px stretch; }
 .floor.bossfloor { outline: 2px solid rgba(208,84,91,.6); outline-offset: -7px; }
@@ -867,7 +868,7 @@ main.solo.map { max-width: 980px; }
 .floor .mark img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .floor .mark b { position: relative; font: 700 18px/1 var(--mono); letter-spacing: .12em; }
 .floor .mark.paid b { color: #2f8f3e; } .floor .mark.strike b { color: #c8312f; }
-.actmap .dues { margin: 0; padding: 8px 14px; font-size: 15px; border: 1px solid transparent; border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; }
+.actmap .dues { margin: 0; padding: 8px 14px; font-size: 15px; border: 1px solid transparent; border-image: url(assets/ui/panel2-main.webp) 32 fill / 12px stretch; }
 .actmap .go { font-size: 20px; padding: 12px 44px; font-family: var(--display); font-weight: 400; letter-spacing: .04em; }
 @media (prefers-reduced-motion: reduce) { .floor.next { transform: none; } }
 /* Shorter desktop windows: a smaller title so the act fits without scrolling. */
@@ -911,10 +912,10 @@ main.solo.map { max-width: 980px; }
 .shopsign h2 { font-size: 26px; color: var(--gold); text-shadow: 0 2px 4px #000; }
 .purse { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; color: var(--ash); }
 .purse img { width: 26px; height: 26px; } .purse b { font-size: 22px; color: var(--gold); }
-.shop .settle { border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; }
+.shop .settle { border-image: url(assets/ui/panel2-main.webp) 32 fill / 12px stretch; }
 .shelf { display: grid; gap: 6px; padding: 8px 10px 16px; border-radius: 8px; background: rgba(12,9,6,.28); box-shadow: inset 0 -12px 0 #4a3322, inset 0 -14px 0 rgba(0,0,0,.5), inset 0 -16px 10px rgba(0,0,0,.3); }
 .shelf > .label { color: #e8d9b5; text-shadow: 0 1px 2px #000; }
-.shop .ware { background: none; border: 0; border-image: url(assets/ui/ware-parchment.webp) 46 fill / 20px stretch; /* 9-slice: the torn edges keep their shape at any size */ color: var(--paper-ink); padding: 20px 14px 14px; gap: 6px; filter: drop-shadow(0 4px 5px rgba(0,0,0,.55)); }
+.shop .ware { background: none; border: 0; border-image: url(assets/ui/panel2-note.webp) 34 fill / 14px stretch; /* 9-slice: the torn edges keep their shape at any size */ color: var(--paper-ink); padding: 20px 14px 14px; gap: 6px; filter: drop-shadow(0 4px 5px rgba(0,0,0,.55)); }
 .shop .ware::before { content: ''; position: absolute; z-index: 1; top: -5px; left: 50%; width: 18px; height: 23px; margin-left: -9px; background: url(assets/ui/ware-pin.webp) center / contain no-repeat; filter: drop-shadow(0 2px 1px rgba(0,0,0,.45)); pointer-events: none; }
 .shop .ware:nth-child(2) { transform: rotate(.8deg); } .shop .ware:nth-child(3) { transform: rotate(-.7deg); }
 .shop .ware b { color: var(--paper-ink); }
@@ -932,8 +933,8 @@ main.solo.map { max-width: 980px; }
 .buyrow button { padding: 6px 16px; }
 .shopexit { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .shopexit .muted { color: #d8cdb4; font-size: 14px; }
-.shop .relic { border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; }
-.shop .warn { border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; }
+.shop .relic { border-image: url(assets/ui/panel2-main.webp) 32 fill / 12px stretch; }
+.shop .warn { border-image: url(assets/ui/panel2-main.webp) 32 fill / 12px stretch; }
 @media not ((min-width: 900px) and (min-height: 520px)) {
   .shopsign { display: none; } /* gold is in the status bar right above */
   .side:has(.settle) .coach.hint .sub, .side:has(.settle) .coach.hint .label { display: none; } /* in the shop the tip says enough; the goal returns after */
@@ -965,7 +966,7 @@ main.solo.map { max-width: 980px; }
 [data-tip], [data-tip] img { -webkit-touch-callout: none; }
 @media (hover: none) { body { -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; } input, textarea { -webkit-user-select: text; user-select: text; } [data-tip] { cursor: pointer; } }
 @media (hover: none) { [data-tip] { -webkit-user-select: none; user-select: none; } [data-tip], [data-tip] img { -webkit-touch-callout: none; } } /* a hold shows the tip, not iOS's image menu */
-#tip { position: fixed; z-index: 40; left: 0; top: 0; max-width: min(280px, calc(100vw - 24px)); padding: 9px 13px 11px; display: none; gap: 3px; pointer-events: none; color: var(--bone); font-size: 14px; line-height: 1.35; text-align: left; border: 1px solid transparent; border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; filter: drop-shadow(0 8px 16px rgba(0,0,0,.7)); }
+#tip { position: fixed; z-index: 40; left: 0; top: 0; max-width: min(280px, calc(100vw - 24px)); padding: 9px 13px 11px; display: none; gap: 3px; pointer-events: none; color: var(--bone); font-size: 14px; line-height: 1.35; text-align: left; border: 1px solid transparent; border-image: url(assets/ui/panel2-tip.webp) 28 fill / 10px stretch; filter: drop-shadow(0 8px 16px rgba(0,0,0,.7)); }
 #tip.on { display: grid; animation: tipin .12s ease-out; }
 #tip b { font: 400 17px/1.1 var(--display); color: var(--gold); }
 #tip span b { font: inherit; font-weight: 700; color: var(--bone); }
@@ -1265,7 +1266,7 @@ main.play .stage .shop .ware .buyrow { grid-column: 2; align-self: start; margin
 @media (max-height: 400px) and (orientation: landscape) { .shop .warn.dueswarn { padding: 2px 8px; font-size: 12px; } }
 /* ---------- 1.24.0: payout screen ---------- */
 .payout { position: relative; display: grid; gap: 14px; justify-items: stretch; width: min(560px, 100%); justify-self: center; box-sizing: border-box; padding: 22px 26px 24px;
-  border: 1px solid transparent; border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+  border: 1px solid transparent; border-image: url(assets/ui/panel2-main.webp) 32 fill / 12px stretch; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
 @media (min-width: 900px) and (min-height: 700px) {
   .payout { width: min(680px, 100%); padding: 30px 36px 32px; gap: 18px; }
   .payout .phead .clerk { width: 104px; height: 104px; } .payout h2 { font-size: 40px; } .payout .pkills { font-size: 19px; }
@@ -1338,7 +1339,7 @@ svg.rglyph circle.ring { fill: none; stroke-width: 2; opacity: .55; }
 svg.rglyph.rare circle:not(.ring) { stroke-width: 7; } svg.rglyph.boss circle:not(.ring) { fill: #2a1414; stroke: #e7c46a; stroke-width: 8; }
 svg.rglyph text { fill: var(--fc, #ddd); font-size: 42px; font-family: 'Segoe UI Symbol', 'Noto Sans Symbols 2', 'Apple Symbols', sans-serif; }
 .pickview { position: relative; display: grid; gap: 14px; width: min(860px, 100%); justify-self: center; box-sizing: border-box; padding: 20px 24px 22px;
-  border: 1px solid transparent; border-image: url(assets/ui/panel-slate.webp) 34 fill / 10px stretch; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+  border: 1px solid transparent; border-image: url(assets/ui/panel2-main.webp) 32 fill / 12px stretch; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
 .pickview .phead { display: flex; gap: 14px; align-items: center; }
 .pickview .phead .clerk { width: 76px; height: 76px; flex: none; border-radius: 8px; object-fit: cover; }
 .pickview h2 { margin: 2px 0; font-size: 30px; line-height: 1.05; color: #f1d488; }
@@ -2371,7 +2372,7 @@ img.clerk { box-shadow: none; border-radius: 0; object-fit: contain !important; 
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.18.0';
+const VERSION = '2.19.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
