@@ -1053,11 +1053,7 @@ main.solo:has(> .end) > details.lb { margin: 0; max-width: none; }
   .end.dead .epitaph { font-size: clamp(14px, 2.9vh, 24px); }
   .end.dead .endform { border-top: 1px solid rgba(201,87,92,.35); padding-top: var(--dg); }
 }
-@media (min-width: 621px) and (max-height: 799px) { main.solo:has(> .end.dead) { --z: .92; } } /* short windows: the whole panel shrinks so the bars under it still fit */
-@media (min-width: 621px) and (max-height: 719px) { main.solo:has(> .end.dead) { --z: .84; } }
-@media (min-width: 621px) and (max-height: 659px) { main.solo:has(> .end.dead) { --z: .76; } }
-@media (min-width: 621px) and (max-height: 519px) { main.solo:has(> .end.dead) { --z: .8; } main.solo .end.dead .killer, main.solo .end.dead .endart, main.solo .end.dead textarea { display: none; } }
-@media (min-width: 621px) and (max-height: 419px) { main.solo:has(> .end.dead) { --z: .7; } }
+@media (min-width: 621px) and (max-height: 519px) { main.solo .end.dead .killer, main.solo .end.dead .endart, main.solo .end.dead textarea { display: none; } }
 @media (prefers-reduced-motion: reduce) { #scene.dead::after, .killer, .killer .claw { animation: none; } }
 @media not ((min-width: 900px) and (min-height: 520px)) {
   .killer { width: 84px; } .killer .rank { font-size: 15px; left: -6px; top: -6px; }
@@ -1606,7 +1602,7 @@ img.clerk { box-shadow: none; border-radius: 0; object-fit: contain !important; 
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.27.0';
+const VERSION = '2.27.1';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -2938,7 +2934,18 @@ function renderTitle() {
 }
 const narrow = () => !(window.matchMedia && matchMedia('(min-width: 900px) and (min-height: 520px)').matches);
 // Every redraw goes through here, so motion sees what changed whatever caused it.
-function render() { const snap = motionSnap(); drawScreen(); motionPlay(snap); smallTouches(); SFX.music(musicFor()); }
+function fitDead() { // the death panel shrinks (zoom) just enough that nothing scrolls
+  const m = document.querySelector('main.solo'); if (!m) return;
+  m.style.removeProperty('--z');
+  const e = m.querySelector(':scope > .end.dead'); if (!e || !matchMedia('(min-width: 621px)').matches) return;
+  for (let i = 0; i < 3; i++) {
+    const over = document.documentElement.scrollHeight - innerHeight; if (over <= 0) break;
+    const z = +getComputedStyle(m).getPropertyValue('--z') || 1, h = e.getBoundingClientRect().height;
+    m.style.setProperty('--z', Math.max(.35, z * (h - over - 1) / h).toFixed(3));
+  }
+}
+addEventListener('resize', () => fitDead());
+function render() { const snap = motionSnap(); drawScreen(); fitDead(); motionPlay(snap); smallTouches(); SFX.music(musicFor()); }
 function drawScreen() {
   hideTip();
   if (titleOn) { renderTitle(); return; }
