@@ -8,6 +8,13 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.37.0
+
+- **Every relic says what it does in plain words.** All relic text is rewritten to be short and concrete, with a real number where it helps ("Punching only hurts half as much (a 9 hits you for 4)"), and no jargon like "overkill", "interest cap" or "dulls" without saying what it means.
+- **Two relics replaced.** Rulebreaker (ignore Wildcard rules) is gone; **Sanguine Seal** (common) takes its place: between rooms, pay 3 health to cut this floor's target by 5, once a room, and a raise keeps the cut. Hourglass (undo) is gone; **Echo** (epic) takes its place: the first card you take in each room counts twice (a kill scores double, a potion heals double, a weapon is 3 stronger). A saved run holding Rulebreaker or Hourglass simply loses it.
+- **Three relics reworked.** **Vampire Fang** heals half the value of a monster you punch to death (was 2), and is now rare. **Buckler** makes the first monster you fight in each room harmless, but that kill scores only half (was 2 less damage). **Lich's Ledger** pays interest with no limit after every room, not only at the end of the floor (was no cap, half dues and +1 a kill).
+- Simulator wins: cautious 24%, balanced 25%, greedy 23%. Endless median floor 14.
+
 ## 2.36.0
 
 - **Click a card to play it.** A card with one way to play it (a potion, a weapon, a monster you can only punch) plays when you click or tap the card itself. A card with several ways (weapon or fists, drink or equip) gives its buttons a little nudge, and you pick one. The buttons stay as labels showing the damage or healing, and pressing and holding a card still shows its tip.
