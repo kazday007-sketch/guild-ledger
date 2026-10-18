@@ -8,6 +8,13 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.36.0
+
+- **Click a card to play it.** A card with one way to play it (a potion, a weapon, a monster you can only punch) plays when you click or tap the card itself. A card with several ways (weapon or fists, drink or equip) gives its buttons a little nudge, and you pick one. The buttons stay as labels showing the damage or healing, and pressing and holding a card still shows its tip.
+- **Text size setting.** The pause menu has Text: S, M, L, XL. It scales card names, the damage and healing numbers on the play buttons and the numbers that float up. The default is a little bigger than before. Bigger text takes room from the card pictures, so nothing scrolls.
+- **The stone spots stay on the table.** Every place on the table keeps its stone recess all room long: new cards are dealt onto it and played cards lift off it, instead of the spot vanishing when the next cards arrive.
+- On phones held sideways the pause menu is laid out two across, so it fits the screen.
+
 ## 2.35.0
 
 - **Darker, slower music with real dance synths.** Every loop now runs in minor, harmonic minor or phrygian keys, in a bigger stone-room echo, with a far bell tolling in the quiet parts. The drops have a growling detuned-saw bass, a supersaw pad and a saw lead carrying the tune (the recorder now ghosts above it). The synths are strong but filtered dark, so nothing is shrill.
