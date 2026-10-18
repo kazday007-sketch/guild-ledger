@@ -1661,6 +1661,40 @@ img.clerk { box-shadow: none; border-radius: 0; object-fit: contain !important; 
 .warn.short, .warn.short b { color: #f08a8f; }
 .pboss { border-radius: 0; background: none; border: 1px solid transparent; border-image: url(assets/ui/panel3-tip.webp) 44 fill / 12px stretch; box-shadow: 0 4px 14px rgba(0,0,0,.6); padding: 4px 14px 4px 6px; }
 .pboss img { border-radius: 2px; box-shadow: 0 0 0 1px #8a6a3a; }
+/* ---------- 2.36.0: click a card to play it, text size, spots that stay ----------
+   Each place on the table keeps its stone spot all room long (laid by laySpots, under the card). */
+.chamber .room { position: relative; }
+.chamber .room > .slot.under { position: absolute; margin: 0; z-index: 0; pointer-events: none; }
+.chamber .room > .card { z-index: 1; }
+/* a card with one way to play it is played by clicking it */
+.chamber:not(.preview) .room > .card.tap { cursor: pointer; }
+.room > .card.nudge .acts { animation: actsNudge .5s ease-in-out; }
+@keyframes actsNudge { 30% { translate: 0 -4px; filter: brightness(1.3); } 60% { translate: 0 1px; } }
+/* Text size (pause menu): --ts scales card names, the numbers on play buttons, and the numbers that float
+   up. The table gives the name row more height as it grows (--tx), so the picture shrinks instead. */
+:root { --ts: 1.15; --tx: calc((var(--ts) - 1) * 22px); }
+main.play .stage .chamber:not(.preview) div.room { --x: calc(109px + var(--tx)); }
+@media not ((min-width: 900px) and (min-height: 520px)) { main.play .stage .chamber:not(.preview) div.room { --x: calc(82px + var(--tx)); } }
+@media (max-width: 899px) and (orientation: portrait) { main.play .stage .chamber:not(.preview) div.room { --x: calc(93px + var(--tx)); } }
+main.play .stage .chamber:not(.preview) .card .name .face { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.15;
+  font-size: min(calc(16px * var(--ts)), calc(var(--w, 200px) / (var(--nl, 10) * .5 + 1.2))); }
+@media (max-height: 519px) and (orientation: landscape) { main.play .stage .chamber:not(.preview) .card .name .face { font-size: min(calc(12.5px * var(--ts)), calc(var(--w, 200px) / (var(--nl, 10) * .5 + 1.2))); } }
+main.play .stage .chamber:not(.preview) .card.vint .acts .hitd { font-size: calc(14px * var(--ts)); font-weight: 700; }
+main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(3)) .hitd { font-size: calc(12px * var(--ts)); }
+@media (max-height: 519px) and (orientation: landscape) { main.play .stage .chamber:not(.preview) .card.vint .acts .hitd { font-size: calc(12.5px * var(--ts)); } }
+.acts .hitd { font-size: calc(1em * var(--ts)); }
+.floatnum { font-size: calc(26px * var(--ts)); } .floatnum.dmg { font-size: calc(30px * var(--ts)); }
+.pausebox .textsize { display: flex; align-items: center; gap: 6px; justify-content: center; }
+.pausebox .textsize > span { width: 54px; text-align: left; }
+.pausebox .textsize .mode button { font-size: 14px; padding: 5px 0; width: 42px; }
+.pausebox .textsize .mode button:nth-child(1) { font-size: 12px; } .pausebox .textsize .mode button:nth-child(3) { font-size: 16px; } .pausebox .textsize .mode button:nth-child(4) { font-size: 18px; }
+/* on short screens (phones held sideways) the pause menu goes two across so it fits without scrolling */
+@media (max-height: 519px) {
+  .pausebox:not(.pagebox):not(.deckbox) { width: min(100%, 620px); grid-template-columns: 1fr 1fr; gap: 8px 14px; padding: 12px 20px 14px; }
+  .pausebox:not(.pagebox):not(.deckbox) > :is(h2, .prow, p, .sync) { grid-column: 1 / -1; }
+  .pausebox:not(.pagebox):not(.deckbox) h2 { font-size: 22px; } .pausebox:not(.pagebox):not(.deckbox) h2::after { height: 18px; }
+  .pausebox:not(.pagebox):not(.deckbox) > button { padding: 7px 12px; font-size: 15px; }
+}
 </style>
 
 <div id="scene" aria-hidden="true"></div>
@@ -1674,7 +1708,7 @@ img.clerk { box-shadow: none; border-radius: 0; object-fit: contain !important; 
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.35.0';
+const VERSION = '2.36.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -2081,7 +2115,7 @@ async function playCard(c, mode, el) {
   const name = kind === 'monster' ? (mode === 'bare' ? 'punch' : 'slash') : kind === 'potion' && E.potionHeal(s, c) > 0 && s.hp < s.maxHp ? 'heal' : null;
   SFX.play(kind === 'weapon' ? 'equip' : name === 'heal' ? 'potion' : name || 'flip');
   if (el && !reduceMotion) {
-    busy = true; spotUnder(el); if (name) fx(name, el.getBoundingClientRect());
+    busy = true; if (name) fx(name, el.getBoundingClientRect());
     await (isBossCard(c) && fought ? bossFalls(el) : leaveCard(el, { ...c, kind }, mode === 'weapon2' ? 'weapon' : mode)); busy = false;
   }
   if (fought) {
@@ -2092,15 +2126,17 @@ async function playCard(c, mode, el) {
   if (kind === 'weapon' && s.weapon && !s.relics.includes('twinblades')) { const at = rectOf('.stat.weapon'); return () => fx('weapon-break', at); } // the old weapon is dropped
   return null;
 }
-// The stone spot a played card leaves behind is laid under it before it moves, so as the card goes the spot is
-// simply there. The next render draws the real one in the same place and drops this copy.
-function spotUnder(el) {
-  if (!el.parentElement || !el.parentElement.classList.contains('room')) return;
-  const g = document.createElement('div'); g.className = 'slot'; g.setAttribute('aria-hidden', 'true');
-  g.innerHTML = '<i class="spot"></i><small>Picked</small>';
-  Object.assign(g.style, { position: 'absolute', left: el.offsetLeft + 'px', top: el.offsetTop + 'px', width: el.offsetWidth + 'px', height: el.offsetHeight + 'px', margin: 0, zIndex: 0, pointerEvents: 'none' });
-  if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
-  el.style.zIndex = 4; el.before(g);
+// Every place on the table keeps its stone spot for the whole room: one sits under each card, so a card lifts off it
+// when played and a new card is dealt onto it. Laid after each draw (and on resize) where the grid put the card.
+function laySpots() {
+  const room = app.querySelector('.chamber:not(.preview) .room'); if (!room) return;
+  room.querySelectorAll(':scope > .slot.under').forEach(x => x.remove());
+  room.querySelectorAll(':scope > .card').forEach(el => {
+    const g = document.createElement('div'); g.className = 'slot under'; g.setAttribute('aria-hidden', 'true');
+    g.innerHTML = '<i class="spot"></i>';
+    Object.assign(g.style, { left: el.offsetLeft + 'px', top: el.offsetTop + 'px', width: el.offsetWidth + 'px', height: el.offsetHeight + 'px' });
+    el.before(g);
+  });
 }
 // A played card leaves the table its own way: a weapon flies to your weapon slot, a potion into your health,
 // a monster recoils from the blow and drops away. Resolves when it's gone.
@@ -2128,6 +2164,11 @@ const store = {
   drop(k) { try { localStorage.removeItem('gl-' + k); } catch {} },
 };
 let seenHints = store.get('hints', {});
+// Text size, set in the pause menu: scales card names and the numbers you play by (see --ts in the stylesheet).
+const TEXT_SIZES = { s: ['Small', 1], m: ['Medium', 1.15], l: ['Large', 1.35], xl: ['Extra large', 1.6] };
+let textSize = TEXT_SIZES[store.get('textsize', 'm')] ? store.get('textsize', 'm') : 'm';
+const applyTextSize = () => document.documentElement.style.setProperty('--ts', TEXT_SIZES[textSize][1]);
+applyTextSize();
 
 // ---------- sound and music ----------
 // Short sounds in assets/sfx (src/synth_sfx.py) and a loop for each place in assets/music (src/synth_music.py,
@@ -2641,9 +2682,11 @@ function cardExtras(c) {
   if (E.canSwap(s, c.id)) x += `<button class="link xact" data-swap="${c.id}"${tipAttr('Blood Price', 'Pay 1 health: this card goes to the bottom of the pile and the next one takes its place. Once a room.')}>Swap −1</button>`;
   return x;
 }
+// A card with one way to play it plays when you click the card itself; one with several waits for a button.
+const soleAct = acts => (acts.match(/data-s?act=/g) || []).length === 1 && !/ disabled/.test(acts);
 function cardShell(c, active, acts, extras = '') {
   const lit = tut && TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.v === c.v && s.phase === 'room';
-  return `<article class="card ${c.kind} ${isVintage(c) ? 'vint' : ''} ${vintageBoss(c) ? 'vboss' : ''} ${c.v >= 15 || c.bossKey ? 'elite' : ''} ${c.boss ? 'bosscard' : ''} ${c.base != null ? 'up' : ''} ${c.trophy ? 'trophy' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''}" data-card="${c.id}" style="${handPlaced(c.id)}"${isBossCard(c) && !c.trophy ? ' data-boss="1"' : ''}${c.boss ? tipAttr(cardName(c), 'Must die before you can leave this room.') : c.trophy ? tipAttr(cardName(c), `A trophy: this boss fights for you now, as a <b>${c.v}</b> weapon.`) : c.base != null ? tipAttr(cardName(c), `Upgraded from <b>${c.base}</b> to <b>${c.v}</b> for the rest of the run.`) : ''}>
+  return `<article class="card ${c.kind} ${isVintage(c) ? 'vint' : ''} ${vintageBoss(c) ? 'vboss' : ''} ${c.v >= 15 || c.bossKey ? 'elite' : ''} ${c.boss ? 'bosscard' : ''} ${c.base != null ? 'up' : ''} ${c.trophy ? 'trophy' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''} ${active && soleAct(acts) ? 'tap' : ''}" data-card="${c.id}" style="${handPlaced(c.id)};--nl:${cardName(c).length}"${isBossCard(c) && !c.trophy ? ' data-boss="1"' : ''}${c.boss ? tipAttr(cardName(c), 'Must die before you can leave this room.') : c.trophy ? tipAttr(cardName(c), `A trophy: this boss fights for you now, as a <b>${c.v}</b> weapon.`) : c.base != null ? tipAttr(cardName(c), `Upgraded from <b>${c.base}</b> to <b>${c.v}</b> for the rest of the run.`) : ''}>
     <div class="art">${img(cardArt(c))}<span class="rank" role="img" aria-label="${c.v}">${digits(c.v)}</span></div>
     <div class="name ${extras ? 'withx' : ''}"><span class="face">${cardName(c)}</span>${extras}</div>
     <div class="acts ${(acts.match(/data-act=/g) || []).length > 2 ? 'many' : ''}">${acts}</div></article>`;
@@ -3092,6 +3135,7 @@ function pauseHTML() {
   <button data-title>Main menu</button>
   <label class="volume"><span>Sounds</span><input type="range" min="0" max="100" step="5" value="${Math.round(SFX.volume * 100)}" data-volume aria-label="Sound volume"></label>
   <label class="volume"><span>Music</span><input type="range" min="0" max="100" step="5" value="${Math.round(SFX.musicVolume * 100)}" data-musicvol aria-label="Music volume"></label>
+  <div class="textsize"><span>Text</span><div class="mode" role="group" aria-label="Text size">${Object.entries(TEXT_SIZES).map(([k, [name]]) => `<button data-textsize="${k}" aria-pressed="${k === textSize}" aria-label="${name}" title="${name}">${k.toUpperCase()}</button>`).join('')}</div></div>
   <p class="muted">${rec ? runModeName(rec) + (rec.daily ? ' ' + dailyLabel(rec.daily) : '') : MODES[gameMode()]} · <span class="mutenote">${SFX.muted ? 'Muted · M to unmute' : 'M mutes'}</span> · v${VERSION}</p>${syncNote()}</section></div>`;
 }
 document.addEventListener('keydown', e => {
@@ -3144,7 +3188,7 @@ function fitDead() { // the death panel shrinks (zoom) just enough that nothing 
     m.style.setProperty('--z', Math.max(.35, z * (h - over - 1) / h).toFixed(3));
   }
 }
-addEventListener('resize', () => fitDead());
+addEventListener('resize', () => { fitDead(); laySpots(); });
 function render() { const snap = motionSnap(); drawScreen(); fitDead(); motionPlay(snap); smallTouches(); SFX.music(musicFor()); }
 function drawScreen() {
   hideTip();
@@ -3229,7 +3273,7 @@ function drawScreen() {
     app.querySelectorAll(':scope > :not(.overlay)').forEach(el => { el.inert = true; });
     app.querySelector('.overlay [data-resume], .overlay [data-pauseback], .overlay [data-deckclose]').focus();
   }
-  dealIn();
+  laySpots(); dealIn();
   if (app.querySelector('.payout')) playPayout();
   if ((s.phase === 'won' || s.phase === 'lost') && boardState !== 'off' && boardState !== 'loading' && Date.now() - boardAt > 60000) { boardMode = null; loadBoard(); } // fresh scores on the end screen
   const focus = tut ? TUTORIAL[tut.step] && TUTORIAL[tut.step].focus : (currentHint() || {}).focus;
@@ -3380,9 +3424,9 @@ function clearPreview() {
   app.querySelectorAll('.stat.hp .preview').forEach(el => el.remove());
   const i = app.querySelector('.stat.hp .hpbar i'); if (i && s) i.style.width = 100 * s.hp / s.maxHp + '%';
 }
-const actBtn = e => e.target.closest && e.target.closest('button[data-act]:not(:disabled)');
+const actBtn = e => e.target.closest && (e.target.closest('button[data-act]:not(:disabled)') || ((c => c && c.querySelector('.acts button[data-act]:not(:disabled)'))(e.target.closest('.chamber:not(.preview) .room > .card.tap'))));
 app.addEventListener('pointerover', e => { const b = actBtn(e); if (b) previewHP(b); });
-app.addEventListener('pointerout', e => { const b = actBtn(e); if (b && !b.contains(e.relatedTarget)) clearPreview(); });
+app.addEventListener('pointerout', e => { const b = actBtn(e), host = b && (b.closest('.card.tap') || b); if (b && !host.contains(e.relatedTarget)) clearPreview(); });
 app.addEventListener('pointerdown', e => { const b = actBtn(e); if (b) previewHP(b); });
 app.addEventListener('focusin', e => { const b = actBtn(e); if (b) previewHP(b); });
 app.addEventListener('focusout', e => { if (actBtn(e)) clearPreview(); });
@@ -3394,7 +3438,7 @@ app.addEventListener('focusout', e => { if (actBtn(e)) clearPreview(); });
 // hold instead, and a hold never counts as a tap, so it never plays a card or signs a contract.
 const tipEl = document.createElement('div'); tipEl.id = 'tip'; tipEl.setAttribute('role', 'tooltip'); document.body.appendChild(tipEl);
 let tipFor = null, holdTimer = 0, holdAt = null, swallowUntil = 0, tapAt = null;
-const actionOf = e => e.target && e.target.closest && e.target.closest('button, a, input, textarea, select, summary, label');
+const actionOf = e => e.target && e.target.closest && e.target.closest('button, a, input, textarea, select, summary, label, .chamber:not(.preview) .room > .card.tap');
 function showTip(el) {
   tipFor = el;
   tipEl.innerHTML = `${el.dataset.tipTitle ? `<b>${esc(el.dataset.tipTitle)}</b>` : ''}<span>${el.dataset.tip}</span>`; // tips are the game's own text
@@ -3474,8 +3518,17 @@ async function loadStats() {
 // ---------- input ----------
 let busy = false; // true while a card's leave animation plays
 const QUIET_BUTTONS = ['act', 'bid', 'flee', 'buy', 'forge', 'recruit', 'choose', 'skip', 'reroll', 'raise', 'pause', 'resume', 'deck', 'deckclose', 'soundtoggle'];
+// Clicking a card plays it when it has one way to play; with several, its buttons give a little nudge instead.
+function cardButton(e) {
+  const card = !busy && e.target.closest && e.target.closest('.chamber:not(.preview) .room > .card:not(.idle):not(.hidden)');
+  if (!card) return null;
+  const bs = card.querySelectorAll('.acts button[data-act]:not(:disabled)');
+  if (bs.length === 1) return bs[0];
+  if (bs.length) { card.classList.remove('nudge'); void card.offsetWidth; card.classList.add('nudge'); }
+  return null;
+}
 app.addEventListener('click', async e => {
-  const b = e.target.closest('button'); if (!b || b.disabled || busy) return;
+  const b = e.target.closest('button') || cardButton(e); if (!b || b.disabled || busy) return;
   if (!QUIET_BUTTONS.some(k => k in b.dataset)) SFX.play('click'); // buttons with a sound of their own stay quiet here
   if (titleOn) {
     const d = b.dataset;
@@ -3510,6 +3563,7 @@ app.addEventListener('click', async e => {
   if ('deck' in d) { deckOpen = true; render(); return; }
   if ('deckclose' in d) { deckOpen = false; render(); return; }
   if ('resume' in d) { paused = false; render(); return; }
+  if (d.textsize) { textSize = d.textsize; store.set('textsize', textSize); applyTextSize(); render(); return; }
   if ('map' in d) { mapView = 'pause'; render(); return; }
   if (d.choose || 'skip' in d) {
     const at = b.getBoundingClientRect(), k = d.choose, icon = b.querySelector('.pico');
