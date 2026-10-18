@@ -69,7 +69,7 @@ function clearFloor(s) {
   E.handle(s, b.id); eq(s.hp, 14, "Hag's Heart: a second potion in the room still works"); E.handle(s, c.id); eq(s.hp, 14, "Hag's Heart: not a third"); }
 { const s = game({ hp: 5 }); const a = P(3), b = P(3); s.room = [a, b, M(2), M(2)]; E.handle(s, a.id); E.handle(s, b.id); eq(s.hp, 8, 'base: only one potion works per room'); }
 { const w = W(8), s = game({ relics: ['unbreaking'], weapon: [5, null], room: [w, M(2), M(2), M(2)] }); E.handle(s, w.id);
-  eq(s.weapon.v, 5, 'Unbreaking Edge: a new weapon is thrown away while you hold one');
+  eq(s.weapon.v, 6, 'Unbreaking Edge: a new weapon melts in for +1');
   const w2 = W(8), s2 = game({ relics: ['unbreaking'], room: [w2, M(2), M(2), M(2)] }); E.handle(s2, w2.id); eq(s2.weapon.v, 8, 'Unbreaking Edge: bare-handed, you take it'); }
 { const s = game({ relics: ['livingsteel'] }); const w = s.deck.find(c => c.kind === 'weapon'); const v0 = w.v;
   s.room = [{ ...w }, M(2), M(2), M(2)]; E.handle(s, w.id); const m = M(3); s.room[0] = m; fight(s, m, 'weapon');

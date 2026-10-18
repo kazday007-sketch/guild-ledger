@@ -2662,7 +2662,7 @@ function cardActs(c, attr) {
   let acts = '';
   if (c.kind === 'weapon') {
     const v = c.v;
-    if (s.relics.includes('unbreaking') && s.weapon) acts = btn(null, iconLabel('equip', 'Toss', v), tipAttr('Unbreaking Edge', `You keep your <b>${s.weapon.v}</b>. This weapon is thrown away.`));
+    if (s.relics.includes('unbreaking') && s.weapon) acts = btn(null, iconLabel('equip', 'Melt', v), tipAttr('Unbreaking Edge', `Melt it into your <b>${s.weapon.v}</b>, making it <b>${s.weapon.v + 1}</b>.`));
     else acts = btn(null, iconLabel('equip', 'Equip', v), tipAttr(`Equip the ${cardName(c)}`, `Blocks up to <b>${v}</b> damage per fight.${s.weapon ? s.weapon2 ? ` Your ${s.weapon.v} moves to your off hand.` : ` Drops your ${s.weapon.v}.` : ''}`));
   } else {
     if (c.kind === 'potion') acts += btn(null, potionPreview(c));

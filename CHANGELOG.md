@@ -12,8 +12,9 @@ The version lives in `VERSION` near the top of the script in `src/ui.html`. It i
 
 - **Every relic says what it does in plain words.** All relic text is rewritten to be short and concrete, with a real number where it helps ("Punching only hurts half as much (a 9 hits you for 4)"), and no jargon like "overkill", "interest cap" or "dulls" without saying what it means.
 - **Two relics replaced.** Rulebreaker (ignore Wildcard rules) is gone; **Sanguine Seal** (common) takes its place: between rooms, pay 3 health to cut this floor's target by 5, once a room, and a raise keeps the cut. Hourglass (undo) is gone; **Echo** (epic) takes its place: the first card you take in each room counts twice (a kill scores double, a potion heals double, a weapon is 3 stronger). A saved run holding Rulebreaker or Hourglass simply loses it.
+- **Executioner** now works on every kill of 12 or higher, bare-handed too. **Cleave**'s leftover weapon strength carries to your next fight even in the next room. **Unbreaking Edge** no longer throws new weapons away: each one melts into your blade for +1.
 - **Three relics reworked.** **Vampire Fang** heals half the value of a monster you punch to death (was 2), and is now rare. **Buckler** makes the first monster you fight in each room harmless, but that kill scores only half (was 2 less damage). **Lich's Ledger** pays interest with no limit after every room, not only at the end of the floor (was no cap, half dues and +1 a kill).
-- Simulator wins: cautious 24%, balanced 25%, greedy 23%. Endless median floor 14.
+- Simulator wins: cautious 29%, balanced 28%, greedy 26%.
 
 ## 2.36.0
 

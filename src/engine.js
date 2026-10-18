@@ -76,17 +76,17 @@
   const R = (name, rarity, text) => ({ name, rarity, text });
   const RELICS = {
     // weapons
-    executioner: R('Executioner', 'rare', 'Weapon kills of 12 or higher score 50% more (a 14 scores 21).'),
+    executioner: R('Executioner', 'rare', 'Kills of 12 or higher score 50% more (a 14 scores 21).'),
     twinblades: R('Twin Blades', 'rare', 'Carry two weapons and pick which one to swing. Taking a third drops the older one.'),
-    cleave: R('Cleave', 'rare', 'If your weapon beats a monster by 3 or more, the extra blocks damage in your next fight this room (9 weapon on a 4: next fight hurts 5 less).'),
+    cleave: R('Cleave', 'rare', 'When your weapon beats a monster by 3 or more, the extra carries over to your next fight (a 9 on a 4: your next fight is 5 easier).'),
     glassblade: R('Glass Blade', 'rare', 'Every weapon you pick up is 3 stronger, but breaks after 3 kills.'),
-    unbreaking: R('Unbreaking Edge', 'epic', 'Your weapon can hit anything, not only monsters weaker than its last kill. But while you hold one, new weapons you take are thrown away.'),
+    unbreaking: R('Unbreaking Edge', 'epic', "Your weapon can hit any monster, whatever it killed last. New weapons don't replace it: each one makes it 1 stronger."),
     livingsteel: R('Living Steel', 'rare', 'Each kill makes that weapon card 1 stronger for the rest of the run (up to +5).'),
     // bare hands
-    fang: R('Vampire Fang', 'rare', 'Punching a monster to death heals you half its value (punch an 8: take 8, heal 4).'),
-    haymaker: R('Haymaker', 'rare', 'Your first punch kill in each room scores double.'),
-    hardknuckles: R('Hardened Knuckles', 'common', 'Every 3 monsters you punch to death, punching hurts 1 less for the rest of the run (up to 6 less).'),
-    giantsgrip: R("Giant's Grip", 'epic', 'Punching only hurts half as much (a 9 hits you for 4).'),
+    fang: R('Vampire Fang', 'rare', "Bare-handed kills heal you half the monster's value."),
+    haymaker: R('Haymaker', 'rare', 'Your first bare-handed kill in each room counts double points.'),
+    hardknuckles: R('Hardened Knuckles', 'common', 'Bare-handed fights deal 1 less damage for every 3 bare-handed kills this run (up to 6).'),
+    giantsgrip: R("Giant's Grip", 'epic', 'Bare-handed fights deal half damage (rounded down).'),
     bell: R("Necromancer's Bell", 'epic', 'Every monster you kill comes back later this floor as a potion of the same value.'),
     // health
     alchemist: R('Alchemist', 'rare', 'Healing past your max health scores points instead (at 18 of 20, a 7 potion heals 2 and scores 5).'),
@@ -208,7 +208,7 @@
     let p = m.v;
     const add = (k, n) => { if (n > 0) { p += n; fire(s, k, `+${n}`); credit(s, k, 'pts', n); } };
     if (bare && has(s, 'haymaker') && !s.roomBare) add('haymaker', m.v);
-    if (!bare && has(s, 'executioner') && m.v >= 12) add('executioner', Math.floor(m.v / 2));
+    if (has(s, 'executioner') && m.v >= 12) add('executioner', Math.floor(m.v / 2));
     if (has(s, 'berserk') && s.hp <= 5) add('berserk', 5);
     if (has(s, 'idol')) add('idol', Math.floor(s.gold / 15));
     if (has(s, 'buckler') && s.roomKills === 0) p = Math.floor(p / 2); // Buckler: the fight it blocks scores half
@@ -294,7 +294,7 @@
       if (useWeapon && s.weapon.glass != null && --s.weapon.glass <= 0) { s.weapon = null; out.shattered = true; fire(s, 'glassblade', 'shattered'); }
       s.roomKills++;
     } else if (c.kind === 'weapon' || mode === 'equip') {
-      if (has(s, 'unbreaking') && s.weapon) { out.discarded = true; fire(s, 'unbreaking', 'thrown away'); } // the unbreaking blade won't be put down
+      if (has(s, 'unbreaking') && s.weapon) { s.weapon.v++; out.melted = true; fire(s, 'unbreaking', '+1'); } // the unbreaking blade melts new weapons in
       else {
         if (mode === 'equip') fire(s, 'alchemykit', c.v);
         if (s.echoNow) fire(s, 'echo', '+3');
@@ -333,7 +333,7 @@
   const log = (s, msg) => { s.log.unshift(msg); if (s.log.length > 40) s.log.pop(); };
   const act = s => Math.floor(s.floor / 3);
 
-  function newRoom(s) { s.handled = 0; s.potionUsed = false; s.potions = 0; s.roomKills = 0; s.roomBare = 0; s.cleave = 0; s.bloodUsed = false; s.echoed = false; s.sealUsed = false; }
+  function newRoom(s) { s.handled = 0; s.potionUsed = false; s.potions = 0; s.roomKills = 0; s.roomBare = 0; s.bloodUsed = false; s.echoed = false; s.sealUsed = false; }
   // Take n cards off the top of the pile. In One deck, an empty pile is refilled first with every card that's
   // been dealt (the dungeon deck minus what's in the room or still in the pile), shuffled.
   function deal(s, n) {
@@ -500,7 +500,7 @@
     if (out.saved) log(s, 'Your Second Heart beats once more: back up at 5 health. It crumbles.');
     if (out.spared) log(s, 'That should have killed you. You live, at 1 health. The goat insisted.');
     if (fought) log(s, `${name}: took ${out.dmg} damage` + (s.hp > 0 ? `${s.contract.survival ? '' : `, +${out.points} points`}${out.heal ? `, healed ${out.heal}` : ''}${out.gold ? `, +${out.gold} gold` : ''}.` : '.') + (out.shattered ? ' Your glass blade shatters.' : ''));
-    else if (c.kind === 'weapon' || mode === 'equip') log(s, `Equipped a ${s.weapon.v} weapon.`);
+    else if (c.kind === 'weapon' || mode === 'equip') log(s, out.melted ? `Melted it into your blade: now ${s.weapon.v}.` : `Equipped a ${s.weapon.v} weapon.`);
     else log(s, (out.heal ? `${name}: healed ${out.heal}` : `${name}: no healing`) + (out.points ? `, +${out.points} points.` : '.'));
   }
   // A room is done after 3 cards (Greedy Hands: all of them), but a boss in it must die first.
