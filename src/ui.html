@@ -1708,7 +1708,7 @@ main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(3)) .h
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.36.0';
+const VERSION = '2.37.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -1755,10 +1755,10 @@ const iconOf = k => E.RELICS[k] ? `icons/relics/${k}.webp` : `icons/service-${k}
 const PAINTED = new Set('whetstone keenedge grindstone ironskin buckler hide herbalist fang bloodpact secondwind scout lantern fortune trophy brawler ambush berserk thorns alchemist ledger seal loaded taxman tithe pickpocket loanshark'.split(' '));
 const MARKS = { oil: '☄', quickdraw: '⚡︎', quartermaster: '⚒︎', masterwork: '✠', executioner: '⚔︎', unbreaking: '⛨', knuckles: '❂', pitfighter: '♜', ironfist: '⚙︎',
   haymaker: '✺', giantsgrip: '⛰︎', bloodstone: '◆', bedroll: '☾', secondheart: '♥', hagheart: '⚘', tipjar: '⚱︎', haggler: '⚖︎', idol: '♛', bribe: '✉︎',
-  lichledger: '☠︎', oathkeeper: '✒︎', downpayment: '⚑', wardrum: '◎', rulebreaker: '✂︎', bonecrown: '♚', smokebomb: '☁︎', wardenkeys: '⚷',
+  lichledger: '☠︎', oathkeeper: '✒︎', downpayment: '⚑', wardrum: '◎', sanguine: '✒︎', bonecrown: '♚', smokebomb: '☁︎', wardenkeys: '⚷',
   notched: '⚔︎', twinblades: '⚚', cleave: '⚡︎', glassblade: '◇', hardknuckles: '✊︎', bell: '🔔︎', scar: '⚕︎', ironball: '●', alchemykit: '⚗︎',
   hunger: '☽', mimic: '☊', miser: '¤', compound: '⊕', cursed: '✗', trophybelt: '♚', greedy: '✋︎', stash: '▣', spyglass: '⌕', bait: '⚓︎',
-  bloodprice: '♦', escape: '➶', hourglass: '⧗' };
+  bloodprice: '♦', escape: '➶', echo: '⧗' };
 const ENGRAVED = true; // all 58 relics are drawn; the glyph seals below stay only as a fallback
 function relicIcon(k, cls = 'ico') {
   const r = E.RELICS[k];
@@ -2662,7 +2662,7 @@ function cardActs(c, attr) {
   let acts = '';
   if (c.kind === 'weapon') {
     const v = c.v;
-    if (s.relics.includes('unbreaking') && s.weapon) acts = btn(null, iconLabel('equip', 'Toss', v), tipAttr('Unbreaking Edge', `You keep your <b>${s.weapon.v}</b>. This weapon is thrown away.`));
+    if (s.relics.includes('unbreaking') && s.weapon) acts = btn(null, iconLabel('equip', 'Melt', v), tipAttr('Unbreaking Edge', `Melt it into your <b>${s.weapon.v}</b>, making it <b>${s.weapon.v + 1}</b>.`));
     else acts = btn(null, iconLabel('equip', 'Equip', v), tipAttr(`Equip the ${cardName(c)}`, `Blocks up to <b>${v}</b> damage per fight.${s.weapon ? s.weapon2 ? ` Your ${s.weapon.v} moves to your off hand.` : ` Drops your ${s.weapon.v}.` : ''}`));
   } else {
     if (c.kind === 'potion') acts += btn(null, potionPreview(c));
@@ -3223,11 +3223,11 @@ function drawScreen() {
       </section>
       ${relicsHTML(false)}`);
   } else if (s.phase === 'room') {
-    const up = E.canRaise(s) && { tier: s.contract.tier + 1, target: E.target(s, s.contract.tier + 1), pay: E.payout(s, s.contract.tier + 1, s.contract.clause) };
+    const up = E.canRaise(s) && { tier: s.contract.tier + 1, target: Math.max(0, E.target(s, s.contract.tier + 1) - (s.sealCut || 0)), pay: E.payout(s, s.contract.tier + 1, s.contract.clause) };
     const fleeOk = E.canFlee(s) && !tut; // the tutorial's guided moves come first
     body = cols(`${coachHTML()}${statusHTML()}${bossHTML()}${survival() ? '' : contractHTML()}${duesWarning()}`, `
       ${roomHTML(true, `${up ? `<button data-raise${tipAttr('Raise your contract', `Kill <b>${up.target}</b> points instead, for <b>${up.pay}</b> gold. Between rooms, once per floor (your War Drum). Meet it and it pays half again.`)}>${img('icons/hud-raise.webp', 'bi')}${s.contract.clause ? 'Raise' : `Raise<span class="rto"> to ${E.TIERS[up.tier]}</span>`}</button>` : ''}
-        ${E.canRedraw(s) ? `<button data-redraw${tipAttr('Fortune Teller', 'Redraw this room. Once per floor, before you pick a card.')}>Redraw room</button>` : ''}${E.canUndo(s) ? `<button data-undo${tipAttr('Hourglass', 'Take back the last card you played. Twice per floor.')}>Undo</button>` : ''}<button data-flee ${fleeOk ? '' : 'disabled'}>${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room</button>`)}<div class="belt">${relicsHTML(false)}${stashHTML()}${peekHTML()}</div>`);
+        ${E.canRedraw(s) ? `<button data-redraw${tipAttr('Fortune Teller', 'Redraw this room. Once per floor, before you pick a card.')}>Redraw room</button>` : ''}${E.canSeal(s) ? `<button data-seal${tipAttr('Sanguine Seal', `Pay <b>3</b> health to cut this floor's target by <b>5</b>, to <b>${Math.max(0, s.contract.target - 5)}</b>. Once a room, between rooms.`)}>Seal in blood</button>` : ''}<button data-flee ${fleeOk ? '' : 'disabled'}>${img(fleeOk ? 'icons/hud-flee.webp' : 'icons/hud-locked.webp', 'bi')}Flee room</button>`)}<div class="belt">${relicsHTML(false)}${stashHTML()}${peekHTML()}</div>`);
   } else if (s.phase === 'shop' && payoutView && s.payout) {
     body = payoutHTML();
   } else if (s.phase === 'shop' && s.pick) {
@@ -3606,9 +3606,10 @@ app.addEventListener('click', async e => {
     const at = cardEl && cardEl.getBoundingClientRect();
     if (!E.swapCard(s, +d.swap)) return;
     effect = () => fx('smoke', at);
-  } else if ('undo' in d) {
-    if (!E.undo(s)) return;
-    lastHit = null;
+  } else if ('seal' in d) {
+    if (!E.seal(s)) return;
+    if (curFloor()) curFloor().target = s.contract.target;
+    effect = () => fx('raise', rectOf('.contract.paper'));
   } else if ('flee' in d) {
     const at = rectOf('.room'), p = rectOf('.chamber .pile');
     if (p && !reduceMotion) {

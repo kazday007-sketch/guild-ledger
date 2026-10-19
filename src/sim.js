@@ -12,7 +12,7 @@ const E = require('./engine.js');
 function mini(s) {
   return {
     hp: s.hp, maxHp: s.maxHp, weapon: s.weapon && { ...s.weapon }, weapon2: s.weapon2 && { ...s.weapon2 }, potionUsed: s.potionUsed, roomKills: s.roomKills,
-    cleave: s.cleave, weaponKills: s.weaponKills, bareKills: s.bareKills, bossFloors: s.bossFloors, scarDmg: s.scarDmg,
+    cleave: s.cleave, echoed: s.echoed, weaponKills: s.weaponKills, bareKills: s.bareKills, bossFloors: s.bossFloors, scarDmg: s.scarDmg,
     roomBare: s.roomBare, floorBare: s.floorBare, slain: s.slain, gold: s.gold, relics: s.relics, boss: s.boss, contract: s.contract,
   };
 }
@@ -81,10 +81,9 @@ function playRun(seed, bot, opts = {}) {
       if (s.stash && E.canUseStash(s) && s.stash.kind === 'weapon' && (!s.weapon || s.weapon.limit != null && s.weapon.limit < s.stash.v)) { E.useStash(s); continue; }
       const keep = s.room.find(c => (c.kind === 'potion' && (s.potionUsed || s.hp === s.maxHp)) && E.canStash(s, c.id));
       if (keep && s.handled < 2) { E.stash(s, keep.id); continue; }
-      // Hourglass: take back a card that cost a lot.
-      const hp0 = s.hp;
+      // Sanguine Seal: spend spare health on a lower target while the floor is short of it.
+      if (E.canSeal(s) && s.hp >= 12 && s.slain < s.contract.target) { E.seal(s); continue; }
       E.handle(s, p.steps[0][0], p.steps[0][1]);
-      if (E.canUndo(s) && hp0 - s.hp >= 8) { E.undo(s); const c = s.room.find(x => x.id === p.steps[0][0]); if (c && E.canSwap(s, c.id)) E.swapCard(s, c.id); else if (c && E.canStash(s, c.id)) E.stash(s, c.id); continue; }
       if (s.phase !== 'room' && s.contract && s.hp > 0) { avg += s.slain; n++; }
     } else if (s.phase === 'shop') {
       if (opts.record) opts.record.push({ floor: s.floor, gold: s.gold });
@@ -120,7 +119,7 @@ function playRun(seed, bot, opts = {}) {
 // How much the bot wants a relic: its win-rate lift when held alone (sim.js relics).
 const RATING_OLD = {seal: 24.6, idol: 23.4, executioner: 21.8, unbreaking: 17.2, bribe: 17.0, quickdraw: 16.6, bonecrown: 16.6, buckler: 15.4, berserk: 15.2, hagheart: 14.0, ambush: 12.8, oil: 10.4, giantsgrip: 9.4, fortune: 8.8, ironskin: 8.6, grindstone: 7.6, masterwork: 7.4, smokebomb: 7.2, trophy: 6.8, oathkeeper: 6.4, ironfist: 4.8, bedroll: 4.6, wardenkeys: 4.4, fang: 4.0, wardrum: 3.8, bloodstone: 3.6, rulebreaker: 3.4, secondwind: 3.4, downpayment: 3.2, whetstone: 2.8, keenedge: 2.8, bloodpact: 2.6, brawler: 2.2, alchemist: 2.0, haymaker: 1.6, ledger: 1.4, quartermaster: 1.0, knuckles: 1.0, hide: 1.0, pitfighter: 0.8, herbalist: 0.5, scout: 0.5, lantern: 0.5, secondheart: 0.5, tipjar: 0.5, taxman: 0.5, loanshark: 0.5, pickpocket: 0.5, tithe: 0.5, haggler: 0.5, lichledger: 0.5, thorns: 0.5, loaded: 0.5};
 // 2.x ratings: win-rate lift when given at the start (sim.js lift), measured after the relic rework.
-const RATING = {unbreaking: 23.3, livingsteel: 12, giantsgrip: 22.9, hagheart: 20.5, executioner: 19.3, lichledger: 19.2, buckler: 18.0, ironskin: 15.8, trophybelt: 15.4, mimic: 14.4, seal: 14.4, haymaker: 13.9, berserk: 13.8, notched: 13.4, fortune: 13.0, greedy: 13, grindstone: 12.7, masterwork: 12.5, glassblade: 12.4, alchemykit: 11.4, wardrum: 11.2, hunger: 10.9, tipjar: 10.2, oathkeeper: 9.8, twinblades: 9.7, alchemist: 9.2, idol: 8.8, ironfist: 8.5, cleave: 7.9, bribe: 7.0, cursed: 6.7, smokebomb: 6.4, bloodstone: 5.5, taxman: 5.4, keenedge: 4.8, rulebreaker: 4.7, loanshark: 4.4, fang: 4.3, bloodpact: 4.3, knuckles: 4.0, bell: 4, wardenkeys: 3.8, secondwind: 3.8, pickpocket: 3.3, whetstone: 3.0, bedroll: 2.9, pitfighter: 2.8, secondheart: 2.8, miser: 2.5, compound: 2.5, scar: 2.0, hardknuckles: 1.8, escape: 1.5, hourglass: 1.4, stash: 0.6, bloodprice: 0.5, spyglass: 0.5, bait: 0.5, ironball: 0.5};
+const RATING = {echo: 18, sanguine: 6, unbreaking: 23.3, livingsteel: 12, giantsgrip: 22.9, hagheart: 20.5, executioner: 19.3, lichledger: 19.2, buckler: 18.0, ironskin: 15.8, trophybelt: 15.4, mimic: 14.4, seal: 14.4, haymaker: 13.9, berserk: 13.8, notched: 13.4, fortune: 13.0, greedy: 13, grindstone: 12.7, masterwork: 12.5, glassblade: 12.4, alchemykit: 11.4, wardrum: 11.2, hunger: 10.9, tipjar: 10.2, oathkeeper: 9.8, twinblades: 9.7, alchemist: 9.2, idol: 8.8, ironfist: 8.5, cleave: 7.9, bribe: 7.0, cursed: 6.7, smokebomb: 6.4, bloodstone: 5.5, taxman: 5.4, keenedge: 4.8, rulebreaker: 4.7, loanshark: 4.4, fang: 4.3, bloodpact: 4.3, knuckles: 4.0, bell: 4, wardenkeys: 3.8, secondwind: 3.8, pickpocket: 3.3, whetstone: 3.0, bedroll: 2.9, pitfighter: 2.8, secondheart: 2.8, miser: 2.5, compound: 2.5, scar: 2.0, hardknuckles: 1.8, escape: 1.5, hourglass: 1.4, stash: 0.6, bloodprice: 0.5, spyglass: 0.5, bait: 0.5, ironball: 0.5};
 const worth = (s, k) => k === 'trophy' ? 16 : RATING[k] != null ? RATING[k] : ({ common: 3, rare: 6, epic: 10 })[E.RELICS[k].rarity];
 function batch(runs, bot, opts, seed0 = 1) {
   const res = { stalled: 0, won: 0, died: 0, struck: 0, floors: 0, diedAt: Array(9).fill(0), struckAt: Array(9).fill(0) };

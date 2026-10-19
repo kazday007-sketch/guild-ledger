@@ -76,49 +76,49 @@
   const R = (name, rarity, text) => ({ name, rarity, text });
   const RELICS = {
     // weapons
-    executioner: R('Executioner', 'rare', 'Weapon kills of monsters 12 and up count half again as many points.'),
-    twinblades: R('Twin Blades', 'rare', 'Hold two weapons and choose which one to fight with. A third pushes out the older one.'),
-    cleave: R('Cleave', 'rare', 'When your weapon beats a monster by 3 or more, the extra comes off the next fight in the room.'),
-    glassblade: R('Glass Blade', 'rare', 'Weapons you equip are +3, but shatter after 3 kills.'),
-    unbreaking: R('Unbreaking Edge', 'epic', 'Your weapon never dulls, but while you hold one, new weapons you take are thrown away.'),
-    livingsteel: R('Living Steel', 'rare', 'Every weapon kill raises that weapon card by 1 for the rest of the run (up to +5 a card).'),
+    executioner: R('Executioner', 'rare', 'Kills of 12 or higher score 50% more (a 14 scores 21).'),
+    twinblades: R('Twin Blades', 'rare', 'Carry two weapons and pick which one to swing. Taking a third drops the older one.'),
+    cleave: R('Cleave', 'rare', 'When your weapon beats a monster by 3 or more, the extra carries over to your next fight (a 9 on a 4: your next fight is 5 easier).'),
+    glassblade: R('Glass Blade', 'rare', 'Every weapon you pick up is 3 stronger, but breaks after 3 kills.'),
+    unbreaking: R('Unbreaking Edge', 'epic', "Your weapon can hit any monster, whatever it killed last. New weapons don't replace it: each one makes it 1 stronger."),
+    livingsteel: R('Living Steel', 'rare', 'Each kill makes that weapon card 1 stronger for the rest of the run (up to +5).'),
     // bare hands
-    fang: R('Vampire Fang', 'common', 'Bare-handed kills heal you 2.'),
+    fang: R('Vampire Fang', 'rare', "Bare-handed kills heal you half the monster's value."),
     haymaker: R('Haymaker', 'rare', 'Your first bare-handed kill in each room counts double points.'),
     hardknuckles: R('Hardened Knuckles', 'common', 'Bare-handed fights deal 1 less damage for every 3 bare-handed kills this run (up to 6).'),
     giantsgrip: R("Giant's Grip", 'epic', 'Bare-handed fights deal half damage (rounded down).'),
-    bell: R("Necromancer's Bell", 'epic', 'Every monster you kill comes back later on the floor as a potion of its value.'),
+    bell: R("Necromancer's Bell", 'epic', 'Every monster you kill comes back later this floor as a potion of the same value.'),
     // health
-    alchemist: R('Alchemist', 'rare', 'Healing beyond your max health counts as points.'),
+    alchemist: R('Alchemist', 'rare', 'Healing past your max health scores points instead (at 18 of 20, a 7 potion heals 2 and scores 5).'),
     ironball: R('Iron Ball', 'common', '+20 max health and heal 20 now, but you can never flee.'),
-    buckler: R('Buckler', 'rare', 'The first monster you fight in each room deals 2 less damage.'),
-    berserk: R('Berserker', 'rare', 'Kills made while at 5 health or less count +5 points.'),
-    alchemykit: R('Alchemy Kit', 'rare', 'You may equip a potion as a weapon of its value instead of drinking it.'),
-    hagheart: R("Hag's Heart", 'epic', 'You may drink two potions in each room, and the first one heals double.'),
-    hunger: R('Pact of Hunger', 'epic', 'Potions no longer heal you. Every kill heals 2 instead.'),
-    mimic: R("Mimic's Tongue", 'epic', 'Monsters of 4 or lower can be drunk as potions, and potions can be fought as monsters for points.'),
+    buckler: R('Buckler', 'rare', "The first monster you fight in each room can't hurt you, but it scores only half points."),
+    berserk: R('Berserker', 'rare', "While you're at 5 health or less, every kill scores +5."),
+    alchemykit: R('Alchemy Kit', 'rare', 'You can hold a potion as a weapon of its value instead of drinking it.'),
+    hagheart: R("Hag's Heart", 'epic', 'Drink two potions a room instead of one, and the first heals double.'),
+    hunger: R('Pact of Hunger', 'epic', "Potions don't heal you, but every kill heals 2."),
+    mimic: R("Mimic's Tongue", 'epic', 'Drink monsters of 4 or less like potions, and fight potions like monsters to score them.'),
     // gold
-    taxman: R('Taxman', 'common', 'Overkill pays 1 gold per 2 points instead of per 5.'),
-    loanshark: R('Loan Shark', 'common', '+4 gold at the start of each floor. A missed contract also costs 8 gold.'),
-    miser: R("Miser's Purse", 'common', 'Leave a shop without spending, and gain 2 gold for every shop in a row you have.'),
-    idol: R('Golden Idol', 'rare', 'Kills count +1 point for every 15 gold you hold.'),
-    bribe: R('Bribe', 'rare', 'A missed contract costs 10 gold instead of a strike, if you have it.'),
-    compound: R('Compound Purse', 'common', 'Your interest cap rises by 2 every floor you hold this.'),
-    lichledger: R("Lich's Ledger", 'epic', 'Interest has no cap, guild dues are halved, and every kill counts +1 point.'),
+    taxman: R('Taxman', 'common', 'Points over your target pay 1 gold per 2 (normally 1 per 5).'),
+    loanshark: R('Loan Shark', 'common', '+4 gold every floor, but a missed contract costs 8 gold.'),
+    miser: R("Miser's Purse", 'common', 'Leave a shop without buying and get a bonus that grows each time in a row: 2 gold, then 4, then 6.'),
+    idol: R('Golden Idol', 'rare', 'Every kill scores +1 for each 15 gold you carry (45 gold: +3 a kill).'),
+    bribe: R('Bribe', 'rare', 'Miss a contract with 10 gold on you and you pay the 10 instead of taking a strike.'),
+    compound: R('Compound Purse', 'common', 'Interest (1 gold per 5 you hold) normally stops at 3 a floor. This raises the limit by 2 every floor: 5, 7, 9...'),
+    lichledger: R("Lich's Ledger", 'epic', 'Interest (1 gold per 5 you hold) has no limit and is paid after every room, not just every floor.'),
     // contracts and points
-    wardrum: R('War Drum', 'rare', 'Between rooms, you may raise your contract one step, once per floor, and the raise counts +6 points.'),
-    rulebreaker: R('Rulebreaker', 'common', "Wildcard rules don't apply to you. You still get the Wildcard's pay."),
-    cursed: R('Cursed Contract', 'rare', 'Contracts pay triple, but a missed one also costs 5 max health.'),
-    greedy: R('Greedy Hands', 'rare', 'You take all 4 cards of every room, not 3. Each room you clear pays 3 gold and heals 2.'),
+    wardrum: R('War Drum', 'rare', 'Once a floor, between rooms, raise your contract a step (Safe to Bold, Bold to Reckless) and score +6 now. Met raised contracts pay 50% more.'),
+    sanguine: R('Sanguine Seal', 'common', "Between rooms, pay 3 health to cut this floor's target by 5 (once a room)."),
+    cursed: R('Cursed Contract', 'rare', 'Contracts pay 3 times the gold, but a miss also costs 5 max health for good.'),
+    greedy: R('Greedy Hands', 'rare', 'You must play all 4 cards in a room, not 3. Each room you clear pays 3 gold and heals 2.'),
     // rooms, fleeing and foresight
-    stash: R('Stash Pouch', 'common', 'Set one card of a room aside, and play it in any later room on the floor.'),
-    spyglass: R('Spyglass', 'common', 'See the next 3 cards in the pile.'),
-    bait: R('Bait', 'common', "When you flee, the room's strongest monster is thrown away instead of going back to the pile."),
-    fortune: R('Fortune Teller', 'rare', 'Once per floor, redraw a room before you pick any of its cards.'),
-    bloodprice: R('Blood Price', 'common', 'Once per room, pay 1 health to send a card to the bottom of the pile and draw a new one.'),
-    smokebomb: R('Smoke Bomb', 'rare', 'You may flee up to three rooms in a row.'),
-    wardenkeys: R("Warden's Keys", 'common', 'Flee at any point in a room, past any boss, and heal 2 when you do (not on back-to-back flees).'),
-    hourglass: R('Hourglass', 'epic', 'Twice per floor, undo the last card you took.'),
+    stash: R('Stash Pouch', 'common', 'Put one card from a room in your pouch and play it in a later room this floor.'),
+    spyglass: R('Spyglass', 'common', 'See the next 3 cards coming.'),
+    bait: R('Bait', 'common', "When you flee, the room's biggest monster is gone for good instead of coming back later."),
+    fortune: R('Fortune Teller', 'rare', 'Once a floor, redraw a room before you take any of its cards.'),
+    bloodprice: R('Blood Price', 'common', 'Once a room, pay 1 health to swap a card for the next one in the pile.'),
+    smokebomb: R('Smoke Bomb', 'rare', 'Flee up to 3 rooms in a row (normally never twice in a row).'),
+    wardenkeys: R("Warden's Keys", 'common', "Flee a room even after you've started it, even from a boss. Each flee heals 2 (not twice in a row)."),
+    echo: R('Echo', 'epic', 'The first card you take in each room counts twice: a kill scores double, a potion heals double, a weapon is 3 stronger.'),
   };
   const PICK_SIZE = 3, SKIP_GOLD = 8;
   // The odds of each rarity, per slot of a pick: [common, rare, epic]. A boss floor's pick rolls higher, and 1 in
@@ -169,7 +169,7 @@
   const rankLabel = v => ({ 11: 'J', 12: 'Q', 13: 'K', 14: 'A' })[v] || String(v);
   const has = (s, k) => s.relics.includes(k);
   const safeFloor = s => !!s.tutorial && s.floor === 0; // the tutorial run's first floor: health can't drop below 1
-  const clause = s => s.contract && !has(s, 'rulebreaker') ? s.contract.clause : null; // the rule in force this floor
+  const clause = s => s.contract ? s.contract.clause : null; // the rule in force this floor
 
   // Shared by the game and the simulator bot. `s` needs hp, maxHp, weapon, potionUsed, roomKills, roomBare,
   // floorBare, slain, gold, relics, boss and contract.
@@ -199,7 +199,7 @@
       cut('hardknuckles', knuckleBonus(s));
     }
     if (s.cleave) cut('cleave', s.cleave);
-    if (has(s, 'buckler') && s.roomKills === 0) cut('buckler', 2);
+    if (has(s, 'buckler') && s.roomKills === 0) cut('buckler', d); // the first fight in a room can't hurt you (and scores half)
     return Math.max(0, d);
   }
   function contractPoints(s, m, bare) {
@@ -208,10 +208,10 @@
     let p = m.v;
     const add = (k, n) => { if (n > 0) { p += n; fire(s, k, `+${n}`); credit(s, k, 'pts', n); } };
     if (bare && has(s, 'haymaker') && !s.roomBare) add('haymaker', m.v);
-    if (!bare && has(s, 'executioner') && m.v >= 12) add('executioner', Math.floor(m.v / 2));
+    if (has(s, 'executioner') && m.v >= 12) add('executioner', Math.floor(m.v / 2));
     if (has(s, 'berserk') && s.hp <= 5) add('berserk', 5);
     if (has(s, 'idol')) add('idol', Math.floor(s.gold / 15));
-    if (has(s, 'lichledger')) add('lichledger', 1);
+    if (has(s, 'buckler') && s.roomKills === 0) p = Math.floor(p / 2); // Buckler: the fight it blocks scores half
     return p;
   }
   function potionHeal(s, c) {
@@ -253,6 +253,7 @@
   }
   function resolveCard(s, c, mode) {
     s.resolving = true;
+    s.echoNow = has(s, 'echo') && !s.echoed; s.echoed = true; // Echo: the room's first card counts twice
     let out;
     if (mode === 'weapon2' && s.weapon2) { // fight with the off-hand weapon: swap hands for the fight, then back
       [s.weapon, s.weapon2] = [s.weapon2, s.weapon];
@@ -260,7 +261,7 @@
       [s.weapon, s.weapon2] = [s.weapon2, s.weapon];
     } else out = resolveCore(s, c, mode === 'weapon2' ? 'bare' : mode);
     if (!s.weapon && s.weapon2) { s.weapon = s.weapon2; s.weapon2 = null; }
-    delete s.resolving;
+    delete s.resolving; delete s.echoNow;
     return out;
   }
   function resolveCore(s, c, mode) {
@@ -277,9 +278,11 @@
         s.weapon.limit = s.weapon.limit == null ? lim : Math.min(s.weapon.limit, lim);
       }
       if (s.hp > 0) {
-        out.points = contractPoints(s, c, !useWeapon); s.slain += out.points;
+        out.points = contractPoints(s, c, !useWeapon);
+        if (s.echoNow && out.points > 0) { fire(s, 'echo', `+${out.points}`); credit(s, 'echo', 'pts', out.points); out.points *= 2; }
+        s.slain += out.points;
         if (useWeapon) s.weaponKills = (s.weaponKills || 0) + 1; else s.bareKills = (s.bareKills || 0) + 1;
-        if (!useWeapon && has(s, 'fang')) { const h = healBy(s, 2); out.heal += h; fire(s, 'fang', `+${h}`); credit(s, 'fang', 'heal', h); }
+        if (!useWeapon && has(s, 'fang')) { const h = healBy(s, Math.floor(c.v / 2)); out.heal += h; fire(s, 'fang', `+${h}`); credit(s, 'fang', 'heal', h); }
         if (useWeapon && has(s, 'livingsteel')) livingSteel(s);
         if (has(s, 'hunger')) { const h = healBy(s, 2); out.heal += h; fire(s, 'hunger', `+${h}`); credit(s, 'hunger', 'heal', h); }
         if (has(s, 'bell') && !c.boss && s.draw && s.r) { // it comes back later this floor as a potion
@@ -291,14 +294,16 @@
       if (useWeapon && s.weapon.glass != null && --s.weapon.glass <= 0) { s.weapon = null; out.shattered = true; fire(s, 'glassblade', 'shattered'); }
       s.roomKills++;
     } else if (c.kind === 'weapon' || mode === 'equip') {
-      if (has(s, 'unbreaking') && s.weapon) { out.discarded = true; fire(s, 'unbreaking', 'thrown away'); } // the unbreaking blade won't be put down
+      if (has(s, 'unbreaking') && s.weapon) { s.weapon.v++; out.melted = true; fire(s, 'unbreaking', '+1'); } // the unbreaking blade melts new weapons in
       else {
         if (mode === 'equip') fire(s, 'alchemykit', c.v);
-        equip(s, c.v, c.kind === 'weapon' ? c.id : null);
+        if (s.echoNow) fire(s, 'echo', '+3');
+        equip(s, c.v + (s.echoNow ? 3 : 0), c.kind === 'weapon' ? c.id : null);
       }
     } else { // drink a potion, or (Mimic's Tongue) a little monster
-      const h = potionHeal(s, c);
+      const h = potionHeal(s, c) * (s.echoNow ? 2 : 1);
       out.heal = healBy(s, h);
+      if (s.echoNow) { fire(s, 'echo', `+${out.heal}`); credit(s, 'echo', 'heal', Math.ceil(out.heal / 2)); }
       if (c.kind === 'monster') fire(s, 'mimic', `+${out.heal}`);
       if (has(s, 'alchemist') && h > out.heal) { out.points = h - out.heal; s.slain += out.points; fire(s, 'alchemist', `+${out.points}`); credit(s, 'alchemist', 'pts', out.points); }
       if (has(s, 'hunger')) fire(s, 'hunger', 'no healing');
@@ -328,7 +333,7 @@
   const log = (s, msg) => { s.log.unshift(msg); if (s.log.length > 40) s.log.pop(); };
   const act = s => Math.floor(s.floor / 3);
 
-  function newRoom(s) { s.handled = 0; s.potionUsed = false; s.potions = 0; s.roomKills = 0; s.roomBare = 0; s.cleave = 0; s.bloodUsed = false; }
+  function newRoom(s) { s.handled = 0; s.potionUsed = false; s.potions = 0; s.roomKills = 0; s.roomBare = 0; s.bloodUsed = false; s.echoed = false; s.sealUsed = false; }
   // Take n cards off the top of the pile. In One deck, an empty pile is refilled first with every card that's
   // been dealt (the dungeon deck minus what's in the room or still in the pile), shuffled.
   function deal(s, n) {
@@ -374,7 +379,7 @@
       s.draw.splice(Math.min(s.draw.length, 1 + Math.floor(s.r() * 7)), 0, c);
     }
     if (bossIs(s, 'banshee')) hideOne(s);
-    s.stash = null; s.undo = null; s.hourglassUsed = 0;
+    s.stash = null; s.sealCut = 0;
     s.relicFloor = { pts: 0, block: 0, heal: 0, gold: 0 };
     s.roomsCleared = 0; s.slain = 0; s.floorBare = false; s.contract = null; s.raises = 0; s.fortuneUsed = false;
     const tiers = allowedTiers(s);
@@ -423,7 +428,7 @@
   function canRedraw(s) { return s.phase === 'room' && s.handled === 0 && has(s, 'fortune') && !s.fortuneUsed; }
   function redraw(s) {
     if (!canRedraw(s)) return false;
-    s.undo = null;
+   
     s.draw.push(...s.room); s.room = []; s.room = deal(s, 4); s.fortuneUsed = true;
     log(s, 'The fortune teller redraws the room.');
     return true;
@@ -438,7 +443,8 @@
   function raise(s) {
     if (!canRaise(s)) return false;
     s.contract = makeContract(s, s.contract.tier + 1, s.contract.clause);
-    s.raises++; s.undo = null;
+    if (s.sealCut) s.contract.target = Math.max(0, s.contract.target - s.sealCut); // the Sanguine Seal's cuts carry over
+    s.raises++;
     if (has(s, 'wardrum')) { s.slain += 6; s.resolving = true; fire(s, 'wardrum', '+6'); credit(s, 'wardrum', 'pts', 6); delete s.resolving; log(s, 'The war drum sounds: +6 points.'); }
     log(s, `Raised ${s.contract.clause ? 'the Wildcard' : `to ${TIERS[s.contract.tier]}`}: slay ${s.contract.target} for ${s.contract.pay} gold.`);
     return true;
@@ -453,7 +459,7 @@
   }
   function flee(s) {
     if (!canFlee(s)) return false;
-    s.resolving = true; s.undo = null;
+    s.resolving = true;
     s.room.forEach(c => { delete c.hidden; });
     if (has(s, 'bait')) { // the strongest monster takes the bait and stays behind for good
       const ms = s.room.filter(c => c.kind === 'monster' && !c.boss).sort((a, b) => b.v - a.v);
@@ -479,7 +485,6 @@
       if (c.kind !== 'monster') mode = null; // a plain take: equip the weapon, drink the potion
       else if (mode !== 'weapon') return false; // 'weapon' on a monster your weapon can't hit means fists
     }
-    if (has(s, 'hourglass') && (s.hourglassUsed || 0) < 2) { const { undo, ...rest } = s; s.undo = saveGame(rest); }
     const out = resolveCard(s, c, mode);
     s.room.forEach(x => { delete x.hidden; });
     s.room.splice(i, 1); s.handled++;
@@ -495,7 +500,7 @@
     if (out.saved) log(s, 'Your Second Heart beats once more: back up at 5 health. It crumbles.');
     if (out.spared) log(s, 'That should have killed you. You live, at 1 health. The goat insisted.');
     if (fought) log(s, `${name}: took ${out.dmg} damage` + (s.hp > 0 ? `${s.contract.survival ? '' : `, +${out.points} points`}${out.heal ? `, healed ${out.heal}` : ''}${out.gold ? `, +${out.gold} gold` : ''}.` : '.') + (out.shattered ? ' Your glass blade shatters.' : ''));
-    else if (c.kind === 'weapon' || mode === 'equip') log(s, `Equipped a ${s.weapon.v} weapon.`);
+    else if (c.kind === 'weapon' || mode === 'equip') log(s, out.melted ? `Melted it into your blade: now ${s.weapon.v}.` : `Equipped a ${s.weapon.v} weapon.`);
     else log(s, (out.heal ? `${name}: healed ${out.heal}` : `${name}: no healing`) + (out.points ? `, +${out.points} points.` : '.'));
   }
   // A room is done after 3 cards (Greedy Hands: all of them), but a boss in it must die first.
@@ -505,6 +510,9 @@
     s.roomsCleared++; s.fledStreak = 0; newRoom(s);
     s.resolving = true;
     if (has(s, 'greedy')) { s.gold += 3; credit(s, 'greedy', 'heal', healBy(s, 2)); fire(s, 'greedy', '+3g'); credit(s, 'greedy', 'gold', 3); }
+    if (has(s, 'lichledger') && s.roomsCleared < ROOMS_PER_FLOOR) { // interest after every room, not only at the floor's end
+      const g = Math.floor(s.gold / 5); if (g) { s.gold += g; fire(s, 'lichledger', `+${g}g`); credit(s, 'lichledger', 'gold', g); }
+    }
     delete s.resolving;
     if (s.roomsCleared >= ROOMS_PER_FLOOR) endFloor(s);
     else nextRoom(s);
@@ -515,7 +523,7 @@
   function stash(s, id) {
     if (!canStash(s, id)) return false;
     const i = s.room.findIndex(c => c.id === id); s.stash = s.room.splice(i, 1)[0];
-    s.room.forEach(x => { delete x.hidden; }); s.handled++; s.undo = null;
+    s.room.forEach(x => { delete x.hidden; }); s.handled++;
     log(s, `Stashed the ${s.stash.kind} ${s.stash.v} for later.`);
     afterTake(s);
     return true;
@@ -523,7 +531,7 @@
   const canUseStash = s => s.phase === 'room' && !!s.stash;
   function useStash(s, mode = null) {
     if (!canUseStash(s) || !modes(s, s.stash).includes(mode)) return false;
-    const c = s.stash; s.stash = null; s.undo = null;
+    const c = s.stash; s.stash = null;
     const out = resolveCard(s, c, mode);
     logTake(s, c, mode, out);
     if (s.hp <= 0) { s.hp = 0; s.phase = 'lost'; s.lastResult = 'You fell in the dungeon.'; }
@@ -536,19 +544,20 @@
     if (!canSwap(s, id)) return false;
     const i = s.room.findIndex(c => c.id === id), old = s.room[i];
     const [fresh] = deal(s, 1); s.draw.push(old); s.room[i] = fresh;
-    s.hp -= 1; s.bloodUsed = true; s.undo = null;
+    s.hp -= 1; s.bloodUsed = true;
     s.resolving = true; fire(s, 'bloodprice', '−1'); delete s.resolving;
     log(s, `Paid 1 health: the ${old.v} went to the bottom of the pile, and a ${fresh.v} took its place.`);
     return true;
   }
-  // Hourglass: once a floor, put back the last card you took (the room, health and all go back as they were).
-  const canUndo = s => s.phase === 'room' && has(s, 'hourglass') && (s.hourglassUsed || 0) < 2 && !!s.undo;
-  function undo(s) {
-    if (!canUndo(s)) return false;
-    const back = loadGame(s.undo), used = (s.hourglassUsed || 0) + 1;
-    Object.keys(s).forEach(k => { delete s[k]; });
-    Object.assign(s, back, { undo: null, hourglassUsed: used, fired: [{ k: 'hourglass', t: 'undone' }] });
-    log(s, 'The hourglass turns: your last card is back in the room.');
+  // Sanguine Seal: between rooms, once a room, 3 health cuts this floor's target by 5. A raise keeps the cut.
+  const canSeal = s => s.phase === 'room' && has(s, 'sanguine') && s.handled === 0 && !s.sealUsed && s.hp > 3 &&
+    !!s.contract && !s.contract.survival && s.contract.target > 0;
+  function seal(s) {
+    if (!canSeal(s)) return false;
+    const cut = Math.min(5, s.contract.target);
+    s.hp -= 3; s.sealUsed = true; s.contract.target -= cut; s.sealCut = (s.sealCut || 0) + cut;
+    s.resolving = true; fire(s, 'sanguine', `−${cut}`); delete s.resolving;
+    log(s, `Sealed in blood: 3 health for a target ${cut} lower (now ${s.contract.target}).`);
     return true;
   }
   // ---------- bosses ----------
@@ -700,7 +709,7 @@
   }
   const interestCap = s => has(s, 'lichledger') ? Infinity : 3 + (has(s, 'compound') ? 2 * (s.purseFloors || 0) : 0);
   const duesBase = a => a < DUES.length ? DUES[a] : DUES[DUES.length - 1] + 12 * (a - DUES.length + 1); // Endless: +12 an act
-  const duesFor = (s, a) => has(s, 'lichledger') ? Math.ceil(duesBase(a) / 2) : duesBase(a);
+  const duesFor = (s, a) => duesBase(a);
   // Relics you could still get, of one rarity.
   const relicPool = (s, rarity) => Object.keys(RELICS).filter(k => RELICS[k].rarity === rarity && !has(s, k));
   // The options for a relic pick: three different relics, each slot's rarity rolled from PICK_ODDS[kind]. The first
@@ -912,7 +921,7 @@
     RARITIES, PICK_SIZE, SKIP_GOLD, REROLL_BASE, REROLL_STEP, rerollCost, canReroll, rerollShop,
     newGame, saveGame, loadGame, safeFloor, bid, flee, canFlee, handle, buy, cost, choose, skipPick, relicsFull, target, duesFor, interestCap, dropRelic, leaveShop, allowedTiers, payout,
     canRaise, raise, raisesPerFloor, canRedraw, redraw, RAISE_BONUS, ROUT, engineReport, PICK_ODDS, TROPHY_CHANCE, ENDLESS_GROWTH, recruitCost, forgeCost, canForge,
-    modes, canStash, stash, canUseStash, useStash, canSwap, swapCard, canUndo, undo, nextCards, relicStack,
+    modes, canStash, stash, canUseStash, useStash, canSwap, swapCard, canSeal, seal, nextCards, relicStack,
     canUseWeapon, monsterDamage, contractPoints, potionHeal, resolveCard, rankLabel, act,
     duesAhead, weaponReach, nextCard, deckView, devJump, devRoom, devGrant, devEndFloor,
   };
