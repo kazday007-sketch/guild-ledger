@@ -100,4 +100,26 @@ save('win', mix(2.6, (0, drone), *[(.35 * i, bell([f, f * 2, f * 3], 1.8, [.9, .
 
 # heart: a slow, low heartbeat for when you're nearly dead (lub-dub)
 save('heart', np.tanh(1.5 * mix(.6, (0, thump(75, 45, .18, .05)), (.24, thump(65, 40, .16, .045) * .7), (0, hush(.1, 380, 1.2, .004, .03) * .5))), wet=.15, tail=.3, lp=900)
+# ---- boss entrances (2.37.0): a dragon walking in. Added last so the sounds above keep their seeded noise. ----
+# rumble: the floor starting to shake, felt more than heard
+rum = biquad(noise(3.2), 'lp', 90, .9) * 3 + tone(sweep(34, 30, 3.2), 3.2) * .5 + hush(3.2, 260, 1.5, .5, 3) * .25
+save('rumble', np.tanh(1.4 * rum * np.minimum(1, t(3.2) / 1.6) * np.minimum(1, (3.2 - t(3.2)) / .6)), wet=.4, tail=1.0, lp=700, gain_db=-4)
+# stomp: one huge foot coming down, and grit falling after it
+grit = mix(.9, *[(rng.uniform(.08, .6), hush(.06, rng.uniform(900, 1700), 2, .002, .015) * rng.uniform(.1, .25)) for _ in range(10)])
+save('stomp', np.tanh(1.6 * mix(1.0, (0, thump(70, 26, .7, .2) * 1.3), (0, biquad(noise(.12), 'lp', 400) * env(.12, .003, .04) * 1.4), (0, grit))), wet=.45, tail=1.2, lp=1600, gain_db=-3)
+# wings: a great beat of wings passing low overhead
+air = hush(1.4, np.interp(t(1.4), [0, .7, 1.4], [180, 700, 160]), 1.1, .5, .6)
+save('wings', mix(1.6, (0, air), (.2, thump(90, 55, .3, .09) * .7), (.75, thump(85, 50, .3, .09) * .9)), wet=.45, tail=1.2, lp=1800, gain_db=-4)
+# roar: a throat bigger than the room, low and growling
+d = 2.6; x = t(d); f0 = np.interp(x, [0, .25, 1.4, d], [70, 118, 96, 62])
+ph = np.cumsum(f0) / SR; saw = sum(np.sin(2 * np.pi * k * ph) / k for k in range(1, 16))
+growl = 1 + .45 * np.sin(2 * np.pi * 27 * x + 2 * np.sin(2 * np.pi * 3.1 * x))
+throat = biquad(saw, 'bp', 520, 1.3) * 1.2 + biquad(saw, 'bp', 1050, 2.0) * .5 + biquad(saw, 'lp', 260) * .9
+breath = biquad(noise(d), 'bp', np.interp(x, [0, .3, d], [600, 1300, 500]), .8) * .6
+shape = np.minimum(1, x / .18) * np.exp(-np.maximum(0, x - 1.0) / .8)
+save('roar', np.tanh(2.0 * (throat * growl + breath) * shape), wet=.5, tail=1.4, lp=2600, gain_db=-3)
+# fire: a wall of flame rolling past, crackling
+crack = mix(2.2, *[(rng.uniform(.05, 1.9), biquad(noise(.01), 'bp', rng.uniform(1200, 2600), 2) * env(.01, .0005, .003) * rng.uniform(.3, .8)) for _ in range(40)])
+flame = biquad(noise(2.2), 'lp', np.interp(t(2.2), [0, .4, 2.2], [300, 1500, 400]), .7) * np.minimum(1, t(2.2) / .25) * np.exp(-np.maximum(0, t(2.2) - .5) / .7)
+save('fire', mix(2.2, (0, flame * 1.5), (0, crack * .5), (0, thump(60, 35, .5, .15) * .6)), wet=.4, tail=1.0, lp=3000, gain_db=-4)
 print('ok')
