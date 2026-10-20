@@ -8,6 +8,13 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.37.0
+
+- **The Dread Dragon makes an entrance.** Its floor opens in the dark: the music drops away, the ground rumbles, two huge footfalls shake the screen and shake grit down, a great winged shadow sweeps over you, then silence and two ember eyes open. It roars, a wall of fire pours out at you, and its card slams down out of the flames while its name burns in letter by letter. The first tap skips to the card, the next goes on.
+- **The Dragon's card is alive.** A new engraved boss card (drawn by Dude): the Dragon flies loops around it over its hoard, beating its wings, big and low across the front and small and far across the back, turning at the edges with its wingtips and tail swinging past the card. Every other loop it breathes fire as it passes, smoke curls from its jaws, embers drift up off the card, and the card's glow flickers like firelight. It shows on the table and in its entrance. The boss box, map and deck show the still card.
+- New sounds for it, all made in code like the rest: a rumble, a footfall, wings passing over, a roar and a rush of fire.
+- Built so other bosses can get their own entrance and living card by adding a recipe. With reduced motion turned on, the card stays still and nothing flies or burns.
+
 ## 2.36.0
 
 - **Click a card to play it.** A card with one way to play it (a potion, a weapon, a monster you can only punch) plays when you click or tap the card itself. A card with several ways (weapon or fists, drink or equip) gives its buttons a little nudge, and you pick one. The buttons stay as labels showing the damage or healing, and pressing and holding a card still shows its tip.

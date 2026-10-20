@@ -338,6 +338,40 @@ section.chamber { display: grid; gap: 10px; background: #3a2a1d url(assets/ui/te
 .bossintro h2 { margin: 0; font-family: var(--display); font-size: clamp(30px, min(7vw, 7vh), 54px); line-height: 1; color: #f1e3bf; text-shadow: 0 3px 0 #000, 0 0 26px rgba(208,84,91,.55); }
 .bossintro p { margin: 0; font-size: 18px; color: #d9cdb2; }
 .bossintro small { font-size: 13px; color: #d9cdb2; opacity: .6; }
+/* boss aura (2.37.0): the grand entrance and the living boss card */
+#aura { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
+.chamber .card[data-aura] { overflow: visible !important; }
+.chamber .card[data-aura] { animation: auraglow 2.6s ease-in-out infinite alternate; }
+@keyframes auraglow { 0% { box-shadow: 0 0 0 2px rgba(222,96,52,.9), 0 0 18px 2px rgba(255,120,40,.45); } 35% { box-shadow: 0 0 0 2px rgba(240,130,60,.95), 0 0 34px 6px rgba(255,120,40,.7); }
+  60% { box-shadow: 0 0 0 2px rgba(222,96,52,.9), 0 0 22px 3px rgba(255,120,40,.5); } 100% { box-shadow: 0 0 0 2px rgba(250,150,70,1), 0 0 40px 8px rgba(255,130,40,.75); } }
+@keyframes auraflick { 0% { opacity: .55; transform: scale(.97); } 30% { opacity: .9; } 55% { opacity: .65; transform: scale(1.02); } 80% { opacity: 1; } 100% { opacity: .7; transform: scale(1); } }
+.bossintro.grand { background: radial-gradient(ellipse at 50% 40%, rgba(34,9,7,.96), rgba(3,2,3,.99) 70%); overflow: hidden; }
+.bossintro.grand .bicanvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.bossintro.grand .bibox { position: relative; z-index: 2; }
+.bossintro .bishadow { position: absolute; left: 50%; top: 50%; width: min(90vw, 900px); margin: calc(min(90vw, 900px) * -.325) 0 0 calc(min(90vw, 900px) * -.5); opacity: 0; filter: blur(7px); pointer-events: none; z-index: 1; }
+.bossintro .bieyes { position: absolute; left: 50%; top: 30%; display: flex; gap: clamp(34px, 9vw, 70px); opacity: 0; z-index: 1; pointer-events: none; }
+.bossintro .bieyes i { width: clamp(22px, 5vw, 36px); height: clamp(6px, 1.4vw, 10px); border-radius: 50%; background: radial-gradient(ellipse, #fff4cf 0, rgb(var(--eye)) 45%, rgba(var(--eye),0) 75%); box-shadow: 0 0 18px 6px rgba(var(--eye),.55), 0 0 60px 18px rgba(var(--glow),.25); transform: rotate(14deg); }
+.bossintro .bieyes i + i { transform: rotate(-14deg); }
+.bossintro .biflash { position: absolute; inset: 0; opacity: 0; pointer-events: none; z-index: 3; mix-blend-mode: screen; }
+.bossintro .bicard { position: relative; }
+.bossintro .bicard::before { content: ''; position: absolute; inset: -18% -24%; z-index: -1; background: radial-gradient(ellipse at 50% 55%, rgba(var(--glow),.55), rgba(var(--glow),.15) 45%, transparent 70%); animation: auraflick 2.2s ease-in-out infinite alternate; }
+.bossintro.grand .bicard > img { width: min(46vw, 240px); max-height: 38vh; }
+.bossintro.grand .bicard > img, .bossintro.grand .bicard img.lair { filter: drop-shadow(0 0 3px rgba(255,200,140,.9)) drop-shadow(0 0 26px rgba(var(--glow),.7)) drop-shadow(0 12px 24px rgba(0,0,0,.85)); }
+.bossintro.grand .kind { color: rgb(var(--glow)); }
+.bossintro.grand h2 span { display: inline-block; }
+.rig { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.card.card .art .rig img, .card.vint.bosscard .art .rig img, .bicard .art .rig img { position: absolute; max-width: none; max-height: none; object-fit: fill; filter: none; animation: none; border-radius: 0; box-shadow: none; }
+.rig .rfly { position: absolute; left: 50%; top: 47%; width: 100%; aspect-ratio: 637 / 182; transform: translate(-50%, -50%) scale(.95); will-change: transform; }
+.card .art .rig img.rbody, .bicard .art .rig img.rbody { left: 0; top: 0; width: 100%; height: 100%; }
+.card .art .rig img.near, .bicard .art .rig img.near { left: -43.5%; top: -39.6%; width: 88.4%; height: 167.6%; transform-origin: 96.1% 37.4%; transform: rotate(-70deg) scaleX(-1); }
+.card.vint.bosscard .art .rig img.far, .bicard .art .rig img.far { left: 42.4%; top: -35.2%; width: 81%; height: 150%; transform-origin: 3.9% 35.2%; transform: rotate(-74deg); filter: brightness(.68); }
+.rig .rmouth { position: absolute; left: .6%; top: 26%; width: 1px; height: 1px; }
+.rig .rshadow { position: absolute; left: 50%; top: 80%; width: 56%; height: 8%; border-radius: 50%; background: radial-gradient(ellipse, rgba(50,30,18,.42), rgba(50,30,18,0) 70%); transform: translate(-50%, -50%); }
+.chamber .card[data-aura] .art { overflow: visible; }
+.card.vint.vboss .art .rank { z-index: 2; }
+.bossintro.grand .bicard .art { position: relative; width: min(46vw, 260px, 30vh); aspect-ratio: 2 / 3; }
+.bossintro.grand .bicard .art img.lair { width: 100%; height: 100%; max-height: none; }
+@media (prefers-reduced-motion: reduce) { #aura { display: none; } .chamber .card[data-aura], .bossintro .bicard::before { animation: none; } }
 .bossflash { position: fixed; inset: 0; z-index: 6; pointer-events: none; background: radial-gradient(circle at var(--x) var(--y), rgba(255,244,220,.95), rgba(255,210,160,.35) 18%, transparent 55%); }
 .pboss { position: absolute; left: 50%; top: -18px; transform: translateX(-50%); z-index: 2; display: flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 24px; background: rgba(20,10,10,.9); box-shadow: 0 0 0 1px rgba(208,84,91,.6), 0 4px 14px rgba(0,0,0,.6); white-space: nowrap; font-size: 14px; color: #d9cdb2; }
 .pboss img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; object-position: top; }
@@ -2629,7 +2663,7 @@ main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(3)) .h
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.36.0';
+const VERSION = '2.37.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = {"url": "https://docs.google.com/forms/d/e/1FAIpQLScAulcyNeUuIkKvoNN67TcOBPP4DqzCyN0W5lsdEM4vQ-SZ4w/formResponse", "entry": "entry.1553952563"};
 const BOARD_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVN5ytJFkGg9NFstRvqxNMD3CIX85ApjWW1Hc8mw0DPSgz31VPmJhZ07FcwhStCdDALGtq5ZI2L8r/pub?gid=1200368070&single=true&output=csv"; // the Sheet's published Leaderboard tab; empty hides the board
@@ -2655,7 +2689,7 @@ const img = (path, cls = '', alt = '') => `<img src="${ART}${path}" alt="${alt}"
 const potionSize = v => v >= 8 ? 'large' : v >= 5 ? 'medium' : 'small';
 // Test build: every ordinary card uses its vintage playing-card face (the whole printed card, numbers and pips included).
 // Bosses with an engraved boss card use it on the table; the rest keep their old art until their cards are drawn.
-const VINTAGE_BOSSES = new Set('warden goblinking jailer mummy banshee vampire skeletonking troll'.split(' '));
+const VINTAGE_BOSSES = new Set('warden goblinking jailer mummy banshee vampire skeletonking troll dragon'.split(' '));
 const vintageBoss = c => !!c.bossKey && c.name !== 'Spiderling' && VINTAGE_BOSSES.has(c.bossKey);
 const trophyCard = t => ({ kind: 'weapon', v: t.v, name: t.name, bossKey: t.bossKey, trophy: true });
 const isVintage = c => !c.bossKey || vintageBoss(c);
@@ -2696,7 +2730,7 @@ const clauseSeal = k => `ui/seal-clause-${({ sworn: 'sworn', abstain: 'abstinent
 const BOSS_ART = { warden: 'portraits/bosscard-warden.webp', hag: 'portraits/boss-plague-hag.webp', lich: 'portraits/boss-lich-auditor.webp',
   goblinking: 'portraits/bosscard-goblinking.webp', jailer: 'portraits/bosscard-jailer.webp', mummy: 'portraits/bosscard-mummy.webp', banshee: 'portraits/bosscard-banshee.webp',
   vampire: 'portraits/bosscard-vampire.webp', broodmother: 'cards/clubs-12.webp', skeletonking: 'portraits/bosscard-skeletonking.webp', golem: 'cards/spades-10.webp',
-  dragon: 'cards/elite-17.webp', horror: 'cards/elite-15.webp', troll: 'portraits/bosscard-troll.webp', wyrm: 'cards/clubs-14.webp', spiderling: 'cards/spades-3.webp' };
+  dragon: 'portraits/bosscard-dragon.webp', horror: 'cards/elite-15.webp', troll: 'portraits/bosscard-troll.webp', wyrm: 'cards/clubs-14.webp', spiderling: 'cards/spades-3.webp' };
 const bossImg = (b, beaten) => img(beaten && BOSS_ART[b.key].startsWith('portraits/boss-') ? BOSS_ART[b.key].replace('.webp', '-beaten.webp') : BOSS_ART[b.key], beaten ? 'beaten' : '', b.name);
 // Azazel the goat (it replaced the guild clerk in 1.20.0, and got its name in 1.38.0; the CSS class is still .clerk). It has lived in the dungeon
 // for years, finds it all rather easy, and talks you through it.
@@ -2919,6 +2953,7 @@ function smallTouches() {
   const beat = inRun && s.phase === 'room' && s.hp / s.maxHp <= .25;
   if (beat && !heartTimer) heartTimer = setInterval(() => { if (!document.hidden && !paused) SFX.play('heart', { gain: .8 }); }, 1100);
   else if (!beat && heartTimer) { clearInterval(heartTimer); heartTimer = 0; }
+  tableAura.wake(); rigLoop.wake();
 }
 // ---------- big moments ----------
 // The beats a run is remembered by get room to breathe: a boss walking in, a boss falling, a contract met,
@@ -2969,6 +3004,8 @@ function bossIntro() {
   const seen = introduced.get(s) || new Set(); introduced.set(s, seen);
   if (!s.boss || seen.has(s.floor)) return;
   seen.add(s.floor);
+  const A = auraOf(s.boss.key);
+  if (A) { bossEntrance(s.boss, A); return; }
   const b = s.boss, el = document.createElement('div');
   el.className = 'bossintro'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', `Boss: ${b.name}`);
   el.innerHTML = `<div class="bibox">${bossImg(b)}<span class="kind">${esc(b.kind)}</span><h2>${esc(b.name)}</h2><p>${esc(b.rule)}</p><small>Tap to go on</small></div>`;
@@ -2989,6 +3026,256 @@ function bossIntro() {
     gone = true; document.removeEventListener('keydown', onKey, true); SFX.play('click');
     const a = anim(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 350, fill: 'forwards' });
     if (a) a.onfinish = () => el.remove(); else el.remove();
+  };
+  const onKey = e => { if (['Enter', ' ', 'Escape'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); close(); } };
+  el.addEventListener('click', close); document.addEventListener('keydown', onKey, true);
+}
+// ---------- boss aura (2.37.0) ----------
+// A boss with a recipe here walks in with a full entrance and its card lives on the table: sparks rise off it and
+// drift past its edges. Another boss gets the same treatment by adding a recipe (colours, eyes, its breath).
+// spark: the colours a spark runs through as it burns out; mouth: where on its card smoke puffs from (0-1 of the art).
+const AURA = {
+  dragon: { kind: 'fire', glow: '255,120,40', eye: '255,150,50', spark: ['255,206,120', '255,156,60', '245,108,34', '190,56,24'], mouth: [.72, .3], breath: true },
+};
+const auraOf = key => !reduceMotion && AURA[key] || null;
+// Sparks: a canvas of soft glowing points (fire, embers, smoke, grit), each a round glow stamped from a cached sprite.
+const sparkSprite = (() => {
+  const cache = {};
+  return rgb => cache[rgb] || (cache[rgb] = (() => {
+    const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d');
+    const r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    r.addColorStop(0, `rgba(${rgb},1)`); r.addColorStop(.22, `rgba(${rgb},.9)`); r.addColorStop(.5, `rgba(${rgb},.32)`); r.addColorStop(1, `rgba(${rgb},0)`);
+    g.fillStyle = r; g.fillRect(0, 0, 64, 64); return c;
+  })());
+})();
+function sparks(canvas, tick) {
+  const g = canvas.getContext('2d'), ps = [];
+  let raf = 0, last = 0, w = 0, h = 0;
+  const dpr = Math.min(1.5, window.devicePixelRatio || 1);
+  function frame(now) {
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    const cw = canvas.clientWidth, ch = canvas.clientHeight;
+    if (cw !== w || ch !== h) { w = cw; h = ch; canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); }
+    const live = tick ? tick(dt, api) !== false : false;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    for (let i = ps.length - 1; i >= 0; i--) {
+      const p = ps[i];
+      p.life += dt;
+      if (p.life >= p.max) { ps.splice(i, 1); continue; }
+      const k = p.life / p.max;
+      p.vx *= 1 - p.drag * dt; p.vy = p.vy * (1 - p.drag * dt) + p.grav * dt;
+      p.x += (p.vx + (p.wob ? Math.sin(now / 300 + p.seed) * p.wob : 0)) * dt; p.y += p.vy * dt;
+      const size = p.size * (1 + p.grow * k);
+      const col = p.ramp[Math.min(p.ramp.length - 1, Math.floor(k * p.ramp.length))];
+      g.globalCompositeOperation = p.add ? 'lighter' : 'source-over';
+      g.globalAlpha = p.alpha * (k < .08 ? k / .08 : 1 - (k - .08) / .92) * (p.flick ? .75 + .25 * Math.sin(now / 60 + p.seed) : 1);
+      g.drawImage(sparkSprite(col), p.x - size / 2, p.y - size / 2, size, size);
+    }
+    g.globalAlpha = 1;
+    raf = live || ps.length ? requestAnimationFrame(frame) : 0;
+    if (!raf) g.clearRect(0, 0, w, h);
+  }
+  const api = {
+    add(p) { if (ps.length < 700) ps.push({ vx: 0, vy: 0, grav: 0, drag: 0, grow: 0, alpha: 1, life: 0, wob: 0, seed: Math.random() * 99, ...p }); },
+    run() { if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } },
+    stop() { cancelAnimationFrame(raf); raf = 0; ps.length = 0; g.clearRect(0, 0, canvas.width, canvas.height); },
+  };
+  return api;
+}
+const rnd = (a, b) => a + Math.random() * (b - a);
+// An ember rising off a rect (a card): it starts on the card's lower edges and floats up past its top.
+function ember(sp, r, A, scale = 1) {
+  const side = Math.random();
+  const x = side < .5 ? r.left + rnd(.05, .95) * r.width : side < .75 ? r.left + rnd(-.03, .06) * r.width : r.right - rnd(-.03, .06) * r.width;
+  const y = side < .5 ? r.top + rnd(.6, 1) * r.height : r.top + rnd(.15, 1) * r.height;
+  sp.add({ x, y, vx: rnd(-14, 14) * scale, vy: rnd(-70, -30) * scale, grav: -10 * scale, drag: .25, wob: rnd(10, 26) * scale, size: rnd(7, 14) * scale, grow: -.55,
+    max: rnd(2, 3.6), ramp: A.spark, add: true, flick: true, alpha: 1 });
+}
+// A puff of smoke from the beast's mouth, drifting up and out past the card.
+function puff(sp, r, A, scale = 1) {
+  const x = r.left + A.mouth[0] * r.width, y = r.top + A.mouth[1] * r.height;
+  for (let i = 0; i < 7; i++) sp.add({ x: x + rnd(-4, 4), y: y + rnd(-3, 3), vx: rnd(4, 26) * scale, vy: rnd(-30, -14) * scale, drag: .5, grav: -4, wob: 6,
+    size: rnd(10, 18) * scale, grow: 2.6, max: rnd(1.8, 2.8), ramp: ['70,62,58', '54,48,46'], alpha: .32 });
+  for (let i = 0; i < 5; i++) sp.add({ x, y, vx: rnd(10, 40) * scale, vy: rnd(-24, 4) * scale, drag: 1.2, size: rnd(4, 8) * scale, grow: .4, max: rnd(.4, .8), ramp: A.spark, add: true, alpha: .9 });
+}
+// A living card's beast is a puppet: a body and two wings, flown by code over an empty card (its lair). It circles the
+// card: across the front big and low facing left, a quick turn at the edge (it narrows as it turns, as if seen
+// edge-on), back across the top small and dim facing right. Its wingtips and tail swing past the card's edges.
+// Every other loop it breathes fire as it crosses the front. A pose depends only on the clock, so the table can
+// redraw under it without a hitch.
+const RIGS = { dragon: { period: 11000, flap: 1.1 } };
+const hasRig = c => !reduceMotion && !!(c && c.boss && !c.trophy && c.name !== 'Spiderling' && RIGS[c.bossKey]);
+const rigHTML = key => `<div class="rig" data-rig="${key}" aria-hidden="true"><i class="rshadow"></i><div class="rfly">
+  <img class="rwing far" src="${ART}cards/rig/${key}-wing-far.webp" alt=""><img class="rbody" src="${ART}cards/rig/${key}-body.webp" alt=""><img class="rwing near" src="${ART}cards/rig/${key}-wing-near.webp" alt=""><b class="rmouth"></b></div></div>`;
+function rigPose(R, now) {
+  const ph = 2 * Math.PI * (now % R.period) / R.period, z = Math.sin(ph), loop = Math.floor(now / R.period);
+  const breath = loop % 2 === 0 && ph > 1.15 && ph < 2.25; // the middle of the front pass
+  const turn = Math.sign(z || 1) * Math.max(.12, Math.pow(Math.abs(z), .35));
+  const beat = now / 1000 * 2 * Math.PI * R.flap * (breath ? .45 : 1);
+  return { x: 50 + 20 * Math.cos(ph), y: 45 + 12 * z + 2.2 * Math.sin(beat + 1.2), s: .8 + .2 * z, face: turn, rot: -6 * Math.cos(ph) - (breath ? 5 : 0),
+    light: .72 + .28 * (z + 1) / 2, near: -60 + 42 * Math.sin(beat), far: -64 + 36 * Math.sin(beat - .4), breath, loop };
+}
+function poseRig(el, now) {
+  const R = RIGS[el.dataset.rig]; if (!R) return;
+  const p = rigPose(R, now), fly = el.children[1], sh = el.children[0], [far, , near] = fly.children;
+  fly.style.transform = `translate(-50%, -50%) translate(${(p.x - 50) * el.clientWidth / 100}px, ${(p.y - 50) * el.clientHeight / 100}px) rotate(${p.rot * Math.sign(p.face)}deg) scale(${p.s * p.face}, ${p.s})`;
+  fly.style.filter = `brightness(${p.light.toFixed(2)})`;
+  near.style.transform = `rotate(${p.near}deg) scaleX(-1)`;
+  far.style.transform = `rotate(${p.far}deg)`;
+  sh.style.transform = `translate(-50%, -50%) translateX(${(p.x - 50) * el.clientWidth / 100}px) scale(${(.5 + .5 * p.s).toFixed(2)})`;
+  sh.style.opacity = (.3 + .7 * (p.s - .6) / .4).toFixed(2);
+}
+const rigLoop = (() => {
+  let raf = 0;
+  function frame(now) {
+    const els = document.querySelectorAll('.rig');
+    if (!els.length) { raf = 0; return; }
+    if (!document.hidden) els.forEach(el => poseRig(el, now));
+    raf = requestAnimationFrame(frame);
+  }
+  return { wake() { if (!raf && !reduceMotion && document.querySelector('.rig')) raf = requestAnimationFrame(frame); } };
+})();
+// Fire from a living card's mouth while it breathes, and a wisp of smoke now and then when it doesn't. Returns
+// true on the frame a breath starts, so the caller can play its sound.
+const breathSeen = {};
+function rigBreath(api, el, A, dt, scale, tag) {
+  const rig = el.querySelector('.rig'); if (!rig) return false;
+  const p = rigPose(RIGS[rig.dataset.rig], performance.now()), m = rig.querySelector('.rmouth').getBoundingClientRect(), dir = p.face > 0 ? -1 : 1;
+  if (p.breath) {
+    for (let n = Math.round(dt * 160); n--;) api.add({ x: m.left + rnd(-2, 2), y: m.top + rnd(-2, 2), vx: dir * rnd(140, 300) * scale, vy: rnd(-30, 50) * scale, drag: 2.2, grav: -40,
+      size: rnd(6, 12) * scale, grow: rnd(2.5, 4.5), max: rnd(.45, .85), ramp: A.spark, add: true, alpha: rnd(.5, .9) });
+    const fresh = breathSeen[tag] !== p.loop; breathSeen[tag] = p.loop; return fresh;
+  }
+  if (Math.random() < dt * .25) puff(api, { left: m.left, top: m.top, width: 0, height: 0 }, { ...A, mouth: [0, 0] }, scale * .7);
+  return false;
+}
+// The table: one canvas over the whole screen serves every living card, so sparks keep drifting while the table
+// redraws underneath. It stops itself when no living card is left and the last spark is out.
+const tableAura = (() => {
+  let sp = null, next = 0;
+  const rate = {};
+  function tick(dt, api) {
+    const els = (!paused && !document.hidden && app.querySelectorAll('.chamber:not(.preview) .card[data-aura]')) || [];
+    if (!els.length) return false;
+    const now = performance.now();
+    els.forEach(el => {
+      const A = AURA[el.dataset.aura], art = el.querySelector('.art'); if (!A || !art) return;
+      const r = art.getBoundingClientRect(); if (!r.width) return;
+      const id = el.dataset.card; rate[id] = (rate[id] || 0) + dt * 14;
+      while (rate[id] >= 1) { rate[id]--; ember(api, r, A, Math.max(.6, r.width / 160)); }
+      if (el.querySelector('.rig')) { if (rigBreath(api, el, A, dt, Math.max(.6, r.width / 160), 'table')) SFX.play('fire', { gain: .35, rate: 1.15 }); }
+      else if (A.breath && now > next) { if (next) puff(api, r, A, Math.max(.6, r.width / 160)); next = now + rnd(3500, 6500); }
+    });
+    return true;
+  }
+  return {
+    wake() {
+      if (reduceMotion || !app.querySelector('.chamber .card[data-aura]')) return;
+      if (!sp) { const c = document.createElement('canvas'); c.id = 'aura'; c.setAttribute('aria-hidden', 'true'); document.body.appendChild(c); sp = sparks(c, tick); }
+      sp.run();
+    },
+  };
+})();
+// The dragon's shadow passing overhead: a flying dragon seen from below, blurred into a shadow.
+const WING = 'M196 104 C170 92 140 70 118 40 C100 46 60 50 6 78 C34 84 44 96 52 112 C66 104 82 106 92 118 C104 110 120 114 128 130 C142 122 160 124 170 136 C180 126 190 122 196 124 Z';
+const DRAGON_SHADOW = `<svg class="bishadow" viewBox="0 0 400 260" aria-hidden="true"><g fill="#000">
+  <path d="${WING}"/><path d="${WING}" transform="matrix(-1 0 0 1 400 0)"/>
+  <ellipse cx="200" cy="118" rx="20" ry="46"/><path d="M190 86 C186 60 192 36 200 14 C208 36 214 60 210 86 Z"/><path d="M193 22 L200 2 L207 22 Z"/>
+  <path d="M192 158 C188 190 206 214 196 256 C214 222 214 190 208 158 Z"/></g></svg>`;
+// The grand entrance, beat by beat: the dark, two footfalls, a shadow passing over, eyes opening, then the roar,
+// a wall of fire and the card slamming down out of it, its name burning in. The first tap skips to the card,
+// the next one goes on.
+function bossEntrance(b, A, done) {
+  const el = document.createElement('div');
+  el.className = 'bossintro grand'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', `Boss: ${b.name}`);
+  el.style.setProperty('--glow', A.glow); el.style.setProperty('--eye', A.eye);
+  const letters = [...b.name].map(ch => ch === ' ' ? ' ' : `<span>${esc(ch)}</span>`).join('');
+  el.innerHTML = `<canvas class="bicanvas"></canvas>${DRAGON_SHADOW}<div class="bieyes"><i></i><i></i></div><div class="biflash"></div>
+    <div class="bibox"><div class="bicard">${RIGS[b.key] ? `<div class="art">${img(`cards/vintage/boss-${b.key}-lair.webp`, 'lair')}${rigHTML(b.key)}</div>` : bossImg(b)}</div><span class="kind">${esc(b.kind)}</span><h2>${letters}</h2><p>${esc(b.rule)}</p><small>Tap to go on</small></div>`;
+  document.body.appendChild(el);
+  const $ = q => el.querySelector(q), box = $('.bibox'), card = $('.bicard'), stage = app.querySelector('.stage') || app;
+  const [, kind, name, rule, hint] = box.children;
+  box.style.visibility = 'hidden';
+  let embers = false, roared = false, revealed = false, gone = false, skip = false, wake = null;
+  const sp = sparks($('.bicanvas'), (dt, api) => {
+    if (gone) return false;
+    if (embers) {
+      const r = card.getBoundingClientRect();
+      for (let n = Math.random() < dt * 22 ? 1 : 0; n--;) ember(api, r, A, 1.4);
+      if (rigBreath(api, card, A, dt, 1.6, 'intro')) SFX.play('fire', { gain: .5, rate: 1.1 });
+      if (Math.random() < dt * 6) api.add({ x: rnd(0, innerWidth), y: innerHeight + 10, vx: rnd(-10, 10), vy: rnd(-90, -40), grav: -5, wob: 14, size: rnd(3, 6), grow: -.4, max: rnd(3, 6), ramp: A.spark, add: true, flick: true, alpha: .8 });
+    }
+    return true;
+  });
+  sp.run(); rigLoop.wake();
+  const wait = ms => skip ? Promise.resolve() : new Promise(res => { const id = setTimeout(res, ms); wake = () => { clearTimeout(id); res(); }; });
+  const go = (node, frames, opts) => node.animate(frames, { easing: EASE.out, fill: 'both', ...opts });
+  const shake = (m, ms) => [stage, box].forEach(n => n.animate([0, 1, 2, 3, 4, 5].map(i => ({ transform: i === 5 ? 'none' : `translate(${(Math.random() - .5) * 2 * m * (1 - i / 5)}px, ${(Math.random() - .5) * m * (1 - i / 5)}px)` })), { duration: ms, easing: 'linear' }));
+  const grit = n => { for (let i = 0; i < n; i++) sp.add({ x: rnd(0, innerWidth), y: rnd(-20, innerHeight * .15), vx: rnd(-8, 8), vy: rnd(20, 80), grav: 420, size: rnd(2, 5), max: rnd(.9, 1.6), ramp: ['150,138,120'], alpha: .7 }); };
+  function stomp(big) {
+    SFX.play('stomp', { gain: big ? 1.15 : .85, rate: big ? .9 : 1 });
+    shake(big ? 12 : 7, big ? 520 : 380); grit(big ? 70 : 40);
+    go($('.biflash'), [{ opacity: big ? .22 : .12, background: 'rgba(40,20,10,1)' }, { opacity: 0 }], { duration: 400, fill: 'none' });
+  }
+  function roar() {
+    if (roared) return; roared = true;
+    SFX.play('roar', { gain: 1.1 }); SFX.play('fire', { gain: 1, delay: .25 }); SFX.duck(1, 1.2);
+    const eyes = $('.bieyes'), r = eyes.getBoundingClientRect(), mx = r.left + r.width / 2, my = r.bottom + 14, reach = Math.hypot(innerWidth, innerHeight);
+    go(eyes, [{ opacity: 1, transform: 'translate(-50%, 0) scale(1)', filter: 'brightness(1)' }, { opacity: 1, transform: 'translate(-50%, 0) scale(1.5)', filter: 'brightness(2.2)', offset: .3 }, { opacity: 0, transform: 'translate(-50%, 0) scale(2.2)', filter: 'brightness(3)' }], { duration: 700, delay: 150 });
+    let t = 0; // the breath: fire pours out of the mouth straight at you for most of a second
+    const pour = setInterval(() => {
+      if ((t += 30) > 950 || gone) { clearInterval(pour); return; }
+      for (let i = 0; i < 10; i++) {
+        const a = rnd(0, Math.PI * 2), s = rnd(.15, 1) * reach * rnd(.5, .9);
+        sp.add({ x: mx + rnd(-10, 10), y: my + rnd(-6, 6), vx: Math.cos(a) * s, vy: Math.sin(a) * s * .8 + 40, drag: 1.4, size: rnd(30, 70), grow: rnd(4, 9), max: rnd(.7, 1.3), ramp: A.spark.slice(1), add: true, alpha: rnd(.18, .4) });
+      }
+    }, 30);
+    setTimeout(() => go($('.biflash'), [{ opacity: 0, background: `rgba(${A.glow},1)` }, { opacity: .55, offset: .25 }, { opacity: 0 }], { duration: 1300, fill: 'none' }), 260);
+    setTimeout(() => shake(16, 700), 200);
+  }
+  function reveal(fast) {
+    if (revealed) return; revealed = true;
+    $('.bishadow').getAnimations().forEach(a => a.cancel()); $('.bishadow').style.opacity = 0;
+    if (fast) { roar(); $('.bieyes').style.opacity = 0; }
+    box.style.visibility = '';
+    const d = fast ? 0 : 1;
+    go(card, [{ opacity: 0, transform: 'scale(2.4) rotate(-6deg)', filter: 'blur(12px) brightness(3)' }, { opacity: 1, transform: 'scale(.94) rotate(1deg)', filter: 'blur(0) brightness(1.6)', offset: .6 }, { opacity: 1, transform: 'none', filter: 'none' }], { duration: 650, delay: 380 * d, easing: 'cubic-bezier(.5,0,.75,0)' });
+    setTimeout(() => { if (!gone) { embers = true; shake(9, 360); SFX.play('stomp', { gain: .7, rate: 1.2 }); } }, 380 * d + 390);
+    go(kind, [{ opacity: 0, letterSpacing: '.9em' }, { opacity: 1, letterSpacing: '.3em' }], { duration: 800, delay: 900 * d });
+    [...name.children].forEach((s, i) => go(s, [{ opacity: 0, color: '#fff1c4', textShadow: `0 0 4px #fff3d0, 0 0 22px rgb(${A.glow}), 0 0 40px rgb(${A.glow})`, transform: 'translateY(8px) scale(1.25)' },
+      { opacity: 1, color: '#ffd28a', textShadow: `0 3px 0 #000, 0 0 18px rgb(${A.glow})`, transform: 'none', offset: .35 },
+      { opacity: 1, color: '#f1e3bf', textShadow: `0 3px 0 #000, 0 0 26px rgba(${A.glow},.55)`, transform: 'none' }], { duration: 1400, delay: 1000 * d + i * 55 }));
+    go(rule, [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 700, delay: 1900 * d });
+    go(hint, [{ opacity: 0 }, { opacity: .6 }], { duration: 700, delay: 2600 * d });
+  }
+  (async () => {
+    SFX.duck(.12, .5);
+    go(el, [{ opacity: 0 }, { opacity: 1 }], { duration: 700 });
+    SFX.play('rumble', { gain: 1 });
+    await wait(900); if (skip) return;
+    stomp(false);
+    await wait(950); if (skip) return;
+    stomp(true);
+    await wait(900); if (skip) return;
+    SFX.play('wings', { gain: 1 });
+    go($('.bishadow'), [{ opacity: 0, transform: 'translate(-70vw, 30vh) scale(1.4) rotate(-14deg)' }, { opacity: .9, offset: .3 }, { opacity: .9, offset: .7 }, { opacity: 0, transform: 'translate(70vw, -50vh) scale(3.4) rotate(-14deg)' }], { duration: 1300, easing: 'cubic-bezier(.45,.05,.55,.95)' });
+    setTimeout(() => !skip && shake(4, 500), 500);
+    await wait(1700); if (skip) return;
+    go($('.bieyes'), [{ opacity: 0, transform: 'translate(-50%, 0) scaleY(.05)' }, { opacity: 1, transform: 'translate(-50%, 0) scaleY(1)' }], { duration: 700, easing: EASE.inOut });
+    await wait(1100); if (skip) return;
+    roar();
+    await wait(450); if (skip) return;
+    reveal(false);
+  })();
+  const opened = performance.now();
+  let shownAt = 0;
+  const close = () => {
+    if (gone || performance.now() - opened < 600) return; // a quick double tap on the way in doesn't skip it
+    if (!revealed) { skip = true; if (wake) wake(); reveal(true); shownAt = performance.now(); return; }
+    if (performance.now() - (shownAt || opened) < 500) return;
+    gone = true; document.removeEventListener('keydown', onKey, true); SFX.play('click'); SFX.duck(1, .8);
+    const a = el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 450, fill: 'forwards' });
+    a.onfinish = () => { sp.stop(); el.remove(); if (done) done(); };
   };
   const onKey = e => { if (['Enter', ' ', 'Escape'].includes(e.key)) { e.preventDefault(); e.stopPropagation(); close(); } };
   el.addEventListener('click', close); document.addEventListener('keydown', onKey, true);
@@ -3097,7 +3384,7 @@ applyTextSize();
 // one; a music loop is fetched when its place first comes up. The pause menu has a slider for each, M mutes both,
 // and all three settings are kept per browser.
 const SFX = (() => {
-  const LEVEL = { heart: .5, click: .25, open: .35, close: .35, deal: .3, flip: .3, slash: .6, punch: .7, hurt: .7, equip: .5, potion: .6, coins: .45, stamp: .6, flee: .45, break: .55, toll: .6, relic: .6, met: .55, win: .7 };
+  const LEVEL = { heart: .5, click: .25, open: .35, close: .35, deal: .3, flip: .3, slash: .6, punch: .7, hurt: .7, equip: .5, potion: .6, coins: .45, stamp: .6, flee: .45, break: .55, toll: .6, relic: .6, met: .55, win: .7, rumble: .8, stomp: .8, wings: .7, roar: .85, fire: .7 };
   const raw = {}, bufs = {}, songs = {};
   let ctx = null, out, sfxBus, musicBus;
   let vol = store.get('volume', .7), mvol = store.get('music', .5), muted = store.get('muted', false);
@@ -3161,10 +3448,13 @@ const SFX = (() => {
     });
   }
   const clamp = v => Math.max(0, Math.min(1, v));
+  // Hold the music down (a boss walking in) and let it back up: level is a share of the music volume, over secs.
+  let duckLevel = 1;
+  function duck(level, secs = .5) { duckLevel = level; if (musicBus) musicBus.gain.setTargetAtTime(mvol * level, ctx.currentTime, secs / 3); }
   return {
-    play, music,
+    play, music, duck,
     setVolume(v) { vol = clamp(v); store.set('volume', vol); if (sfxBus) sfxBus.gain.value = vol; },
-    setMusic(v) { mvol = clamp(v); store.set('music', mvol); if (musicBus) musicBus.gain.setTargetAtTime(mvol, ctx.currentTime, .05); },
+    setMusic(v) { mvol = clamp(v); store.set('music', mvol); if (musicBus) musicBus.gain.setTargetAtTime(mvol * duckLevel, ctx.currentTime, .05); },
     setMuted(m) { muted = !!m; store.set('muted', muted); if (out) out.gain.setTargetAtTime(muted ? 0 : 1, ctx.currentTime, .05); },
     get volume() { return vol; }, get musicVolume() { return mvol; }, get muted() { return muted; },
   };
@@ -3607,8 +3897,8 @@ function cardExtras(c) {
 const soleAct = acts => (acts.match(/data-s?act=/g) || []).length === 1 && !/ disabled/.test(acts);
 function cardShell(c, active, acts, extras = '') {
   const lit = tut && TUTORIAL[tut.step] && TUTORIAL[tut.step].allow && TUTORIAL[tut.step].allow.v === c.v && s.phase === 'room';
-  return `<article class="card ${c.kind} ${isVintage(c) ? 'vint' : ''} ${vintageBoss(c) ? 'vboss' : ''} ${c.v >= 15 || c.bossKey ? 'elite' : ''} ${c.boss ? 'bosscard' : ''} ${c.base != null ? 'up' : ''} ${c.trophy ? 'trophy' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''} ${active && soleAct(acts) ? 'tap' : ''}" data-card="${c.id}" style="${handPlaced(c.id)};--nl:${cardName(c).length}"${isBossCard(c) && !c.trophy ? ' data-boss="1"' : ''}${c.boss ? tipAttr(cardName(c), 'Must die before you can leave this room.') : c.trophy ? tipAttr(cardName(c), `A trophy: this boss fights for you now, as a <b>${c.v}</b> weapon.`) : c.base != null ? tipAttr(cardName(c), `Upgraded from <b>${c.base}</b> to <b>${c.v}</b> for the rest of the run.`) : ''}>
-    <div class="art">${img(cardArt(c))}<span class="rank" role="img" aria-label="${c.v}">${digits(c.v)}</span></div>
+  return `<article class="card ${c.kind} ${isVintage(c) ? 'vint' : ''} ${vintageBoss(c) ? 'vboss' : ''} ${c.v >= 15 || c.bossKey ? 'elite' : ''} ${c.boss ? 'bosscard' : ''} ${c.base != null ? 'up' : ''} ${c.trophy ? 'trophy' : ''} ${active ? '' : 'idle'} ${lit ? 'lit' : ''} ${active && soleAct(acts) ? 'tap' : ''}" data-card="${c.id}" style="${handPlaced(c.id)};--nl:${cardName(c).length}"${isBossCard(c) && !c.trophy ? ' data-boss="1"' : ''}${c.boss && AURA[c.bossKey] && c.name !== 'Spiderling' ? ` data-aura="${c.bossKey}"` : ''}${c.boss ? tipAttr(cardName(c), 'Must die before you can leave this room.') : c.trophy ? tipAttr(cardName(c), `A trophy: this boss fights for you now, as a <b>${c.v}</b> weapon.`) : c.base != null ? tipAttr(cardName(c), `Upgraded from <b>${c.base}</b> to <b>${c.v}</b> for the rest of the run.`) : ''}>
+    <div class="art">${hasRig(c) ? img(`cards/vintage/boss-${c.bossKey}-lair.webp`, 'lair') + rigHTML(c.bossKey) : img(cardArt(c))}<span class="rank" role="img" aria-label="${c.v}">${digits(c.v)}</span></div>
     <div class="name ${extras ? 'withx' : ''}"><span class="face">${cardName(c)}</span>${extras}</div>
     <div class="acts ${(acts.match(/data-act=/g) || []).length > 2 ? 'many' : ''}">${acts}</div></article>`;
 }
@@ -4746,6 +5036,8 @@ render();
   const actions = {
     run: b => { ensureRun(b.dataset.run); done(); },
     floor: b => { ensureRun(); E.devJump(s, +b.dataset.floor); done(); },
+    // meet a boss with an entrance: it is set as that act's boss and its floor opens (its entrance plays again)
+    aura: b => { ensureRun(); const k = b.dataset.key, f = E.BOSSES[k].act * 3 + 2; s.bossKeys = s.bossKeys.slice(0, E.BOSSES[k].act).filter(x => x !== k); for (let a = 0; a < E.BOSSES[k].act; a++) E.bossFor(s, a * 3 + 2); s.bossKeys.push(k); introduced.delete(s); E.devJump(s, f); done(); },
     room: b => { ensureRun(); if (s.phase === 'shop') E.leaveShop(s); E.devRoom(s, +b.dataset.room); done(); },
     meet: () => { ensureRun(); if (s.phase === 'bid') E.bid(s, 0); if (s.contract) s.slain = Math.max(s.slain, s.contract.target); done(); },
     end: () => {
@@ -4802,6 +5094,7 @@ render();
       <div class="state">${esc(here)}${on ? ` · ${s.guided ? 'guided' : s.oneDeck ? 'one deck' : 'full'} · pile ${s.draw.length}<br>HP ${s.hp}/${s.maxHp} · gold ${s.gold} · strikes ${s.strikes}${s.weapon ? ` · weapon ${s.weapon.v}${s.weapon.limit != null ? ' (max ' + s.weapon.limit + ')' : ''}` : ''}${c ? `<br>Contract: ${c.survival ? 'survive' : `${s.slain}/${c.target} points, pays ${c.pay}`}` : ''}<br>${d ? `Dues ${d.due}g after floor ${d.floor}` : 'No dues ahead'}` : ''}</div>
       <h3>New run</h3><div class="row"><button data-dv="run" data-run="guided">Guided</button><button data-dv="run" data-run="full">Full game</button><button data-dv="run" data-run="onedeck">One deck</button></div>
       <h3>Go to floor</h3><div class="row">${floorBtns}</div><p class="note">★ boss floor. Dues are collected when floors 3, 6 and 9 end.</p>
+      <h3>Boss entrance</h3><div class="row">${Object.keys(AURA).map(k => `<button data-dv="aura" data-key="${k}">${esc(E.BOSSES[k].name)}</button>`).join('')}</div>
       <h3>Go to room</h3><div class="row">${roomBtns}</div>
       <h3>Settle</h3><div class="row"><button data-dv="meet">Meet contract</button><button data-dv="end" title="Pays the contract, interest and any dues, then opens the shop">End floor now</button></div>
       <div class="row"><button data-dv="shop" title="Opens the shop with every relic on sale">Shop with all relics</button><button data-dv="leave">Leave shop</button></div>
