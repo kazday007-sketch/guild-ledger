@@ -8,6 +8,12 @@ Scapegrace (called Guild Ledger before 1.20.0) uses a three-part version number,
 
 The version lives in `VERSION` near the top of the script in `src/ui.html`. It is shown at the bottom of every screen and sent with every run report, so feedback can be matched to the build that produced it.
 
+## 2.38.0
+
+- **Bigger cards on upright phones.** The room's 2 by 2 cards now fill the table: there are no buttons under them any more, so each card gets that space. When the table is short, the card's name sits on the foot of the picture so the picture can use the card's whole height. Nothing scrolls.
+- **Tap a card to choose what to do.** On an upright phone, tapping a card opens a small menu over the other row of cards with every way to play it in words: Fight with weapon, Fight bare-handed, Drink, Equip, plus Stash or Swap when a relic allows it. Each choice still shows its damage or healing, and the health bar previews the result. Tap outside the menu or Cancel to close it. The tutorial's first two steps say "tap the card and choose" on phones.
+- Laptops, desktops and sideways phones are unchanged.
+
 ## 2.37.0
 
 - **The Dread Dragon makes an entrance.** Its floor opens in the dark: the music drops away, the ground rumbles, two huge footfalls shake the screen and shake grit down, a great winged shadow sweeps over you, then silence and two ember eyes open. It roars, a wall of fire pours out at you, and its card slams down out of the flames while its name burns in letter by letter. The first tap skips to the card, the next goes on.
