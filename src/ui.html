@@ -1729,6 +1729,41 @@ main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(3)) .h
   .pausebox:not(.pagebox):not(.deckbox) h2 { font-size: 22px; } .pausebox:not(.pagebox):not(.deckbox) h2::after { height: 18px; }
   .pausebox:not(.pagebox):not(.deckbox) > button { padding: 7px 12px; font-size: 15px; }
 }
+/* 2.38.0: upright phones. The cards fill the table with only their name under them; tapping a card opens a small
+   menu of its plays (fight, drink, equip, and any relic moves), so there are no buttons under the cards. */
+.onphone { display: none; }
+@media (max-width: 899px) and (orientation: portrait) {
+  .onphone { display: inline; } .offphone { display: none; }
+  main.play .stage .chamber:not(.preview) div.room { --x: calc(30px + var(--tx)); }
+  main.play .stage .chamber:not(.preview) .room > .card .acts, main.play .stage .chamber:not(.preview) .room > .card .name .xact { display: none; }
+  main.play .stage .chamber:not(.preview) .room > .card:not(.idle):not(.hidden) { cursor: pointer; }
+  /* a short table: the name sits on the foot of the picture, so the picture gets the card's whole height */
+  @container chamber (max-height: 480px) {
+    main.play .stage .chamber:not(.preview) div.room { --x: 0px; }
+    main.play .stage .chamber:not(.preview) .room > .card.vint { position: relative; padding: 0; }
+    main.play .stage .chamber:not(.preview) .room > .card.vint .name { position: absolute; left: 0; right: 0; bottom: 5%; margin: 0; padding: 0; background: none; display: flex; justify-content: center; text-align: center; pointer-events: none; }
+    main.play .stage .chamber:not(.preview) .room > .card.vint .name .face { display: inline-block; max-width: 74%; padding: 1px 7px; border-radius: 4px; background: rgba(12,9,6,.82); font-size: calc(13px * var(--ts)); vertical-align: bottom; }
+  }
+  .room > .card.picked .art img { filter: drop-shadow(0 0 4px var(--gold)) drop-shadow(0 0 14px color-mix(in srgb, var(--gold) 60%, transparent)); }
+}
+.picker { position: fixed; inset: 0; z-index: 40; background: rgba(8,6,4,.45); display: flex; justify-content: center; align-items: flex-end;
+  padding: 16px 12px calc(16px + env(safe-area-inset-bottom, 0px)); animation: pickfade .15s ease-out; }
+.picker.top { align-items: flex-start; }
+.pickbox { width: min(100%, 420px); display: grid; gap: 8px; padding: 12px 14px 10px; background: var(--panel-bg); border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
+  border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.6); animation: pickrise .18s ease-out; }
+.picker.top .pickbox { animation-name: pickdrop; } /* it slides out of the card it belongs to */
+.pickbox .pname { font: 600 calc(20px * var(--ts))/1.1 var(--display, inherit); color: var(--bone); text-align: center; padding-bottom: 2px; }
+.pickbox button:not(.link) { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 52px; padding: 6px 16px; font-size: calc(17px * var(--ts)); text-align: left; }
+.pickbox button .pv { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+.pickbox button .pv img.hit { width: 30px; height: 30px; margin: 0; filter: drop-shadow(0 1px 1px rgba(0,0,0,.6)); }
+.pickbox button .pv .hitd { font-weight: 700; font-size: calc(17px * var(--ts)); }
+.pickbox button .pv .hitv { font-size: .7em; margin: 0 2px 0 -4px; vertical-align: -.2em; }
+.pickbox button.fatal { border-color: #d0545b; }
+.pickbox > .link { justify-self: center; padding: 6px 18px; font-size: 15px; }
+@keyframes pickfade { from { opacity: 0; } }
+@keyframes pickrise { from { translate: 0 24px; opacity: 0; } }
+@keyframes pickdrop { from { translate: 0 -24px; opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .picker, .pickbox { animation: none; } }
 </style>
 
 <div id="scene" aria-hidden="true"></div>
@@ -1742,7 +1777,7 @@ main.play .stage .chamber:not(.preview) .card.vint .acts:has(> :nth-child(3)) .h
 const E = window.Engine;
 // Semantic version: MAJOR = overhaul or redesign, MINOR = update, PATCH = bug fix. Bump it in every change and add a CHANGELOG.md entry.
 // Runs from before versioning carry the old tags 'v3' (first public playtest) and 'v4'.
-const VERSION = '2.37.0';
+const VERSION = '2.38.0';
 // Web build only: where run reports go (a Google Form). Empty in the Claude-hosted build.
 const REPORT = { url: '', entry: '' }; /*REPORT_CONFIG*/
 const BOARD_CSV = ''; /*BOARD_CONFIG*/ // the Sheet's published Leaderboard tab; empty hides the board
@@ -2568,8 +2603,8 @@ document.addEventListener('change', e => { if (e.target.matches && e.target.matc
 // what happens, through hints that reset each tutorial run. Floor 1 can't kill you, and clearing the tutorial's
 // rooms gets a short recap.
 const TUTORIAL = [
-  { allow: { v: 7, mode: null }, focus: '.stat.hp', text: 'Keep your <b>health</b> above 0. First, tap the <b>gauntlet</b> under the sword to equip it.' },
-  { allow: { v: 9, mode: 'weapon' }, focus: '.stat.weapon', text: 'Monsters hit as hard as their number. Your sword blocks most of it. Tap the <b>sword</b> under the Owlbear.' },
+  { allow: { v: 7, mode: null }, focus: '.stat.hp', text: 'Keep your <b>health</b> above 0. First, <span class="offphone">tap the <b>gauntlet</b> under the sword to equip it</span><span class="onphone">tap the <b>sword</b> card and choose <b>Equip</b></span>.' },
+  { allow: { v: 9, mode: 'weapon' }, focus: '.stat.weapon', text: 'Monsters hit as hard as their number. Your sword blocks most of it. <span class="offphone">Tap the <b>sword</b> under the Owlbear.</span><span class="onphone">Tap the <b>Owlbear</b> and choose <b>Fight with weapon</b>.</span>' },
 ];
 const TUTORIAL_HINTS = ['survive', 'spared', 'lastpick', 'fists', 'flee', 'limit', 'potion', 'tutdone'];
 const TUTORIAL_ONLY = ['spared', 'lastpick', 'fists', 'tutdone']; // skipping the tutorial skips these; the rest are for everyone
@@ -3813,11 +3848,46 @@ function cardButton(e) {
   const card = !busy && e.target.closest && e.target.closest('.chamber:not(.preview) .room > .card:not(.idle):not(.hidden)');
   if (!card) return null;
   const bs = card.querySelectorAll('.acts button[data-act]:not(:disabled)');
+  if (phoneUp()) { if (bs.length || card.querySelector('.name .xact')) openPicker(card); return null; }
   if (bs.length === 1) return bs[0];
   if (bs.length) { card.classList.remove('nudge'); void card.offsetWidth; card.classList.add('nudge'); }
   return null;
 }
+// Upright phones: the cards have no buttons under them. Tapping one opens a menu of its plays, with words, over the other row of cards.
+const phoneUp = () => !!(window.matchMedia && matchMedia('(max-width: 899px) and (orientation: portrait)').matches);
+const PLAY_WORDS = { weapon: 'Fight with weapon', weapon2: 'Fight with off hand', bare: 'Fight bare-handed', drink: 'Drink it', equip: 'Equip as weapon' };
+function playWord(c, b) {
+  if (b.dataset.stash) return 'Stash for later';
+  if (b.dataset.swap) return 'Swap it (−1 health)';
+  if (b.dataset.act !== 'take') return PLAY_WORDS[b.dataset.act] || '';
+  if (c.kind === 'weapon') return s.relics.includes('unbreaking') && s.weapon ? 'Throw away' : 'Equip';
+  return E.potionHeal(s, c) ? 'Drink' : 'Discard (no healing)';
+}
+function openPicker(card) {
+  closePicker();
+  const c = s && s.room.find(x => x.id === +card.dataset.card); if (!c) return;
+  const rows = [...card.querySelectorAll('.acts button[data-act]'), ...card.querySelectorAll('.name .xact')].map(b => {
+    const n = b.cloneNode(true); n.classList.remove('link', 'xact');
+    n.innerHTML = `<span class="pw">${playWord(c, b)}</span>${b.querySelector('img.hit') ? `<span class="pv">${b.innerHTML}</span>` : ''}`;
+    return n.outerHTML;
+  }).join('');
+  const r = card.getBoundingClientRect(), el = document.createElement('div');
+  const low = r.top + r.height / 2 > innerHeight / 2; // a card in the lower row gets its menu just above it, an upper one just below
+  el.className = 'picker' + (low ? '' : ' top');
+  el.style[low ? 'paddingBottom' : 'paddingTop'] = Math.round(low ? innerHeight - r.top + 6 : r.bottom + 6) + 'px';
+  el.innerHTML = `<div class="pickbox" role="dialog" aria-label="${cardName(c)}"><b class="pname">${cardName(c)}</b>${rows}<button class="link" data-pickclose>Cancel</button></div>`;
+  app.appendChild(el); card.classList.add('picked'); SFX.play('click');
+  const f = el.querySelector('.pickbox button:not(:disabled)'); if (f) f.focus({ preventScroll: true });
+}
+function closePicker() {
+  app.querySelectorAll('.picker').forEach(p => p.remove());
+  app.querySelectorAll('.card.picked').forEach(c => c.classList.remove('picked'));
+  clearPreview();
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && app.querySelector('.picker')) { e.stopImmediatePropagation(); closePicker(); } }, true);
+addEventListener('resize', () => { if (!phoneUp()) closePicker(); });
 app.addEventListener('click', async e => {
+  if (e.target.classList.contains('picker') || e.target.closest('[data-pickclose]')) { closePicker(); return; }
   const b = e.target.closest('button') || cardButton(e); if (!b || b.disabled || busy) return;
   if (!QUIET_BUTTONS.some(k => k in b.dataset)) SFX.play('click'); // buttons with a sound of their own stay quiet here
   if (titleOn) {
@@ -3872,7 +3942,8 @@ app.addEventListener('click', async e => {
   if ('mapgo' in d) { mapView = null; paused = false; render(); return; }
   let acted = true, effect = null;
   if (s) s.fired = []; // relics that fire on this move pulse once it renders
-  const cardEl = b.closest('.card');
+  const picked = b.closest('.picker') && app.querySelector(`.room > .card[data-card="${d.id || d.stash || d.swap}"]`);
+  const cardEl = b.closest('.card') || picked; if (picked) closePicker();
   if (d.bid !== undefined) {
     if (!E.bid(s, +d.bid)) return;
     if (rec) rec.floors.push({ floor: s.floor + 1, tier: s.contract.tier, clause: s.contract.clause, target: s.contract.target, boss: s.boss ? s.boss.key : null, hpStart: s.hp, goldStart: s.gold, raises: 0, flees: 0 });
